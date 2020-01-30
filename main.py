@@ -32,21 +32,21 @@ def load_parts():
     """
     Pre loads the immages defined for the weapon parts
     :return: a dictionary containing the information pre defined in a csv file containing the information for each
-    weapon
+    weapon in a part Object
     """
     partsfile = os.path.join(data_dir, "parts.csv")
     f = open(partsfile,"r")
     lines = f.readlines()
     f.close()
-    weaponparts = []
+    weaponparts = {}
     dictnames = lines[0].replace("\n","").split(",")
     for line in lines[1:]:
         information = line.replace("\n","").split(",")
         data = {dictnames[x] : i for x,i in enumerate(information)}
         if data["type"] == "melee":
-            weaponparts.append(weapon.MeleePart(data))
+            weaponparts[data["name"]] = weapon.MeleePart(data)
         elif data["type"] == "projectile":
-            weaponparts.append(weapon.ProjectilePart(data))
+            weaponparts[data["name"]] = weapon.ProjectilePart(data)
     return weaponparts
 
 def run():
