@@ -13,7 +13,7 @@ class TestWeapon(unittest.TestCase):
         background = pygame.Surface(screen.get_size())
         background = background.convert()
         # background color
-        background.fill((250, 250, 250))
+        background.fill((200, 200, 200))
         screen.blit(background, (0, 0))
         pygame.display.flip()
         weaponparts = {"point": parts["testpoint"], "blade":parts["testblade"],"guard":parts["testguard"],

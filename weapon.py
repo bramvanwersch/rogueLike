@@ -55,6 +55,7 @@ class MeleeWeapon(AbstractWeapon):
             final_arr[int(hw - pa.shape[0]/2):int(hw + pa.shape[0]/2),trl:int(trl + pa.shape[1])] = pa
             trl += pa.shape[1]
         image = pygame.surfarray.make_surface(final_arr)
+        image.set_colorkey((255,255,255), RLEACCEL)
         return image, image.get_rect()
 
 class ProjectileWeapon(AbstractWeapon):
