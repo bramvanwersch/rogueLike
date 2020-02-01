@@ -82,7 +82,7 @@ def run():
     going = True
     while going:
         clock.tick(60)
-
+        events = []
         # Handle Input Events
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -93,7 +93,9 @@ def run():
                 print("Click")
             elif event.type == MOUSEBUTTONUP:
                 print("un-Click")
-
+            else:
+                events.append(event)
+        player.events = events
         allsprites.update()
 
         # Draw Everything --> clears screen and draws. Is not super efficient
