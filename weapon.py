@@ -34,20 +34,22 @@ class AbstractWeapon(pygame.sprite.Sprite):
 class MeleeWeapon(AbstractWeapon):
     def __init__(self, weaponparts):
         AbstractWeapon.__init__(self)
-        #TODO fill this in when making a weapon
         self.parts = weaponparts
         self.image,self.rect = self.__create_weapon_image()
 
     def __create_weapon_image(self):
+        """
+        Create a combined image that includes all the weapon parts.
+        :return: an image and repsective rectangle size.
+        """
         pygame.surfarray.use_arraytype("numpy")
         #the weapon parts as an array numpy matrixes containing pixels
         partspixels = [pygame.surfarray.pixels3d(self.parts[x].image) for x in self.parts]
         #widest component is the guard
-        width = partspixels[2].shape[0]
+        width = partspixels[1].shape[0]
         lenght = sum(x.shape[1] for x in partspixels)
         #make final pixel array consisting of width lenght and 3 for rgb values
         final_arr = np.full((width, lenght, 3), 255)
-        # final_arr[0:10,10:20] = partspixels[0]
         trl = 0
         # requires size of the parts to be even number of pixels to properly work.
         for pa in partspixels:

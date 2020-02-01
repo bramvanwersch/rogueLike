@@ -8,7 +8,7 @@ class TestWeapon(unittest.TestCase):
 
     def test_create_weapon_image(self):
         pygame.init()
-        screen = pygame.display.set_mode((468, 60))
+        screen = pygame.display.set_mode((1900, 1200))
         parts = main.load_parts()
         background = pygame.Surface(screen.get_size())
         background = background.convert()
@@ -16,7 +16,7 @@ class TestWeapon(unittest.TestCase):
         background.fill((200, 200, 200))
         screen.blit(background, (0, 0))
         pygame.display.flip()
-        weaponparts = {"point": parts["testpoint"], "blade":parts["testblade"],"guard":parts["testguard"],
+        weaponparts = {"blade":parts["testblade"],"guard":parts["testguard"],
                        "handle":parts["testhandle"],"pommel":parts["testpommel"]}
         w1 = weapon.MeleeWeapon(weaponparts)
         screen.blit(w1.image,(0,0))

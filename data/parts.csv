@@ -1,5 +1,4 @@
 name,imageName,type,partType
-testpoint,testpoint.bmp,melee,point
 testblade,testblade.bmp,melee,blade
 testguard,testguard.bmp,melee,guard
 testhandle,testhandle.bmp,melee,handle

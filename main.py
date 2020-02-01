@@ -51,7 +51,7 @@ def load_parts():
 
 def run():
     pygame.init()
-    screen = pygame.display.set_mode((468, 60))
+    screen = pygame.display.set_mode((600, 400))
     pygame.display.set_caption("Monkey Fever")
     pygame.mouse.set_visible(True)
 
