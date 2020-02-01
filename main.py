@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Import Modules
 import os, pygame
-import weapon
+import weapon, utilities, entities
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -10,31 +10,13 @@ if not pygame.font:
 if not pygame.mixer:
     print("Warning, sound disabled")
 
-main_dir = os.path.split(os.path.abspath(__file__))[0]
-data_dir = os.path.join(main_dir, "data")
-
-def load_sound(name):
-    class NoneSound:
-        def play(self):
-            pass
-
-    if not pygame.mixer or not pygame.mixer.get_init():
-        return NoneSound()
-    fullname = os.path.join(data_dir, name)
-    try:
-        sound = pygame.mixer.Sound(fullname)
-    except pygame.error:
-        print("Cannot load sound: %s" % fullname)
-        raise SystemExit(str(geterror()))
-    return sound
-
 def load_parts():
     """
     Pre loads the immages defined for the weapon parts
     :return: a dictionary containing the information pre defined in a csv file containing the information for each
     weapon in a part Object
     """
-    partsfile = os.path.join(data_dir, "parts.csv")
+    partsfile = os.path.join(utilities.data_dir, "parts.csv")
     f = open(partsfile,"r")
     lines = f.readlines()
     f.close()
@@ -61,13 +43,6 @@ def run():
     #background color
     background.fill((250, 250, 250))
 
-    # Put Text On The Background, Centered
-    if pygame.font:
-        font = pygame.font.Font(None, 36)
-        text = font.render("Pummel The Chimp, And Win $$$", 1, (10, 10, 10))
-        textpos = text.get_rect(centerx=background.get_width() / 2)
-        background.blit(text, textpos)
-
     # Display The Background
     screen.blit(background, (0, 0))
     pygame.display.flip()
@@ -76,7 +51,8 @@ def run():
     clock = pygame.time.Clock()
     weaponparts = load_parts()
     #method for grouping sprites to be updated togeter
-    allsprites = pygame.sprite.RenderPlain(())
+    player = entities.Player(0, screen.get_rect().y)
+    allsprites = pygame.sprite.RenderPlain((player))
 
     # Main Loop
     going = True

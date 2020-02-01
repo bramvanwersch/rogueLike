@@ -19,7 +19,7 @@ class AbstractEntity(pygame.sprite.Sprite):
 class Player(AbstractEntity):
     def __init__(self, x, y, bounds = "default"):
         AbstractEntity.__init__(self, bounds)
-        self.image, self.rect = utilities.load_image("player.bmp")
+        self.image, self.rect = utilities.load_image("player.bmp",(255,255,255))
         self.speedx, self.speedy = 0,0
         self.speed = 10
         self.events = []
