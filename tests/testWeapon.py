@@ -17,7 +17,7 @@ class TestWeapon(unittest.TestCase):
         screen.blit(background, (0, 0))
         pygame.display.flip()
         loc = [0,0]
-        for _ in range(10):
+        for _ in range(25):
             w1 = main.get_random_weapon(parts[0])
             screen.blit(w1.image,loc)
             loc[0] += 50

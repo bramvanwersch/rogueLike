@@ -42,8 +42,11 @@ def load_parts():
         information = line.replace("\n","").split(",")
         data = {dictnames[x] : i for x,i in enumerate(information)}
         if data["type"] == "melee":
-            meleepart = weapon.MeleePart(data)
-            meleeweaponparts[meleepart.type][meleepart.name] = meleepart
+            try:
+                meleepart = weapon.MeleePart(data)
+                meleeweaponparts[meleepart.type][meleepart.name] = meleepart
+            except KeyError as e:
+                raise Exception("Unknown part name found.") from e
         elif data["type"] == "projectile":
             weaponparts[data["name"]] = weapon.ProjectilePart(data)
     return (meleeweaponparts, projectileweaponparts)
