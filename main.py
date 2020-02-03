@@ -32,7 +32,7 @@ def load_parts():
     :return: return a tuple containing projectile and melee parts in seperate dictionaries that contain a dictionary
     for each part consisting of part classes.
     """
-    partsfile = os.path.join(utilities.data_dir, "parts.csv")
+    partsfile = os.path.join(utilities.DATA_DIR, "parts.csv")
     f = open(partsfile,"r")
     lines = f.readlines()
     f.close()
@@ -52,6 +52,7 @@ def load_parts():
     return (meleeweaponparts, projectileweaponparts)
 
 def run():
+    #TODO load the next upcomming stage or all stages at the start of the game.
     #create starting seed for consistent replayability using a seed.
     random.seed(utilities.seed)
     pygame.init()
