@@ -53,6 +53,7 @@ class AbstractPart(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image, self.rect = utilities.load_image(data["imageName"])
         self.type = data["partType"]
+        self.name = data["name"]
 
 class MeleePart(AbstractPart):
     def __init__(self, data):

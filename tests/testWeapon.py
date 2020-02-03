@@ -16,10 +16,11 @@ class TestWeapon(unittest.TestCase):
         background.fill((200, 200, 200))
         screen.blit(background, (0, 0))
         pygame.display.flip()
-        weaponparts = {"blade":parts["testblade"],"guard":parts["testguard"],
-                       "handle":parts["testhandle"],"pommel":parts["testpommel"]}
-        w1 = weapon.MeleeWeapon(weaponparts)
-        screen.blit(w1.image,(0,0))
+        loc = [0,0]
+        for _ in range(10):
+            w1 = main.get_random_weapon(parts[0])
+            screen.blit(w1.image,loc)
+            loc[0] += 50
         pygame.display.flip()
         going = True
         while going:

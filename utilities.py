@@ -1,9 +1,10 @@
-import os,pygame
+import os,pygame, random
 from pygame.locals import *
-from pygame.compat import geterror
 
 main_dir = os.path.split(os.path.abspath(__file__))[0]
 data_dir = os.path.join(main_dir, "data")
+
+seed = 5
 
 def load_image(name, colorkey=None):
     fullname = os.path.join(data_dir, name)
