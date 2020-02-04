@@ -2,7 +2,7 @@
 # Import Modules
 import os, pygame
 import numpy as np
-import utilities
+import utilities, entities
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -11,15 +11,15 @@ if not pygame.font:
 if not pygame.mixer:
     print("Warning, sound disabled")
 
-class AbstractWeapon(pygame.sprite.Sprite):
-    def __init__(self):
-        pygame.sprite.Sprite.__init__(self)
+class AbstractWeapon(entities.Entity):
+    def __init__(self, image):
+        #default pos will need to be assigned when relevant
+        entities.Entity.__init__(self,image, pos = (0,0))
 
 class MeleeWeapon(AbstractWeapon):
     def __init__(self, weaponparts):
-        AbstractWeapon.__init__(self)
+        AbstractWeapon.__init__(self, self.__create_weapon_image())
         self.parts = weaponparts
-        self.image,self.rect = self.__create_weapon_image()
 
     def __create_weapon_image(self):
         """
@@ -43,16 +43,15 @@ class MeleeWeapon(AbstractWeapon):
         image = pygame.surfarray.make_surface(final_arr)
         #set all the white white pixels transparant
         image.set_colorkey((255,255,255), RLEACCEL)
-        return image, image.get_rect()
+        return image
 
 class ProjectileWeapon(AbstractWeapon):
     def __init__(self):
         AbstractWeapon.__init__(self)
 
-class AbstractPart(pygame.sprite.Sprite):
+class AbstractPart:
     def __init__(self, data):
-        pygame.sprite.Sprite.__init__(self)
-        self.image, self.rect = utilities.load_image(data["imageName"])
+        self.image = utilities.load_image(data["imageName"])
         self.type = data["partType"]
         self.name = data["name"]
 

@@ -2,24 +2,25 @@ import pygame
 from pygame.locals import *
 import utilities
 
-class AbstractEntity(pygame.sprite.Sprite):
-    def __init__(self, bounds):
-        pygame.sprite.Sprite.__init__(self)
+class Entity(pygame.sprite.Sprite):
+    def __init__(self, image, pos, *groups):
+        pygame.sprite.Sprite.__init__(self, *groups)
+        self.image = image
+        self.rect = self.image.get_rect(topleft = pos)
         #bounds where the entity can move, default is the screen size.
-        self.bounds = self.__make_bounds(bounds)
+    #     self.bounds = self.__make_bounds(bounds)
+    #
+    # def __make_bounds(self, bounds):
+    #     if bounds == "default":
+    #         screen = pygame.display.get_surface()
+    #         return screen.get_rect()
+    #     else:
+    #         return pygame.rect.Rect(*bounds)
 
-    def __make_bounds(self, bounds):
-        if bounds == "default":
-            screen = pygame.display.get_surface()
-            return screen.get_rect()
-        else:
-            return pygame.rect.Rect(*bounds)
 
-
-class Player(AbstractEntity):
-    def __init__(self, x, y, bounds = "default"):
-        AbstractEntity.__init__(self, bounds)
-        self.image, self.rect = utilities.load_image("player.bmp",(255,255,255))
+class Player(Entity):
+    def __init__(self, pos, *groups):
+        Entity.__init__(self, utilities.load_image("player.bmp",(255,255,255 )), pos)
         self.speedx, self.speedy = 0,0
         self.speed = 10
         self.events = []
@@ -58,8 +59,9 @@ class Player(AbstractEntity):
         oldpos = self.rect.copy()
         self.rect.x += self.speedx
         self.rect.y += self.speedy
-        if not self.bounds.contains(self.rect):
-            self.rect = oldpos
 
+    def center_coordinate(self):
+        #TODO test this method
+        return self.rect.center
 
 

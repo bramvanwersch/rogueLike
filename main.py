@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # Import Modules
 import os, pygame, random
-import weapon, utilities, entities
+import weapon, utilities, entities, stages, camera
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -52,12 +52,11 @@ def load_parts():
     return (meleeweaponparts, projectileweaponparts)
 
 def run():
-    #TODO load the next upcomming stage or all stages at the start of the game.
     #create starting seed for consistent replayability using a seed.
     random.seed(utilities.seed)
     pygame.init()
     screen = pygame.display.set_mode((600, 400))
-    pygame.display.set_caption("Monkey Fever")
+    pygame.display.set_caption("Welcome to the forest")
     pygame.mouse.set_visible(True)
 
     # Create The Backgound
@@ -70,12 +69,22 @@ def run():
     screen.blit(background, (0, 0))
     pygame.display.flip()
 
+    player = entities.Player((500, 500))
+    ents = camera.CameraAwareLayeredUpdates(player, pygame.Rect(0, 0,1000,1000)) # think of appropraite size
+    stage1 = stages.Stage1()
+    temp_test = ["pppppp",
+                 "p    p",
+                 "p    p",
+                 "p    p"]
+    for y, line in enumerate(temp_test):
+        for x, letter in enumerate(line):
+            if letter == "p":
+                stage1.add_tile(x * 100, y * 100, ents)
+
     # Load game objects here
     clock = pygame.time.Clock()
     weaponparts = load_parts()
-    #method for grouping sprites to be updated togeter
-    player = entities.Player(0, screen.get_rect().y)
-    allsprites = pygame.sprite.RenderPlain((player))
+    allsprites = pygame.sprite.RenderPlain(ents)
 
     # Main Loop
     going = True
@@ -95,17 +104,16 @@ def run():
             else:
                 events.append(event)
         player.events = events
-        allsprites.update()
-        # Draw Everything --> clears screen and draws. Is not super efficient
-        screen.blit(background, (0, 0))
-        loc = [0,0]
-        for _ in range(10):
-            w1 = get_random_weapon(weaponparts[0])
-            screen.blit(w1.image,loc)
-            loc[0] += 50
-        allsprites.draw(screen)
-        pygame.display.flip()
+        # loc = [0,0]
+        # for _ in range(10):
+        #     w1 = get_random_weapon(weaponparts[0])
+        #     screen.blit(w1.image,loc)
+        #     loc[0] += 50
 
+        ents.update()
+        screen.fill((255, 255, 255))
+        ents.draw(screen)
+        pygame.display.update()
     pygame.quit()
 
 

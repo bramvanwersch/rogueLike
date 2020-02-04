@@ -1,11 +1,12 @@
 import pygame
-import utilities
+import utilities, entities
+import random
 
 class BasicStage:
-    def __init__(self, size):
-        self.size = size
+    def __init__(self):
+        self.size = "" #TODO see if implementation is needed
         #matrix for storing discovered tiles
-        self.map = [[]]
+        self.tiles = pygame.sprite.Group()
 
 class Stage1(BasicStage):
     """
@@ -13,19 +14,28 @@ class Stage1(BasicStage):
     """
     size = 2000 # number of tiles
     def __init__(self):
-        BasicStage.__init__(self, size)
+        BasicStage.__init__(self)
         # TODO needs proper name
-        self.props = utilities.load_props(1)
+        # self.props = utilities.load_props(1)
+        self.tile_image = utilities.load_image("forest_ground.bmp")
+
+    def add_tile(self, x, y, ents):
+        #choose random amount of props
+        # amnt = random.randint(0,5)
+        # props = random.sample(props, amnt)
+       Stage1Tile((x, y), self.tile_image, self.tiles, ents)
 
 
-class BasicTile:
-    def __init__(self, x ,y):
+class BasicTile(entities.Entity):
+    def __init__(self, pos, image, *groups):
         """
         The basic tile which is a rectangle of a 100 by a 100 that contains relevant information for that rectangle
         :param x: the x coordinate of the top left corner
         :param y: the y coordinate of the top left corner
         """
-        self.rect = pygame.rect.Rect(x, y, 100, 100)
+        entities.Entity.__init__(self, image, pos, *groups)
+        # tests if a certain tile should be visible
+        self.visible = True
 
     def contains(self, rect):
         """
@@ -36,14 +46,12 @@ class BasicTile:
         return self.rect.contains(rect)
 
 class Stage1Tile(BasicTile):
-    def __init__(self, x, y, props):
+    def __init__(self, pos, image, *groups):
         """
         For stage1 tiles holding specific images
         :param x: see BasicTile
         :param y: see BasicTile
         :param props: a list of props that are present on this tile.
         """
-        BasicTile.__init__(self, x, y)
-        #TODO make this immage of 100 by 100 pixels.
-        self.image, self.image_rect = utilities.load_image("forest_ground.bmp")
-        self.props = props
+        BasicTile.__init__(self, pos, image, *groups)
+        self.props = ""

@@ -8,6 +8,7 @@ MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 DATA_DIR = os.path.join(MAIN_DIR, "data")
 #TODO make forest props as a list of filenames of bitmaps.
 STAGE1_PROPS = [""]
+SCREEN_SIZE = pygame.Rect((0,0,600,400))
 
 seed = 5
 
@@ -23,7 +24,7 @@ def load_image(name, colorkey=None):
         if colorkey == -1:
             colorkey = image.get_at((0, 0))
         image.set_colorkey(colorkey, RLEACCEL)
-    return image, image.get_rect()
+    return image
 
 def load_sound(name):
     class NoneSound:
