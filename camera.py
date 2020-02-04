@@ -17,8 +17,8 @@ class CameraAwareLayeredUpdates(pygame.sprite.LayeredUpdates):
         if self.target:
             x = -self.target.rect.center[0] + SCREEN_SIZE.width/2
             y = -self.target.rect.center[1] + SCREEN_SIZE.height/2
-            self.cam += (pygame.Vector2((x, y)) - self.cam) * 0.05
-            self.cam.x = max(-(self.world_size.width-SCREEN_SIZE.width), min(0, self.cam.x))
+            self.cam += (pygame.Vector2((x, y)) - self.cam) * 0.1 # provides slowly following camera
+            self.cam.x = max(-(self.world_size.width-SCREEN_SIZE.width), min(0, self.cam.x)) # stop mving at the side of the board
             self.cam.y = max(-(self.world_size.height-SCREEN_SIZE.height), min(0, self.cam.y))
 
     def draw(self, surface):

@@ -4,11 +4,13 @@ from pygame.locals import *
 from pygame.compat import geterror
 
 
+#some global constants
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 DATA_DIR = os.path.join(MAIN_DIR, "data")
 #TODO make forest props as a list of filenames of bitmaps.
 STAGE1_PROPS = [""]
 SCREEN_SIZE = pygame.Rect((0,0,600,400))
+TOP_LAYER = 2
 
 seed = 5
 
