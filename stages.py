@@ -3,27 +3,29 @@ import utilities, entities
 import random
 
 class BasicStage:
-    def __init__(self):
+    def __init__(self, updater):
         self.size = "" #TODO see if implementation is needed
         #matrix for storing discovered tiles
         self.tiles = pygame.sprite.Group()
+        #layer updater or camera where the tile instances need to be added to.
+        self.updater = updater
+
+    def add_tile(self, pos):
+        #choose random amount of props
+        # amnt = random.randint(0,5)
+        # props = random.sample(props, amnt)
+       Stage1Tile(pos, self.tile_image, self.tiles, self.updater)
 
 class Stage1(BasicStage):
     """
     Forest stage starting of
     """
     size = 2000 # number of tiles
-    def __init__(self):
-        BasicStage.__init__(self)
+    def __init__(self, updater):
+        BasicStage.__init__(self, updater)
         # TODO needs proper name
         # self.props = utilities.load_props(1)
         self.tile_image = utilities.load_image("forest_ground.bmp")
-
-    def add_tile(self, x, y, ents):
-        #choose random amount of props
-        # amnt = random.randint(0,5)
-        # props = random.sample(props, amnt)
-       Stage1Tile((x, y), self.tile_image, self.tiles, ents)
 
 
 class BasicTile(entities.Entity):

@@ -1,6 +1,5 @@
 import os,pygame, random
 from pygame.locals import *
-from pygame.locals import *
 from pygame.compat import geterror
 
 
@@ -11,6 +10,7 @@ DATA_DIR = os.path.join(MAIN_DIR, "data")
 STAGE1_PROPS = [""]
 SCREEN_SIZE = pygame.Rect((0,0,600,400))
 TOP_LAYER = 2
+DEFAULT_LEVEL_SIZE = pygame.Rect(0,0,10000,10000)
 
 seed = 5
 

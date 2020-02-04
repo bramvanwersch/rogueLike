@@ -70,8 +70,8 @@ def run():
     pygame.display.flip()
 
     player = entities.Player((500, 500))
-    ents = camera.CameraAwareLayeredUpdates(player, pygame.Rect(0, 0,1000,1000)) # think of appropraite size
-    stage1 = stages.Stage1()
+    ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE) # think of appropraite size
+    stage1 = stages.Stage1(ents)
     temp_test = ["pppppp",
                  "p    p",
                  "p    p",
@@ -79,7 +79,7 @@ def run():
     for y, line in enumerate(temp_test):
         for x, letter in enumerate(line):
             if letter == "p":
-                stage1.add_tile(x * 100, y * 100, ents)
+                stage1.add_tile((x * 100, y * 100))
 
     # Load game objects here
     clock = pygame.time.Clock()

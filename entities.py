@@ -7,16 +7,6 @@ class Entity(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self, *groups)
         self.image = image
         self.rect = self.image.get_rect(topleft = pos)
-        #bounds where the entity can move, default is the screen size.
-    #     self.bounds = self.__make_bounds(bounds)
-    #
-    # def __make_bounds(self, bounds):
-    #     if bounds == "default":
-    #         screen = pygame.display.get_surface()
-    #         return screen.get_rect()
-    #     else:
-    #         return pygame.rect.Rect(*bounds)
-
 
 class Player(Entity):
     def __init__(self, pos, *groups):
@@ -57,9 +47,12 @@ class Player(Entity):
         """
         moves the character at walking speed (normal speed) when the new location is not outside the defined bounds
         """
-        oldpos = self.rect.copy()
-        self.rect.x += self.speedx
-        self.rect.y += self.speedy
+        newpos = self.rect.move((self.speedx, self.speedy))
+        if not (self.rect.x + self.speedx < 0 or self.rect.x + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
+            self.rect.x += self.speedx
+        if not (self.rect.y + self.speedy < 0 or self.rect.y + self.speedy > utilities.DEFAULT_LEVEL_SIZE.right):
+            self.rect.y += self.speedy
+
 
     def center_coordinate(self):
         #TODO test this method
