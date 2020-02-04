@@ -1,6 +1,7 @@
 import pygame
 import utilities, entities
 import random
+import numpy as np
 
 class BasicStage:
     def __init__(self, updater):
@@ -11,15 +12,17 @@ class BasicStage:
         self.tiles = []
         #layer updater or camera where the tile instances need to be added to.
         self.updater = updater
+        self.stage_map = utilities.generate_map()
 
     def add_tile(self, pos):
         #choose random amount of props
         # amnt = random.randint(0,5)
         # props = random.sample(props, amnt)
-        tile = Stage1Tile(pos, self.tile_image, self.tile_sprites, self.updater)
+        tile = PathTile(pos, self.tile_image, self.tile_sprites, self.updater)
         self.tiles.append(tile)
 
     def load_unload_tiles(self, playercenter):
+        #TODO optimize this by using matrix and exclusion to check around the character instead of all tiles.
         #roughly an area twice the screen size is loaded
         range_rect = pygame.Rect(0,0,utilities.SCREEN_SIZE.width * 2 , utilities.SCREEN_SIZE.height *2)
         range_rect.center = playercenter
@@ -58,7 +61,7 @@ class BasicTile(entities.Entity):
         """
         return self.rect.contains(rect)
 
-class Stage1Tile(BasicTile):
+class PathTile(BasicTile):
     def __init__(self, pos, image, *groups):
         """
         For stage1 tiles holding specific images
@@ -68,3 +71,7 @@ class Stage1Tile(BasicTile):
         """
         BasicTile.__init__(self, pos, image, *groups)
         self.props = ""
+
+class BorderTile(BasicTile):
+    def __init__(self, pos, image, *groups):
+        BasicTile.__init__(self, pos, image, *groups)

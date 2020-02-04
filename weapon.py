@@ -43,6 +43,7 @@ class MeleeWeapon(AbstractWeapon):
         image = pygame.surfarray.make_surface(final_arr)
         #set all the white white pixels transparant
         image.set_colorkey((255,255,255), RLEACCEL)
+        image = image.convert()
         return image
 
 class ProjectileWeapon(AbstractWeapon):

@@ -48,10 +48,9 @@ class Player(Entity):
         """
         moves the character at walking speed (normal speed) when the new location is not outside the defined bounds
         """
-        newpos = self.rect.move((self.speedx, self.speedy))
-        if not (self.rect.x + self.speedx < 0 or self.rect.x + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
+        if not (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
             self.rect.x += self.speedx
-        if not (self.rect.y + self.speedy < 0 or self.rect.y + self.speedy > utilities.DEFAULT_LEVEL_SIZE.right):
+        if not (self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
             self.rect.y += self.speedy
 
 

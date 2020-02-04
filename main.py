@@ -55,7 +55,8 @@ def run():
     #create starting seed for consistent replayability using a seed.
     random.seed(utilities.seed)
     pygame.init()
-    screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height))
+    font = pygame.font.Font(None, 30)
+    screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height), DOUBLEBUF)
     pygame.display.set_caption("Welcome to the forest")
     pygame.mouse.set_visible(True)
 
@@ -72,16 +73,13 @@ def run():
     player = entities.Player((500, 500))
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE) # think of appropraite size
     stage = stages.Stage1(ents)
-    temp_test = ["pppppp",
-                 "p    p",
-                 "p    p",
-                 "p    p"]
-    for y, line in enumerate(temp_test):
+    for y, line in enumerate(stage.stage_map):
         for x, letter in enumerate(line):
-            if letter == "p":
+            if letter == "P":
                 stage.add_tile((x * 100, y * 100))
 
     # Load game objects here
+    screen.blit(background, (0, 0))
     clock = pygame.time.Clock()
     weaponparts = load_parts()
     allsprites = pygame.sprite.RenderPlain(ents)
@@ -89,7 +87,7 @@ def run():
     # Main Loop
     going = True
     while going:
-        clock.tick(60)
+        clock.tick(500)
         events = []
         # Handle Input Events
         for event in pygame.event.get():
@@ -107,14 +105,16 @@ def run():
         stage.load_unload_tiles(player.rect.center)
         player.events = events
         ents.update()
-        screen.fill((255, 255, 255))
+        screen.fill((0,0,0))
         ents.draw(screen)
         loc = [0,0]
         # for _ in range(10):
         #     w1 = get_random_weapon(weaponparts[0])
         #     screen.blit(w1.image,loc)
         #     loc[0] += 50
-        pygame.display.update()
+        fps = font.render(str(int(clock.get_fps())), True, pygame.Color('black'))
+        screen.blit(fps, (10,10))
+        pygame.display.flip()
     pygame.quit()
 
 

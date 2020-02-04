@@ -8,9 +8,10 @@ MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 DATA_DIR = os.path.join(MAIN_DIR, "data")
 #TODO make forest props as a list of filenames of bitmaps.
 STAGE1_PROPS = [""]
-SCREEN_SIZE = pygame.Rect((0,0,600,400))
+height = 1000
+SCREEN_SIZE = pygame.Rect(0,0,int(height /9 * 16), height)
 TOP_LAYER = 2
-DEFAULT_LEVEL_SIZE = pygame.Rect(0,0,10000,10000)
+DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2000,1000)
 
 seed = 5
 
@@ -59,3 +60,9 @@ def load_props(stage):
         #remove the .bmp extension
         props[filename[:-4]] = load_image(filename, (255,255,255))
     return props
+
+def generate_map():
+    stagemap = ["".join(["P_"]* int(DEFAULT_LEVEL_SIZE.width / 100))]*int(DEFAULT_LEVEL_SIZE.height /100)
+    print(len(stagemap), len(stagemap[0]))
+    return stagemap
+
