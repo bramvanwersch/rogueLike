@@ -18,8 +18,8 @@ class AbstractWeapon(entities.Entity):
 
 class MeleeWeapon(AbstractWeapon):
     def __init__(self, weaponparts):
-        AbstractWeapon.__init__(self, self.__create_weapon_image())
         self.parts = weaponparts
+        AbstractWeapon.__init__(self, self.__create_weapon_image())
 
     def __create_weapon_image(self):
         """

@@ -7,6 +7,7 @@ class Entity(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self, *groups)
         self.image = image
         self.rect = self.image.get_rect(topleft = pos)
+        self.visible = True
 
 class Player(Entity):
     def __init__(self, pos, *groups):

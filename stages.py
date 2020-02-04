@@ -6,7 +6,9 @@ class BasicStage:
     def __init__(self, updater):
         self.size = "" #TODO see if implementation is needed
         #matrix for storing discovered tiles
-        self.tiles = pygame.sprite.Group()
+        self.tile_sprites = pygame.sprite.Group()
+        #create empty matrix for tile objects
+        self.tiles = []
         #layer updater or camera where the tile instances need to be added to.
         self.updater = updater
 
@@ -14,7 +16,18 @@ class BasicStage:
         #choose random amount of props
         # amnt = random.randint(0,5)
         # props = random.sample(props, amnt)
-       Stage1Tile(pos, self.tile_image, self.tiles, self.updater)
+        tile = Stage1Tile(pos, self.tile_image, self.tile_sprites, self.updater)
+        self.tiles.append(tile)
+
+    def load_unload_tiles(self, playercenter):
+        #roughly an area twice the screen size is loaded
+        range_rect = pygame.Rect(0,0,utilities.SCREEN_SIZE.width * 2 , utilities.SCREEN_SIZE.height *2)
+        range_rect.center = playercenter
+        for i,tile in enumerate(self.tiles):
+            if tile.visible and not range_rect.contains(tile.rect):
+                tile.visible = False
+            elif not tile.visible and range_rect.contains(tile.rect):
+                tile.visible = True
 
 class Stage1(BasicStage):
     """
@@ -36,8 +49,6 @@ class BasicTile(entities.Entity):
         :param y: the y coordinate of the top left corner
         """
         entities.Entity.__init__(self, image, pos, *groups)
-        # tests if a certain tile should be visible
-        self.visible = True
 
     def contains(self, rect):
         """

@@ -55,7 +55,7 @@ def run():
     #create starting seed for consistent replayability using a seed.
     random.seed(utilities.seed)
     pygame.init()
-    screen = pygame.display.set_mode((600, 400))
+    screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height))
     pygame.display.set_caption("Welcome to the forest")
     pygame.mouse.set_visible(True)
 
@@ -71,7 +71,7 @@ def run():
 
     player = entities.Player((500, 500))
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE) # think of appropraite size
-    stage1 = stages.Stage1(ents)
+    stage = stages.Stage1(ents)
     temp_test = ["pppppp",
                  "p    p",
                  "p    p",
@@ -79,7 +79,7 @@ def run():
     for y, line in enumerate(temp_test):
         for x, letter in enumerate(line):
             if letter == "p":
-                stage1.add_tile((x * 100, y * 100))
+                stage.add_tile((x * 100, y * 100))
 
     # Load game objects here
     clock = pygame.time.Clock()
@@ -103,16 +103,17 @@ def run():
                 print("un-Click")
             else:
                 events.append(event)
+        #load the tiles around the player and generate new ones if needed.
+        stage.load_unload_tiles(player.rect.center)
         player.events = events
-        # loc = [0,0]
+        ents.update()
+        screen.fill((255, 255, 255))
+        ents.draw(screen)
+        loc = [0,0]
         # for _ in range(10):
         #     w1 = get_random_weapon(weaponparts[0])
         #     screen.blit(w1.image,loc)
         #     loc[0] += 50
-
-        ents.update()
-        screen.fill((255, 255, 255))
-        ents.draw(screen)
         pygame.display.update()
     pygame.quit()
 
