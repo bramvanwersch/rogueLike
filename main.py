@@ -66,11 +66,8 @@ def run():
     player = entities.Player((500, 500))
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE) # think of appropraite size
     stage = stages.Stage1(ents)
+    stage.create_tiles()
     #create a tile for each tile in tha gme to handle input later. and to display images on when needed.
-    for y, line in enumerate(stage.stage_map):
-        for x, letter in enumerate(line):
-            if letter == "P":
-                stage.add_tile((x * 100, y * 100))
 
     clock = pygame.time.Clock()
     weaponparts = load_parts()

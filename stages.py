@@ -1,5 +1,5 @@
 import pygame
-import utilities, entities
+import utilities, entities, game_map
 import random
 import numpy as np
 
@@ -12,14 +12,14 @@ class BasicStage:
         self.tiles = []
         #layer updater or camera where the tile instances need to be added to.
         self.updater = updater
-        self.stage_map = utilities.generate_map()
+        self.stage_map = game_map.build_map()
         self.background = Background(self.tile_images, self.tile_sprites, self.updater)
 
-    def add_tile(self, pos):
+    def add_tile(self, pos, image, *groups):
         #choose random amount of props
         # amnt = random.randint(0,5)
         # props = random.sample(props, amnt)
-        tile = PathTile(pos, self.tile_images[0]) # TODO needs proper fixing
+        tile = PathTile(pos,image, *groups) # TODO needs proper fixing
         self.tiles.append(tile)
 
     def load_unload_tiles(self, playercenter):
@@ -41,7 +41,14 @@ class Stage1(BasicStage):
     def __init__(self, updater):
         self.tile_images = [utilities.load_image("stage1_tile1.bmp",), utilities.load_image("stage1_tile2.bmp")]
         BasicStage.__init__(self, updater)
+        self.forest_image = utilities.load_image("test_forest.bmp")
         # self.props = utilities.load_props(1)
+
+    def create_tiles(self):
+        for y, line in enumerate(self.stage_map):
+            for x, letter in enumerate(line):
+                if letter == 1:
+                    self.add_tile((x * 100, y * 100),self.forest_image, self.tile_sprites, self.updater)
 
 class Background(entities.Entity):
     def __init__(self, images, *groups):

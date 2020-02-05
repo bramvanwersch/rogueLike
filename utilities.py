@@ -62,6 +62,5 @@ def load_props(stage):
     return props
 
 def generate_map():
-    stagemap = ["".join(["P"]* int(DEFAULT_LEVEL_SIZE.width / 100))]*int(DEFAULT_LEVEL_SIZE.height /100)
-    return stagemap
+    return final_map
 
