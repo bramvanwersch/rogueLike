@@ -97,11 +97,11 @@ def run():
         player.events = events
         ents.update()
         ents.draw(screen)
-        # loc = [0,0]
-        # for _ in range(10):
-        #     w1 = get_random_weapon(weaponparts[0])
-        #     screen.blit(w1.image,loc)
-        #     loc[0] += 50
+        loc = [0,0]
+        for _ in range(10):
+            w1 = get_random_weapon(weaponparts[0])
+            screen.blit(w1.image,loc)
+            loc[0] += 50
         fps = font.render(str(int(clock.get_fps())), True, pygame.Color('black'))
         screen.blit(fps, (10,10))
         pygame.display.update()
