@@ -11,7 +11,7 @@ STAGE1_PROPS = [""]
 height = 1000
 SCREEN_SIZE = pygame.Rect(0,0,int(height /9 * 16), height)
 TOP_LAYER = 2
-DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2000,1000)
+DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2500,2500)
 
 seed = 5
 
@@ -62,7 +62,6 @@ def load_props(stage):
     return props
 
 def generate_map():
-    stagemap = ["".join(["P_"]* int(DEFAULT_LEVEL_SIZE.width / 100))]*int(DEFAULT_LEVEL_SIZE.height /100)
-    print(len(stagemap), len(stagemap[0]))
+    stagemap = ["".join(["P"]* int(DEFAULT_LEVEL_SIZE.width / 100))]*int(DEFAULT_LEVEL_SIZE.height /100)
     return stagemap
 

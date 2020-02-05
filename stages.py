@@ -13,23 +13,24 @@ class BasicStage:
         #layer updater or camera where the tile instances need to be added to.
         self.updater = updater
         self.stage_map = utilities.generate_map()
+        self.background = Background(self.tile_images, self.tile_sprites, self.updater)
 
     def add_tile(self, pos):
         #choose random amount of props
         # amnt = random.randint(0,5)
         # props = random.sample(props, amnt)
-        tile = PathTile(pos, self.tile_image, self.tile_sprites, self.updater)
+        tile = PathTile(pos, self.tile_images[0]) # TODO needs proper fixing
         self.tiles.append(tile)
 
     def load_unload_tiles(self, playercenter):
         #TODO optimize this by using matrix and exclusion to check around the character instead of all tiles.
         #roughly an area twice the screen size is loaded
-        range_rect = pygame.Rect(0,0,utilities.SCREEN_SIZE.width * 2 , utilities.SCREEN_SIZE.height *2)
+        range_rect = pygame.Rect(0,0,utilities.SCREEN_SIZE.width * 2 , utilities.SCREEN_SIZE.height * 2)
         range_rect.center = playercenter
         for i,tile in enumerate(self.tiles):
-            if tile.visible and not range_rect.contains(tile.rect):
+            if tile.visible and not range_rect.colliderect(tile.rect):
                 tile.visible = False
-            elif not tile.visible and range_rect.contains(tile.rect):
+            elif not tile.visible and range_rect.colliderect(tile.rect):
                 tile.visible = True
 
 class Stage1(BasicStage):
@@ -38,11 +39,43 @@ class Stage1(BasicStage):
     """
     size = 2000 # number of tiles
     def __init__(self, updater):
+        self.tile_images = [utilities.load_image("stage1_tile1.bmp",), utilities.load_image("stage1_tile2.bmp")]
         BasicStage.__init__(self, updater)
-        # TODO needs proper name
         # self.props = utilities.load_props(1)
-        self.tile_image = utilities.load_image("forest_ground.bmp")
 
+class Background(entities.Entity):
+    def __init__(self, images, *groups):
+        """
+        Creates a large immage as the background for the stage.
+        :param location: start location of image
+        :param images: images to make the background out of.
+        :param groups: groups fro comaera movement.
+        """
+        image = self.__create_background_image(images)
+        entities.Entity.__init__(self, image, (0,0), *groups)
+
+    def __create_background_image(self, images):
+        """
+        Concatenate images into a large nunpy matrix to be trsnalted back into an image by randomly drawing from a pool
+        of images.sas
+        :param images: pygame image
+        :return: a pygame image.
+        """
+        pygame.surfarray.use_arraytype("numpy")
+        c180onvertedimages = [pygame.transform.rotate(image, 180) for image in images]
+        pp0 = [pygame.surfarray.pixels3d(image) for image in images]
+        pp180 = [pygame.surfarray.pixels3d(image) for image in c180onvertedimages]
+        partspixels = pp0  + pp180
+        image_rows = []
+        for i in range(int(utilities.DEFAULT_LEVEL_SIZE.width / 100 + 1)):
+            image_row = []
+            for j in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100 + 1)):
+                image_row.append(random.choice(partspixels))
+            image_rows.append(np.concatenate(image_row, 1))
+        final_arr = np.concatenate(image_rows)
+        image = pygame.surfarray.make_surface(final_arr)
+        image = image.convert()
+        return image
 
 class BasicTile(entities.Entity):
     def __init__(self, pos, image, *groups):

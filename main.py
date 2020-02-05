@@ -60,34 +60,25 @@ def run():
     pygame.display.set_caption("Welcome to the forest")
     pygame.mouse.set_visible(True)
 
-    # Create The Backgound
-    background = pygame.Surface(screen.get_size())
-    background = background.convert()
-    #background color
-    background.fill((250, 250, 250))
-
     # Display The Background
-    screen.blit(background, (0, 0))
     pygame.display.flip()
 
     player = entities.Player((500, 500))
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE) # think of appropraite size
     stage = stages.Stage1(ents)
+    #create a tile for each tile in tha gme to handle input later. and to display images on when needed.
     for y, line in enumerate(stage.stage_map):
         for x, letter in enumerate(line):
             if letter == "P":
                 stage.add_tile((x * 100, y * 100))
 
-    # Load game objects here
-    screen.blit(background, (0, 0))
     clock = pygame.time.Clock()
     weaponparts = load_parts()
     allsprites = pygame.sprite.RenderPlain(ents)
-
     # Main Loop
     going = True
     while going:
-        clock.tick(500)
+        clock.tick(200)
         events = []
         # Handle Input Events
         for event in pygame.event.get():
@@ -101,22 +92,23 @@ def run():
                 print("un-Click")
             else:
                 events.append(event)
+
+        screen.fill([255, 255, 255])
+
         #load the tiles around the player and generate new ones if needed.
         stage.load_unload_tiles(player.rect.center)
         player.events = events
         ents.update()
-        screen.fill((0,0,0))
         ents.draw(screen)
-        loc = [0,0]
+        # loc = [0,0]
         # for _ in range(10):
         #     w1 = get_random_weapon(weaponparts[0])
         #     screen.blit(w1.image,loc)
         #     loc[0] += 50
         fps = font.render(str(int(clock.get_fps())), True, pygame.Color('black'))
         screen.blit(fps, (10,10))
-        pygame.display.flip()
+        pygame.display.update()
     pygame.quit()
-
 
 if __name__ == "__main__":
     run()
