@@ -36,7 +36,20 @@ def determine_pictures(game_map):
                     st[2] = 1
                 if x - 1 < 0 or game_map[y][x - 1] != 0:
                     st[3] = 1
-                game_map[y][x] = get_picture_code(st)
+                name = get_picture_code(st)
+                # check for corner cases
+                if name == "m":
+                    if y + 1 < len(game_map) and x - 1 >= 0 and (game_map[y+1][x-1] == 0):
+                        name = "blic"
+                    elif y + 1 < len(game_map) and x + 1 < len(row) and (game_map[y+1][x+1] == 0):
+                        name = "bric"
+                    elif y - 1 >= 0 and x + 1 < len(row) and (game_map[y - 1][x + 1] == 0):
+                        name = "tric"
+                    elif y - 1 >= 0 and x - 1 >= 0 and (game_map[y-1][x-1] == 0):
+                        name = "tlic"
+
+                game_map[y][x] = name
+    print(game_map)
     return game_map
 
 def get_picture_code(st):
@@ -57,7 +70,6 @@ def get_picture_code(st):
     if st == [1,1,0,1]:
         return "bs"
     return "m"
-
 
 class Leaf:
 

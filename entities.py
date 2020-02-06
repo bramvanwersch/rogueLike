@@ -24,6 +24,7 @@ class Player(Entity):
         self.speedx, self.speedy = 0,0
         self.speed = 10
         self.events = []
+        #overwrite the rect that is normaly calculated to make it a little smaller
         self._layer = utilities.TOP_LAYER
 
     def update(self):
