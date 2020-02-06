@@ -12,6 +12,15 @@ height = 1000
 SCREEN_SIZE = pygame.Rect(0,0,int(height /9 * 16), height)
 TOP_LAYER = 2
 DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2500,2500)
+TREE_IMAGES = ["bottom_left_corner_forest.bmp","bottom_left_icorner_forest.bmp",
+               "bottom_right_corner_forest.bmp","bottom_right_icorner_forest.bmp",
+               "top_right_corner_forest.bmp", "top_right_icorner_forest.bmp",
+               "top_left_corner_forest.bmp","top_left_icorner_forest.bmp",
+               "right_straight_forest1.bmp","right_straight_forest2.bmp","right_straight_forest3.bmp",
+               "left_straight_forest1.bmp","left_straight_forest2.bmp","left_straight_forest3.bmp",
+               "top_straight_forest1.bmp","top_straight_forest2.bmp","top_straight_forest3.bmp",
+               "bottom_straight_forest1.bmp","bottom_straight_forest2.bmp","bottom_straight_forest3.bmp",
+               "middle_forest1.bmp","middle_forest2.bmp","middle_forest3.bmp"]
 
 seed = 5
 
@@ -27,6 +36,7 @@ def load_image(name, colorkey=None):
         if colorkey == -1:
             colorkey = image.get_at((0, 0))
         image.set_colorkey(colorkey, RLEACCEL)
+        image = image.convert_alpha()
     return image
 
 def load_sound(name):
@@ -60,7 +70,4 @@ def load_props(stage):
         #remove the .bmp extension
         props[filename[:-4]] = load_image(filename, (255,255,255))
     return props
-
-def generate_map():
-    return final_map
 

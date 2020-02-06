@@ -11,12 +11,6 @@ class BasicStage:
         self.stage_map = game_map.build_map()
         self.background = Background(self.tile_images, self.updater)
 
-    # def add_tile(self, pos, image, *groups):
-    #     #choose random amount of props
-    #     # amnt = random.randint(0,5)
-    #     # props = random.sample(props, amnt)
-    #     PathTile(pos,image, *groups)
-
     def load_unload_tiles(self, playercenter):
         #TODO optimize this by using matrix and exclusion to check around the character instead of all tiles.
         #roughly an area twice the screen size is loaded
@@ -34,15 +28,52 @@ class Stage1(BasicStage):
     """
     def __init__(self, updater):
         self.tile_images = [utilities.load_image("stage1_tile1.bmp",), utilities.load_image("stage1_tile2.bmp")]
+        self.tree_images = {name[:-4]: pygame.transform.scale(utilities.load_image(name, (255,255,255)), (100,100)) for name in utilities.TREE_IMAGES}
         BasicStage.__init__(self, updater)
-        self.forest_image = utilities.load_image("test_forest.bmp")
         # self.props = utilities.load_props(1)
 
     def create_tiles(self):
         for y, line in enumerate(self.stage_map):
             for x, letter in enumerate(line):
-                if letter == 1:
-                    t = SolidTile(self.forest_image,(x * 100, y * 100), self.tile_sprites, self.updater)
+                image = None
+                if letter == "blc":
+                    image = self.tree_images["bottom_left_corner_forest"]
+                if letter == "tlc":
+                    image = self.tree_images["top_left_corner_forest"]
+                if letter == "trc":
+                    image = self.tree_images["top_right_corner_forest"]
+                if letter == "brc":
+                    image = self.tree_images["bottom_right_corner_forest"]
+                if letter == "blic":
+                    image = self.tree_images["bottom_left_icorner_forest"]
+                if letter == "tlic":
+                    image = self.tree_images["top_left_icorner_forest"]
+                if letter == "tric":
+                    image = self.tree_images["top_right_icorner_forest"]
+                if letter == "bric":
+                    image = self.tree_images["bottom_right_icorner_forest"]
+                if letter == "ls":
+                    image = random.choice((self.tree_images["left_straight_forest1"],
+                                          self.tree_images["left_straight_forest2"],
+                                          self.tree_images["left_straight_forest3"]))
+                if letter == "ts":
+                    image = random.choice((self.tree_images["top_straight_forest1"],
+                                          self.tree_images["top_straight_forest2"],
+                                          self.tree_images["top_straight_forest3"]))
+                if letter == "rs":
+                    image = random.choice((self.tree_images["right_straight_forest1"],
+                                          self.tree_images["right_straight_forest2"],
+                                          self.tree_images["right_straight_forest3"]))
+                if letter == "bs":
+                    image = random.choice((self.tree_images["bottom_straight_forest1"],
+                                          self.tree_images["bottom_straight_forest2"],
+                                          self.tree_images["bottom_straight_forest3"]))
+                if letter == "m":
+                    image = random.choice((self.tree_images["middle_forest1"],
+                                          self.tree_images["middle_forest2"],
+                                          self.tree_images["middle_forest3"]))
+                if image:
+                    t = SolidTile(image,(x * 100, y * 100), self.tile_sprites, self.updater)
 
 class Background(entities.Entity):
     def __init__(self, images, *groups):

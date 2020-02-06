@@ -12,8 +12,6 @@ def build_map():
         did_split = False
         for l in leafs:
             if l.left_leaf == None and l.rigth_leaf == None:
-                #bigger then max size or 75% chance
-                # print("test2")
                 if l.rect.width > MAX_LEAF_SIZE or l.rect.height > MAX_LEAF_SIZE or random.randint(1,4) == 1:
                     if l.split():
                         leafs.append(l.rigth_leaf)
@@ -21,7 +19,45 @@ def build_map():
                         did_split = True
     leafs[0].create_blob()
     final_map = leafs[0].get_map()
-    return final_map
+    return determine_pictures(final_map)
+
+def determine_pictures(game_map):
+    for y, row in enumerate(game_map):
+        for x, number in enumerate(row):
+            if number == 0:
+                continue
+            elif number == 1:
+                st = [0,0,0,0]
+                if y - 1 < 0 or game_map[y -1][x] != 0:
+                    st[0] = 1
+                if x + 1 >= len(row) or game_map[y][x+1] != 0:
+                    st[1] = 1
+                if y + 1 >= len(game_map) or game_map[y + 1][x] != 0:
+                    st[2] = 1
+                if x - 1 < 0 or game_map[y][x - 1] != 0:
+                    st[3] = 1
+                game_map[y][x] = get_picture_code(st)
+    return game_map
+
+def get_picture_code(st):
+    if st == [1,1,0,0]:
+        return "blc"
+    if st == [0,1,1,0]:
+        return "tlc"
+    if st == [0,0,1,1]:
+        return "trc"
+    if st == [1,0,0,1]:
+        return "brc"
+    if st == [1,1,1,0]:
+        return "ls"
+    if st == [0,1,1,1]:
+        return "ts"
+    if st == [1,0,1,1]:
+        return "rs"
+    if st == [1,1,0,1]:
+        return "bs"
+    return "m"
+
 
 class Leaf:
 
@@ -65,8 +101,8 @@ class Leaf:
                 #minimum size is 3
                 blobw = random.randint(3, self.rect.width - 1)
                 blobh = random.randint(3, self.rect.height - 1)
-                blobx = random.randint(self.rect.x + 1, self.rect.right - blobw)
-                bloby = random.randint(self.rect.y + 1, self.rect.bottom - blobh)
+                blobx = random.randint(self.rect.x, self.rect.right - blobw)
+                bloby = random.randint(self.rect.y, self.rect.bottom - blobh)
                 #create a blobmap within the leaf size that is atleast 2 by 2
                 for y in range(bloby - self.rect.y, bloby - self.rect.y + blobh - 1,1):
                     for x in range(blobx - self.rect.x, blobx - self.rect.x +blobw - 1,1):
