@@ -20,11 +20,6 @@ def build_map():
                         leafs.append(l.left_leaf)
                         did_split = True
     leafs[0].create_blob()
-    # count = 0
-    # for l in leafs:
-    #     if l.blob_map:
-    #         count += 1
-    # print(count)
     final_map = leafs[0].get_map()
     return final_map
 
@@ -70,8 +65,8 @@ class Leaf:
                 #minimum size is 3
                 blobw = random.randint(3, self.rect.width - 1)
                 blobh = random.randint(3, self.rect.height - 1)
-                blobx = random.randint(self.rect.x, self.rect.right - blobw)
-                bloby = random.randint(self.rect.y, self.rect.bottom - blobh)
+                blobx = random.randint(self.rect.x + 1, self.rect.right - blobw)
+                bloby = random.randint(self.rect.y + 1, self.rect.bottom - blobh)
                 #create a blobmap within the leaf size that is atleast 2 by 2
                 for y in range(bloby - self.rect.y, bloby - self.rect.y + blobh - 1,1):
                     for x in range(blobx - self.rect.x, blobx - self.rect.x +blobw - 1,1):

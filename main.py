@@ -60,18 +60,15 @@ def run():
     pygame.display.set_caption("Welcome to the forest")
     pygame.mouse.set_visible(True)
 
-    # Display The Background
-    pygame.display.flip()
+    player = entities.Player((0, 500))
+    ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
 
-    player = entities.Player((500, 500))
-    ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE) # think of appropraite size
+    #setup the stage
     stage = stages.Stage1(ents)
     stage.create_tiles()
-    #create a tile for each tile in tha gme to handle input later. and to display images on when needed.
 
     clock = pygame.time.Clock()
     weaponparts = load_parts()
-    allsprites = pygame.sprite.RenderPlain(ents)
     # Main Loop
     going = True
     while going:
@@ -97,11 +94,11 @@ def run():
         player.events = events
         ents.update()
         ents.draw(screen)
-        loc = [0,0]
-        for _ in range(10):
-            w1 = get_random_weapon(weaponparts[0])
-            screen.blit(w1.image,loc)
-            loc[0] += 50
+        # loc = [0,0]
+        # for _ in range(10):
+        #     w1 = get_random_weapon(weaponparts[0])
+        #     screen.blit(w1.image,loc)
+        #     loc[0] += 50
         fps = font.render(str(int(clock.get_fps())), True, pygame.Color('black'))
         screen.blit(fps, (10,10))
         pygame.display.update()

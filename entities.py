@@ -8,6 +8,15 @@ class Entity(pygame.sprite.Sprite):
         self.image = image
         self.rect = self.image.get_rect(topleft = pos)
         self.visible = True
+        self.collision = False
+
+class SolidEntity(Entity):
+    """
+    Adds field so all entities become solid when inheriting from this class
+    """
+    def __init__(self, image, pos, *groups):
+        Entity.__init__(self, image, pos, *groups)
+        self.collision = True
 
 class Player(Entity):
     def __init__(self, pos, *groups):
@@ -48,14 +57,42 @@ class Player(Entity):
         """
         moves the character at walking speed (normal speed) when the new location is not outside the defined bounds
         """
-        if not (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
+        #get sprites overlapping with bottom
+        # overlapping_sprites = super().groups()[0].get_sprites_at(self.__bottem_center_coord())
+        # for sprite in overlapping_sprites:
+        #     if sprite.collision:
+        #         return
+        if not self.__x_collison():
             self.rect.x += self.speedx
-        if not (self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
+        if not self.__y_collison():
             self.rect.y += self.speedy
 
+    def __x_collison(self):
+        if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
+            return True
+        x_rect = self.rect.move((self.speedx, 0))
+        overlapping_sprites = [sprite for sprite in super().groups()[0].sprites() if sprite.rect.colliderect(x_rect)]
+        for sprite in overlapping_sprites:
+            if sprite.collision:
+                return True
+        return False
 
-    def center_coordinate(self):
-        #TODO test this method
-        return self.rect.center
+    def __y_collison(self):
+        if (self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
+            return True
+        y_rect = self.rect.move((0, self.speedy))
+        overlapping_sprites = [sprite for sprite in super().groups()[0].sprites() if sprite.rect.colliderect(y_rect)]
+        for sprite in overlapping_sprites:
+            if sprite.collision:
+                return True
+        return False
+
+    def __bottem_center_coord(self):
+        """
+        Gives the coordinate of the center of the bottom of the rectangle of the sprite. Where the current entity is
+        moving towards.
+        :return: a position in form (x,y)
+        """
+        return (self.rect.center[0] + self.speedx, self.rect.center[1] + self.speedy)
 
 
