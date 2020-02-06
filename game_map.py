@@ -1,7 +1,7 @@
 import pygame, random
 import utilities
 
-MIN_LEAF_SIZE = 5
+MIN_LEAF_SIZE = 4
 MAX_LEAF_SIZE = 10
 
 #binary space partitioning
@@ -49,7 +49,6 @@ def determine_pictures(game_map):
                         name = "tlic"
 
                 game_map[y][x] = name
-    print(game_map)
     return game_map
 
 def get_picture_code(st):

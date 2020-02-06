@@ -10,6 +10,10 @@ class Entity(pygame.sprite.Sprite):
         self.visible = True
         self.collision = False
 
+    @property
+    def bounding_box(self):
+        return self.rect
+
 class SolidEntity(Entity):
     """
     Adds field so all entities become solid when inheriting from this class
@@ -26,6 +30,12 @@ class Player(Entity):
         self.events = []
         #overwrite the rect that is normaly calculated to make it a little smaller
         self._layer = utilities.TOP_LAYER
+
+    @property
+    def bounding_box(self):
+        bb = self.rect.inflate((-self.rect.width * 0.8, - self.rect.height * 0.5))
+        bb.center = (bb.centerx, bb.centery + bb.top - self.rect.top)
+        return bb
 
     def update(self):
         """
@@ -71,8 +81,8 @@ class Player(Entity):
     def __x_collison(self):
         if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
             return True
-        x_rect = self.rect.move((self.speedx, 0))
-        overlapping_sprites = [sprite for sprite in super().groups()[0].sprites() if sprite.rect.colliderect(x_rect)]
+        x_rect = self.bounding_box.move((self.speedx, 0))
+        overlapping_sprites = [sprite for sprite in super().groups()[0].sprites() if sprite.visible and sprite.bounding_box.colliderect(x_rect)]
         for sprite in overlapping_sprites:
             if sprite.collision:
                 return True
@@ -81,8 +91,8 @@ class Player(Entity):
     def __y_collison(self):
         if (self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
             return True
-        y_rect = self.rect.move((0, self.speedy))
-        overlapping_sprites = [sprite for sprite in super().groups()[0].sprites() if sprite.rect.colliderect(y_rect)]
+        y_rect = self.bounding_box.move((0, self.speedy))
+        overlapping_sprites = [sprite for sprite in super().groups()[0].sprites() if sprite.bounding_box.colliderect(y_rect)]
         for sprite in overlapping_sprites:
             if sprite.collision:
                 return True

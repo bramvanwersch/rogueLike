@@ -129,3 +129,9 @@ class SolidTile(BasicTile):
         :param groups: see Entity
         """
         entities.SolidEntity.__init__(self, image, pos, *groups)
+    #
+    # @property
+    # def bounding_box(self):
+    #     return self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.2))
+
+
