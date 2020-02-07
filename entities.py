@@ -113,10 +113,8 @@ class Player(MovingEntity):
     def update(self):
         """
         Processes user input to make the player do actions.
-        :return:
         """
         super().update()
-        print(self.events)
         for event in self.events:
             if event.type == KEYDOWN:
                 if event.key == K_a or event.key == K_LEFT:

@@ -11,17 +11,6 @@ class BasicStage:
         self.stage_map = game_map.build_map()
         self.background = Background(self.tile_images,self.props, self.updater)
 
-    def load_unload_tiles(self, playercenter):
-        #TODO optimize this by using matrix and exclusion to check around the character instead of all tiles.
-        #roughly an area twice the screen size is loaded
-        range_rect = pygame.Rect(0,0,utilities.SCREEN_SIZE.width * 2 , utilities.SCREEN_SIZE.height * 2)
-        range_rect.center = playercenter
-        for i,tile in enumerate(self.tile_sprites.sprites()):
-            if tile.visible and not range_rect.colliderect(tile.rect):
-                tile.visible = False
-            elif not tile.visible and range_rect.colliderect(tile.rect):
-                tile.visible = True
-
 class ForestStage(BasicStage):
     """
     Forest stage starting of
@@ -42,6 +31,11 @@ class ForestStage(BasicStage):
         return utilities.load_image("Forest//" + imagename, colorkey)
 
     def create_tiles(self):
+        """
+        adds tiles with images to the playing field according to a map that was generated that calculated where these
+        images are supposed to be.
+        """
+        #TODO make the method more uniform to be used by different stages and collections of pictures.
         for y, line in enumerate(self.stage_map):
             for x, letter in enumerate(line):
                 image = None
@@ -100,7 +94,8 @@ class Background(entities.Entity):
     def __create_background_image(self, images, props):
         """
         Concatenate images into a large nunpy matrix to be trsnalted back into an image by randomly drawing from a pool
-        of images. Provided to this function
+        of images provided to this function. This function is mainly a way of saving time and collecting all the
+        background noise into one place
         :param images: pygame image
         :return: a pygame image.
         """

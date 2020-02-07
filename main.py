@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# Import Modules
 import os, pygame, random
 import weapon, utilities, entities, stages, camera
 from pygame.locals import *
@@ -51,6 +50,20 @@ def load_parts():
             weaponparts[data["name"]] = weapon.ProjectilePart(data)
     return (meleeweaponparts, projectileweaponparts)
 
+def load_unload_sprites(player):
+    """
+    Method for loading only sprites in an area around the player to reduce potential lag and other problems.
+    """
+    sprites = player.groups()[0].sprites()
+    #roughly an area twice the screen size is loaded
+    range_rect = pygame.Rect(0,0,int(utilities.SCREEN_SIZE.width * 2) , int(utilities.SCREEN_SIZE.height * 2))
+    range_rect.center = player.rect.center
+    for i,tile in enumerate(sprites):
+        if tile.visible and not range_rect.colliderect(tile.rect):
+            tile.visible = False
+        elif not tile.visible and range_rect.colliderect(tile.rect):
+            tile.visible = True
+
 def run():
     #create starting seed for consistent replayability using a seed.
     random.seed(utilities.seed)
@@ -90,7 +103,7 @@ def run():
         screen.fill([255, 255, 255])
 
         #load the tiles around the player and generate new ones if needed.
-        stage.load_unload_tiles(player.rect.center)
+        load_unload_sprites(player)
         player.events = events
         ents.update()
         ents.draw(screen)
