@@ -5,6 +5,11 @@ from utilities import SCREEN_SIZE
 # thanks to https://stackoverflow.com/questions/14354171/add-scrolling-to-a-platformer-in-pygame
 class CameraAwareLayeredUpdates(pygame.sprite.LayeredUpdates):
     def __init__(self, target, world_size):
+        """
+        Class that allows a so called camera to follow the player when he moves across the map. It stops at the borders
+        :param target: the target to center the camera around
+        :param world_size: the size of the level in which the target is moving
+        """
         super().__init__()
         self.target = target
         self.cam = pygame.Vector2(0, 0)
