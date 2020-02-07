@@ -2,16 +2,16 @@ import os,pygame, random
 from pygame.locals import *
 from pygame.compat import geterror
 
+#test constant
+FAST = True
 
 #some global constants
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 DATA_DIR = os.path.join(MAIN_DIR, "data")
-#TODO make forest props as a list of filenames of bitmaps.
-STAGE1_PROPS = [""]
-height = 1000
-SCREEN_SIZE = pygame.Rect(0,0,int(height /9 * 16), height)
-TOP_LAYER = 2
-DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2500,2500)
+
+FOREST_TILES = ["forest_tile1.bmp","forest_tile2.bmp","forest_tile3.bmp","forest_tile4.bmp",]
+FOREST_PROPS = ["bush1.bmp","bush2.bmp","fern1.bmp","fern2.bmp","fern3.bmp","fern4.bmp",
+                "stone1.bmp","stone2.bmp","stone3.bmp","stone4.bmp"]
 TREE_IMAGES = ["bottom_left_corner_forest.bmp","bottom_left_icorner_forest.bmp",
                "bottom_right_corner_forest.bmp","bottom_right_icorner_forest.bmp",
                "top_right_corner_forest.bmp", "top_right_icorner_forest.bmp",
@@ -21,6 +21,13 @@ TREE_IMAGES = ["bottom_left_corner_forest.bmp","bottom_left_icorner_forest.bmp",
                "top_straight_forest1.bmp","top_straight_forest2.bmp","top_straight_forest3.bmp",
                "bottom_straight_forest1.bmp","bottom_straight_forest2.bmp","bottom_straight_forest3.bmp",
                "middle_forest1.bmp","middle_forest2.bmp","middle_forest3.bmp"]
+
+height = 1000
+SCREEN_SIZE = pygame.Rect(0,0,int(height /9 * 16), height)
+TOP_LAYER = 2
+MIDDLE_LAYER = 1
+DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2500,2500)
+
 
 seed = 5
 
@@ -53,21 +60,3 @@ def load_sound(name):
         print("Cannot load sound: %s" % fullname)
         raise SystemExit(str(geterror()))
     return sound
-
-def load_props(stage):
-    """
-    Loads all props for a certain stage and puts them in a dictionary for easy use.
-    :param stage: an integer for stage that the props are needed for
-    :return: a dictionary containing prop names as keys and pygame.image instances as values.
-    """
-    props = {}
-    #TODO add for other stages when they are made.
-    if stage == 1:
-        files = STAGE1_PROPS
-    else:
-        raise NameError("Unknown stage {}".format(stage))
-    for filename in files:
-        #remove the .bmp extension
-        props[filename[:-4]] = load_image(filename, (255,255,255))
-    return props
-

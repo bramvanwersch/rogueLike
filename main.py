@@ -32,7 +32,7 @@ def load_parts():
     :return: return a tuple containing projectile and melee parts in seperate dictionaries that contain a dictionary
     for each part consisting of part classes.
     """
-    partsfile = os.path.join(utilities.DATA_DIR, "parts.csv")
+    partsfile = os.path.join(utilities.DATA_DIR, "info//parts.csv")
     f = open(partsfile,"r")
     lines = f.readlines()
     f.close()
@@ -64,7 +64,7 @@ def run():
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
 
     #setup the stage
-    stage = stages.Stage1(ents)
+    stage = stages.ForestStage(ents)
     stage.create_tiles()
 
     clock = pygame.time.Clock()

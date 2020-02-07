@@ -9,7 +9,7 @@ class BasicStage:
         #layer updater or camera where the tile instances need to be added to.
         self.updater = updater
         self.stage_map = game_map.build_map()
-        self.background = Background(self.tile_images, self.updater)
+        self.background = Background(self.tile_images,self.props, self.updater)
 
     def load_unload_tiles(self, playercenter):
         #TODO optimize this by using matrix and exclusion to check around the character instead of all tiles.
@@ -22,15 +22,24 @@ class BasicStage:
             elif not tile.visible and range_rect.colliderect(tile.rect):
                 tile.visible = True
 
-class Stage1(BasicStage):
+class ForestStage(BasicStage):
     """
     Forest stage starting of
     """
     def __init__(self, updater):
-        self.tile_images = [utilities.load_image("stage1_tile1.bmp",), utilities.load_image("stage1_tile2.bmp")]
-        self.tree_images = {name[:-4]: pygame.transform.scale(utilities.load_image(name, (255,255,255)), (100,100)) for name in utilities.TREE_IMAGES}
+        self.tile_images = [pygame.transform.scale(self.load_image(x), (100,100)) for x in utilities.FOREST_TILES]
+        self.tree_images = {name[:-4]: pygame.transform.scale(self.load_image(name, (255,255,255)), (100,100)) for name in utilities.TREE_IMAGES}
+        self.props = [pygame.transform.scale(self.load_image(name), (100,100)) for name in utilities.FOREST_PROPS]
         BasicStage.__init__(self, updater)
-        # self.props = utilities.load_props(1)
+
+    def load_image(self, imagename, colorkey=None):
+        """
+        Automatcally applies the forest asset folder to the requested image making naming easier.
+        :param imagename: name of image
+        :param colorkey: key for alpha channel
+        :return: pygame.image object
+        """
+        return utilities.load_image("Forest//" + imagename, colorkey)
 
     def create_tiles(self):
         for y, line in enumerate(self.stage_map):
@@ -73,21 +82,22 @@ class Stage1(BasicStage):
                                           self.tree_images["middle_forest2"],
                                           self.tree_images["middle_forest3"]))
                 if image:
-                    t = SolidTile(image,(x * 100, y * 100), self.tile_sprites, self.updater)
+                    SolidTile(image,(x * 100, y * 100), self.tile_sprites, self.updater)
 
 class Background(entities.Entity):
-    def __init__(self, images, *groups):
+    def __init__(self, images,props, *groups):
         """
         Creates a large immage as the background for the stage.
         :param location: start location of image
         :param images: images to make the background out of.
         :param groups: groups fro comaera movement.
         """
-        image = self.__create_background_image(images)
+        self.propnmbr = 150
+        image = self.__create_background_image(images, props)
         self.background_group = pygame.sprite.Group()
         entities.Entity.__init__(self, image, (0,0), self.background_group, *groups)
 
-    def __create_background_image(self, images):
+    def __create_background_image(self, images, props):
         """
         Concatenate images into a large nunpy matrix to be trsnalted back into an image by randomly drawing from a pool
         of images. Provided to this function
@@ -99,6 +109,7 @@ class Background(entities.Entity):
         pp0 = [pygame.surfarray.pixels3d(image) for image in images]
         pp180 = [pygame.surfarray.pixels3d(image) for image in c180onvertedimages]
         partspixels = pp0  + pp180
+        proppixels = [pygame.surfarray.pixels3d(image) for image in props]
         image_rows = []
         for i in range(int(utilities.DEFAULT_LEVEL_SIZE.width / 100 + 1)):
             image_row = []
@@ -106,6 +117,31 @@ class Background(entities.Entity):
                 image_row.append(random.choice(partspixels))
             image_rows.append(np.concatenate(image_row, 1))
         final_arr = np.concatenate(image_rows)
+
+        #place props in the background for fast fps. Substantialy increases load times (slow array looping)
+        if not utilities.FAST:
+            ps = props[0].get_rect().width
+            max_props = min(int(utilities.DEFAULT_LEVEL_SIZE.width / ps),int(utilities.DEFAULT_LEVEL_SIZE.height / ps))
+            xcoords = [random.randint(0,int(utilities.DEFAULT_LEVEL_SIZE.width / ps)) for _ in range(self.propnmbr * 2)]
+            ycoords = [random.randint(0,int(utilities.DEFAULT_LEVEL_SIZE.height / ps)) for _ in range(self.propnmbr * 2)]
+            prop_coords = []
+            combcoords = list(zip(xcoords, ycoords))
+            for coord in combcoords:
+                if coord not in prop_coords:
+                    prop_coords.append(coord)
+            if len(prop_coords) > 50:
+                prop_coords = prop_coords[0:50]
+
+            # places props in the background and makes sure that each white pixel is made into the background color.
+            # is a quit expensive process
+            for i in range(len(prop_coords)):
+                prop = random.choice(proppixels)
+                for y, row in enumerate(prop):
+                    for x, val in enumerate(row):
+                        if np.array_equal(val,[255,255,255]): continue
+                        final_arr[prop_coords[i][1] * ps + y][prop_coords[i][0] * ps + x] = val
+
+
         image = pygame.surfarray.make_surface(final_arr)
         image = image.convert()
         return image
@@ -118,7 +154,6 @@ class BasicTile(entities.Entity):
         :param y: the y coordinate of the top left corner
         """
         entities.Entity.__init__(self, image, pos, *groups)
-        self.collision = False
 
 class SolidTile(BasicTile):
     def __init__(self, image, pos, *groups):
@@ -129,6 +164,8 @@ class SolidTile(BasicTile):
         :param groups: see Entity
         """
         entities.SolidEntity.__init__(self, image, pos, *groups)
+        self._layer = utilities.TOP_LAYER
+
     #
     # @property
     # def bounding_box(self):

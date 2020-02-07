@@ -28,6 +28,7 @@ class Player(Entity):
         self.speedx, self.speedy = 0,0
         self.speed = 10
         self.events = []
+        self.facing_right = True
         #overwrite the rect that is normaly calculated to make it a little smaller
         self._layer = utilities.TOP_LAYER
 
@@ -36,6 +37,10 @@ class Player(Entity):
         bb = self.rect.inflate((-self.rect.width * 0.8, - self.rect.height * 0.5))
         bb.center = (bb.centerx, bb.centery + bb.top - self.rect.top)
         return bb
+
+    def flip_image(self):
+        self.image = pygame.transform.flip(self.image, True, False)
+        self.facing_right = not self.facing_right
 
     def update(self):
         """
@@ -46,8 +51,12 @@ class Player(Entity):
             if event.type == KEYDOWN:
                 if event.key == K_a or event.key == K_LEFT:
                     self.speedx -= self.speed
+                    if self.facing_right:
+                        self.flip_image()
                 if event.key == K_d or event.key == K_RIGHT:
                     self.speedx += self.speed
+                    if not self.facing_right:
+                        self.flip_image()
                 if event.key == K_w or event.key == K_UP:
                     self.speedy -= self.speed
                 if event.key == K_s or event.key == K_DOWN:
@@ -62,6 +71,7 @@ class Player(Entity):
                     self.speedy += self.speed
                 if event.key == K_s or event.key == K_DOWN:
                     self.speedy -= self.speed
+
         self.__walk()
 
     def __walk(self):
