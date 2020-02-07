@@ -16,6 +16,10 @@ class BasicStage:
     def add_enemy(self, name, pos):
         if name == "red square":
             entities.RedSquare(pos, self.player, self.updater, self.enemy_sprites)
+        elif name == "bad bat":
+            entities.BadBat(pos, self.player, self.updater, self.enemy_sprites)
+        else:
+            print("Warning unknown enemy: "+ name)
 
 class ForestStage(BasicStage):
     """

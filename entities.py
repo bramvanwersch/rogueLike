@@ -151,8 +151,6 @@ class Enemy(MovingEntity):
     def update(self,*args):
         """
         Basic movement towards the player.
-        :param args:
-        :return:
         """
         super().update(*args)
         playercenter = self.player.rect.center
@@ -176,8 +174,16 @@ class RedSquare(Enemy):
 
 class BadBat(Enemy):
     def __init__(self, pos, player, *groups):
-        Enemy.__init__(self, utilities.load_image("bad_bat.bmp"), pos, player, *groups)
+        self.animation = Animation("bad_bat-1.bmp","bad_bat0.bmp","bad_bat1.bmp","bad_bat2.bmp","bad_bat3.bmp","bad_bat4.bmp")
+        Enemy.__init__(self, self.animation.image, pos, player, *groups)
         self.speed = 4
+
+    def update(self, *args):
+        super().update(*args)
+        self.animation.update()
+        self.image = self.animation.image
+        if (self.facing_right):
+            self.flip_image()
 
     def _x_collison(self):
         """
@@ -194,3 +200,20 @@ class BadBat(Enemy):
         if (self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
             return True
         return False
+
+class Animation:
+    def __init__(self, speed = 10, *image_names):
+        halfanimation = [pygame.transform.scale(utilities.load_image(name, (255,255,255)), (100,50)) for name in image_names]
+        self.animation_images = halfanimation + halfanimation[1:-1:-1]
+        self.frame_count = 0
+        self.current_frame = 0
+        self.image = self.animation_images[0]
+
+    def update(self):
+        self.frame_count += 1
+        if self.frame_count % 10 == 0:
+            self.image = self.animation_images[self.current_frame]
+            self.current_frame += 1
+        if self.current_frame >= len(self.animation_images):
+            self.current_frame = 0
+            self.frame_count = 0

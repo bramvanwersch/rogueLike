@@ -79,7 +79,9 @@ def run():
     #setup the stage
     stage = stages.ForestStage(ents, player)
     stage.create_tiles()
-    stage.add_enemy("red square", (500,500))
+    # stage.add_enemy("red square", (600,500))
+    for i in range(10):
+        stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
 
     clock = pygame.time.Clock()
     weaponparts = load_parts()
