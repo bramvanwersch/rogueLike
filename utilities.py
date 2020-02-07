@@ -28,7 +28,6 @@ TOP_LAYER = 2
 MIDDLE_LAYER = 1
 DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2500,2500)
 
-
 seed = 5
 
 def load_image(name, colorkey=None):

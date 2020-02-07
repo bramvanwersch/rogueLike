@@ -4,22 +4,28 @@ import random
 import numpy as np
 
 class BasicStage:
-    def __init__(self, updater):
+    def __init__(self, updater, player):
         self.tile_sprites = pygame.sprite.Group()
+        self.enemy_sprites = pygame.sprite.Group()
         #layer updater or camera where the tile instances need to be added to.
         self.updater = updater
+        self.player = player
         self.stage_map = game_map.build_map()
         self.background = Background(self.tile_images,self.props, self.updater)
+
+    def add_enemy(self, name, pos):
+        if name == "red square":
+            entities.RedSquare(pos, self.player, self.updater, self.enemy_sprites)
 
 class ForestStage(BasicStage):
     """
     Forest stage starting of
     """
-    def __init__(self, updater):
+    def __init__(self, updater, player):
         self.tile_images = [pygame.transform.scale(self.load_image(x), (100,100)) for x in utilities.FOREST_TILES]
         self.tree_images = {name[:-4]: pygame.transform.scale(self.load_image(name, (255,255,255)), (100,100)) for name in utilities.TREE_IMAGES}
         self.props = [pygame.transform.scale(self.load_image(name), (100,100)) for name in utilities.FOREST_PROPS]
-        BasicStage.__init__(self, updater)
+        BasicStage.__init__(self, updater, player)
 
     def load_image(self, imagename, colorkey=None):
         """
@@ -162,7 +168,7 @@ class SolidTile(BasicTile):
         self._layer = utilities.MIDDLE_LAYER
 
     def _get_bounding_box(self):
-        bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.5))
+        bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.2))
         bb.center = (bb.centerx, bb.centery + self.rect.top - bb.top)
         return bb
 

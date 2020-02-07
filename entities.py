@@ -19,11 +19,12 @@ class Entity(pygame.sprite.Sprite):
         self.collision = False
         self.bounding_box = self._get_bounding_box()
 
-    def update(self):
+    def update(self, *args):
         """
         updates the bounding box of every entity every frame
         :return:
         """
+        super().update(*args)
         self.bounding_box = self._get_bounding_box()
 
     def _get_bounding_box(self):
@@ -40,7 +41,7 @@ class SolidEntity(Entity):
         Entity.__init__(self, image, pos, *groups)
         self.collision = True
 
-class MovingEntity(SolidEntity):
+class MovingEntity(Entity):
     def __init__(self, image, pos, *groups):
         """
         Collection of methods for enemies and player alike
@@ -51,6 +52,12 @@ class MovingEntity(SolidEntity):
         self.events = []
         self.facing_right = True
         self._layer = utilities.TOP_LAYER
+
+    def update(self, *args):
+        super().update(*args)
+        if (self.facing_right and self.speedx < 0) or (not self.facing_right and self.speedx > 0):
+            self.flip_image()
+        self.move()
 
     def flip_image(self):
         """
@@ -76,7 +83,7 @@ class MovingEntity(SolidEntity):
         if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
             return True
         x_rect = self.bounding_box.move((self.speedx, 0))
-        overlapping_sprites = [sprite for sprite in super().groups()[0].sprites() if sprite.visible and sprite.bounding_box.colliderect(x_rect)]
+        overlapping_sprites = [sprite for sprite in Entity.groups(self)[0].sprites() if sprite.visible and sprite.bounding_box.colliderect(x_rect)]
         for sprite in overlapping_sprites:
             if sprite.collision:
                 return True
@@ -110,11 +117,11 @@ class Player(MovingEntity):
         bb.center = (bb.centerx, bb.centery + bb.top - self.rect.top)
         return bb
 
-    def update(self):
+    def update(self, *args):
         """
         Processes user input to make the player do actions.
         """
-        super().update()
+        super().update(*args)
         for event in self.events:
             if event.type == KEYDOWN:
                 if event.key == K_a or event.key == K_LEFT:
@@ -135,6 +142,55 @@ class Player(MovingEntity):
                     self.speedy += self.speed
                 if event.key == K_s or event.key == K_DOWN:
                     self.speedy -= self.speed
-        if (self.facing_right and self.speedx < 0) or (not self.facing_right and self.speedx > 0):
-            self.flip_image()
-        self.move()
+
+class Enemy(MovingEntity):
+    def __init__(self,image, pos, player, *groups):
+        MovingEntity.__init__(self, image, pos, *groups)
+        self.player = player
+
+    def update(self,*args):
+        """
+        Basic movement towards the player.
+        :param args:
+        :return:
+        """
+        super().update(*args)
+        playercenter = self.player.rect.center
+        if self.player.rect.right < self.rect.left:
+            self.speedx = - self.speed
+        elif self.player.rect.left > self.rect.right:
+            self.speedx = self.speed
+        else:
+            self.speedx = 0
+        if self.player.rect.bottom < self.rect.top:
+            self.speedy = - self.speed
+        elif self.player.rect.top > self.rect.bottom:
+            self.speedy = self.speed
+        else:
+            self.speedy = 0
+
+class RedSquare(Enemy):
+    def __init__(self, pos, player, *groups):
+        Enemy.__init__(self, utilities.load_image("red_square_enemy.bmp"), pos, player, *groups)
+        self.speed = 5
+
+class BadBat(Enemy):
+    def __init__(self, pos, player, *groups):
+        Enemy.__init__(self, utilities.load_image("bad_bat.bmp"), pos, player, *groups)
+        self.speed = 4
+
+    def _x_collison(self):
+        """
+        checks for out of bounds of the map only
+        """
+        if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
+            return True
+        return False
+
+    def _y_collison(self):
+        """
+        checks for out of bounds of the map only
+        """
+        if (self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
+            return True
+        return False

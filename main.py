@@ -77,8 +77,9 @@ def run():
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
 
     #setup the stage
-    stage = stages.ForestStage(ents)
+    stage = stages.ForestStage(ents, player)
     stage.create_tiles()
+    stage.add_enemy("red square", (500,500))
 
     clock = pygame.time.Clock()
     weaponparts = load_parts()
