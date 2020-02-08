@@ -23,11 +23,13 @@ TREE_IMAGES = ["bottom_left_corner_forest.bmp","bottom_left_icorner_forest.bmp",
                "middle_forest1.bmp","middle_forest2.bmp","middle_forest3.bmp"]
 
 height = 1000
+GAME_TIME = pygame.time.Clock()
+
 SCREEN_SIZE = pygame.Rect(0,0,int(height /9 * 16), height)
+TEXT_LAYER = 3 # one above the top layer
 TOP_LAYER = 2
 MIDDLE_LAYER = 1
 DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2500,2500)
-
 seed = 5
 
 def load_image(name, colorkey=None):
@@ -59,3 +61,20 @@ def load_sound(name):
         print("Cannot load sound: %s" % fullname)
         raise SystemExit(str(geterror()))
     return sound
+
+class Animation:
+    def __init__(self, speed = 10, *image_names):
+        halfanimation = [pygame.transform.scale(load_image(name, (255,255,255)), (100,50)) for name in image_names]
+        self.animation_images = halfanimation + halfanimation[1:-1:-1]
+        self.frame_count = 0
+        self.current_frame = random.randint(0,len(self.animation_images) -1)
+        self.image = self.animation_images[0]
+
+    def update(self):
+        self.frame_count += 1
+        if self.frame_count % 10 == 0:
+            self.image = self.animation_images[self.current_frame]
+            self.current_frame += 1
+        if self.current_frame >= len(self.animation_images):
+            self.current_frame = 0
+            self.frame_count = 0

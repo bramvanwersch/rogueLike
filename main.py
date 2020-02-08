@@ -68,10 +68,11 @@ def run():
     #create starting seed for consistent replayability using a seed.
     random.seed(utilities.seed)
     pygame.init()
-    font = pygame.font.Font(None, 30)
     screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height), DOUBLEBUF)
     pygame.display.set_caption("Welcome to the forest")
     pygame.mouse.set_visible(True)
+
+    FONT = pygame.font.Font(None, 30)
 
     player = entities.Player((0, 500))
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
@@ -80,15 +81,14 @@ def run():
     stage = stages.ForestStage(ents, player)
     stage.create_tiles()
     # stage.add_enemy("red square", (600,500))
-    for i in range(10):
-        stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
+    # for i in range(10):
+    #     stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
 
-    clock = pygame.time.Clock()
     weaponparts = load_parts()
     # Main Loop
     going = True
     while going:
-        clock.tick(200)
+        utilities.GAME_TIME.tick(200)
         events = []
         # Handle Input Events
         for event in pygame.event.get():
@@ -110,12 +110,13 @@ def run():
         player.events = events
         ents.update()
         ents.draw(screen)
-        # loc = [0,0]
+        loc = [0,0]
         # for _ in range(10):
         #     w1 = get_random_weapon(weaponparts[0])
+        #     w1.image = pygame.transform.scale(w1.image, (int(w1.image.get_rect().width * 0.7), int(w1.image.get_rect().height * 0.7)))
         #     screen.blit(w1.image,loc)
         #     loc[0] += 50
-        fps = font.render(str(int(clock.get_fps())), True, pygame.Color('black'))
+        fps = FONT.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
         screen.blit(fps, (10,10))
         pygame.display.update()
     pygame.quit()

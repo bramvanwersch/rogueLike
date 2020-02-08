@@ -41,23 +41,49 @@ class SolidEntity(Entity):
         Entity.__init__(self, image, pos, *groups)
         self.collision = True
 
-class MovingEntity(Entity):
-    def __init__(self, image, pos, *groups):
+class LivingEntity(Entity):
+    def __init__(self, image, pos, *groups, health = [100,100], damage = 10, health_regen = 1):
         """
         Collection of methods for enemies and player alike
         """
         Entity.__init__(self, image, pos, *groups)
         self.speed = 10
         self.speedx, self.speedy = 0,0
-        self.events = []
+        self.health = health
+        self.damage = damage
+        #second regen
+        self.health_regen = health_regen
         self.facing_right = True
         self._layer = utilities.TOP_LAYER
+        self.text_values = []
+        self.dead = False
+        self.immune = [False,0]
 
     def update(self, *args):
         super().update(*args)
+        if self.dead:
+            return
+        elif self.health[0] <= 0:
+            self.image = pygame.transform.rotate(self.image, 90)
+            self.dead = True
+            return
         if (self.facing_right and self.speedx < 0) or (not self.facing_right and self.speedx > 0):
             self.flip_image()
         self.move()
+        if self.health[0] < self.health[1]:
+            self._change_health((utilities.GAME_TIME.get_time() / 1000) * self.health_regen)
+        for val in self.text_values:
+            if val.destroy:
+                super().groups().remove(val)
+        if self.immune[0] and self.immune[1] <= 0:
+            self.immune[0] = False
+        if self.immune[0]:
+            self.immune[1] -= 1
+
+    def _change_health(self, amnt):
+        self.health[0] += amnt
+        if self.health[0] > self.health[1]:
+            self.health[0] = self.health[1]
 
     def flip_image(self):
         """
@@ -98,9 +124,26 @@ class MovingEntity(Entity):
             break;
         return [xcol, ycol]
 
-class Player(MovingEntity):
+    def create_text(self, text, **kwargs):
+        """
+        Create text above the enitiy often signifying damage or similar effects
+        :param text: the text to be displayed
+        :param **kwargs: can contain a color to make the text
+        """
+        self.text_values.append(TextSprite(text, self.rect.midtop, super().groups()[0], **kwargs))
+
+class Player(LivingEntity):
     def __init__(self, pos, *groups):
-        MovingEntity.__init__(self, utilities.load_image("player.bmp",(255,255,255 )), pos)
+
+        LivingEntity.__init__(self, utilities.load_image("player.bmp", (255, 255, 255)), pos)
+        self.events = []
+
+    def set_immune(self, time = 10):
+        """
+        Makes a LivingEntity immune to damage for a set amount of frames
+        :param time: the default frames to be immune. Expected to be an integer
+        """
+        self.immune = [True, time]
 
     def _get_bounding_box(self):
         """
@@ -138,9 +181,9 @@ class Player(MovingEntity):
                 if event.key == K_s or event.key == K_DOWN:
                     self.speedy -= self.speed
 
-class Enemy(MovingEntity):
+class Enemy(LivingEntity):
     def __init__(self,image, pos, player, *groups):
-        MovingEntity.__init__(self, image, pos, *groups)
+        LivingEntity.__init__(self, image, pos, *groups)
         self.player = player
 
     def update(self,*args):
@@ -161,6 +204,13 @@ class Enemy(MovingEntity):
             self.speedy = self.speed
         else:
             self.speedy = 0
+        self._check_player_hit()
+
+    def _check_player_hit(self):
+        if self.bounding_box.colliderect(self.player.bounding_box) and not self.player.immune[0]:
+            self.player.create_text(- self.damage, color = "red")
+            self.player.set_immune()
+            self.player._change_health(- self.damage)
 
 class RedSquare(Enemy):
     def __init__(self, pos, player, *groups):
@@ -169,7 +219,7 @@ class RedSquare(Enemy):
 
 class BadBat(Enemy):
     def __init__(self, pos, player, *groups):
-        self.animation = Animation("bad_bat-1.bmp","bad_bat0.bmp","bad_bat1.bmp","bad_bat2.bmp","bad_bat3.bmp","bad_bat4.bmp")
+        self.animation = utilities.Animation("bad_bat-1.bmp","bad_bat0.bmp","bad_bat1.bmp","bad_bat2.bmp","bad_bat3.bmp","bad_bat4.bmp")
         Enemy.__init__(self, self.animation.image, pos, player, *groups)
         self.speed = 4
 
@@ -210,19 +260,18 @@ class BadBat(Enemy):
             break;
         return [xcol, ycol]
 
-class Animation:
-    def __init__(self, speed = 10, *image_names):
-        halfanimation = [pygame.transform.scale(utilities.load_image(name, (255,255,255)), (100,50)) for name in image_names]
-        self.animation_images = halfanimation + halfanimation[1:-1:-1]
-        self.frame_count = 0
-        self.current_frame = random.randint(0,len(self.animation_images) -1)
-        self.image = self.animation_images[0]
+class TextSprite(Entity):
+    def __init__(self,text, pos, *groups, **kwargs):
+        image = pygame.font.Font(None, 30).render(str(text), True, pygame.Color(kwargs["color"]))
+        Entity.__init__(self, image, pos, *groups)
+        #current, maximum in ms
+        self.lifespan = [0,2000]
+        self.destroy = False
+        self._layer = utilities.TEXT_LAYER
 
-    def update(self):
-        self.frame_count += 1
-        if self.frame_count % 10 == 0:
-            self.image = self.animation_images[self.current_frame]
-            self.current_frame += 1
-        if self.current_frame >= len(self.animation_images):
-            self.current_frame = 0
-            self.frame_count = 0
+    def update(self,*args):
+        super().update(*args)
+        self.lifespan[0] += utilities.GAME_TIME.get_time()
+        if self.lifespan[0] >= self.lifespan[1]:
+            self.kill()
+        self.rect.y -= 5
