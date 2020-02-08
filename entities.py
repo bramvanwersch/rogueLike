@@ -168,7 +168,8 @@ class RedSquare(Enemy):
 
 class BadBat(Enemy):
     def __init__(self, pos, player, *groups):
-        self.animation = utilities.Animation("bad_bat-1.bmp","bad_bat0.bmp","bad_bat1.bmp","bad_bat2.bmp","bad_bat3.bmp","bad_bat4.bmp", scale = (100,50))
+        self.animation = utilities.Animation("bad_bat-1.bmp","bad_bat0.bmp","bad_bat1.bmp","bad_bat2.bmp","bad_bat3.bmp",
+                                             "bad_bat4.bmp", scale = (100,50), start_frame="random")
         Enemy.__init__(self, self.animation.image, pos, player, *groups)
         self.speed = 4
 

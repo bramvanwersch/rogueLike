@@ -63,14 +63,21 @@ def load_sound(name):
     return sound
 
 class Animation:
-    def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0)):
+    def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0), start_frame = 0):
         self.animation_images = [pygame.transform.scale(load_image(name, color), scale) for name in image_names]
         self.frame_count = 0
         self.speed = speed
-        self.current_frame = random.randint(0,len(self.animation_images) -1)
+        if start_frame == "random":
+            self.current_frame = random.randint(0,len(self.animation_images) -1)
+        else:
+            self.current_frame = start_frame
         self.image = self.animation_images[0]
+        self.cycles = 0
 
     def update(self):
+        """
+        Function to be called every update to progress the animation. This methods loops endlesly when called
+        """
         self.frame_count += 1
         if self.frame_count % self.speed == 0:
             self.image = self.animation_images[self.current_frame]
@@ -78,3 +85,13 @@ class Animation:
         if self.current_frame >= len(self.animation_images):
             self.current_frame = 0
             self.frame_count = 0
+            self.cycles += 1
+
+    def reset(self):
+        """
+        resets the animation to the beginning state
+        """
+        self.frame_count = 0
+        self.current_frame = 0
+        self.image = self.animation_images[0]
+        self.cycles = 0
