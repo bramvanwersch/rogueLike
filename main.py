@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os, pygame, random
-import weapon, utilities, entities, stages, camera
+import weapon, utilities, entities, stages, camera, player_methods
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -74,15 +74,15 @@ def run():
 
     FONT = pygame.font.Font(None, 30)
 
-    player = entities.Player((0, 500))
+    player = player_methods.Player((0, 500))
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
 
     #setup the stage
     stage = stages.ForestStage(ents, player)
     stage.create_tiles()
-    # stage.add_enemy("red square", (600,500))
-    # for i in range(10):
-    #     stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
+    stage.add_enemy("red square", (600,500))
+    for i in range(10):
+        stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
 
     weaponparts = load_parts()
     # Main Loop

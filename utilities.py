@@ -63,16 +63,16 @@ def load_sound(name):
     return sound
 
 class Animation:
-    def __init__(self, speed = 10, *image_names):
-        halfanimation = [pygame.transform.scale(load_image(name, (255,255,255)), (100,50)) for name in image_names]
-        self.animation_images = halfanimation + halfanimation[1:-1:-1]
+    def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0)):
+        self.animation_images = [pygame.transform.scale(load_image(name, color), scale) for name in image_names]
         self.frame_count = 0
+        self.speed = speed
         self.current_frame = random.randint(0,len(self.animation_images) -1)
         self.image = self.animation_images[0]
 
     def update(self):
         self.frame_count += 1
-        if self.frame_count % 10 == 0:
+        if self.frame_count % self.speed == 0:
             self.image = self.animation_images[self.current_frame]
             self.current_frame += 1
         if self.current_frame >= len(self.animation_images):

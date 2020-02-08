@@ -1,5 +1,4 @@
 import pygame, random
-from pygame.locals import *
 import utilities
 
 class Entity(pygame.sprite.Sprite):
@@ -112,7 +111,7 @@ class LivingEntity(Entity):
         while (not xcol or not ycol):
             if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
                 xcol = True
-            if (self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
+            if (self.bounding_box.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
                 ycol = True
             x_rect = self.bounding_box.move((self.speedx, 0))
             y_rect = self.bounding_box.move((0, self.speedy))
@@ -131,55 +130,6 @@ class LivingEntity(Entity):
         :param **kwargs: can contain a color to make the text
         """
         self.text_values.append(TextSprite(text, self.rect.midtop, super().groups()[0], **kwargs))
-
-class Player(LivingEntity):
-    def __init__(self, pos, *groups):
-
-        LivingEntity.__init__(self, utilities.load_image("player.bmp", (255, 255, 255)), pos)
-        self.events = []
-
-    def set_immune(self, time = 10):
-        """
-        Makes a LivingEntity immune to damage for a set amount of frames
-        :param time: the default frames to be immune. Expected to be an integer
-        """
-        self.immune = [True, time]
-
-    def _get_bounding_box(self):
-        """
-        Create a bounding box smaller then the player for collission checking with objects in the surroundings
-        :return: a pygame.Rect object that is smaller then the self.rect object with the same bottom value and a
-        new centered x value.
-        """
-        bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.2))
-        bb.center = (bb.centerx, bb.centery + bb.top - self.rect.top)
-        return bb
-
-    def update(self, *args):
-        """
-        Processes user input to make the player do actions.
-        """
-        super().update(*args)
-        for event in self.events:
-            if event.type == KEYDOWN:
-                if event.key == K_a or event.key == K_LEFT:
-                    self.speedx -= self.speed
-                if event.key == K_d or event.key == K_RIGHT:
-                    self.speedx += self.speed
-                if event.key == K_w or event.key == K_UP:
-                    self.speedy -= self.speed
-                if event.key == K_s or event.key == K_DOWN:
-                    self.speedy += self.speed
-
-            elif event.type == KEYUP:
-                if event.key == K_a or event.key == K_LEFT:
-                    self.speedx +=  self.speed
-                if event.key == K_d or event.key == K_RIGHT:
-                    self.speedx -= self.speed
-                if event.key == K_w or event.key == K_UP:
-                    self.speedy += self.speed
-                if event.key == K_s or event.key == K_DOWN:
-                    self.speedy -= self.speed
 
 class Enemy(LivingEntity):
     def __init__(self,image, pos, player, *groups):
@@ -219,7 +169,7 @@ class RedSquare(Enemy):
 
 class BadBat(Enemy):
     def __init__(self, pos, player, *groups):
-        self.animation = utilities.Animation("bad_bat-1.bmp","bad_bat0.bmp","bad_bat1.bmp","bad_bat2.bmp","bad_bat3.bmp","bad_bat4.bmp")
+        self.animation = utilities.Animation("bad_bat-1.bmp","bad_bat0.bmp","bad_bat1.bmp","bad_bat2.bmp","bad_bat3.bmp","bad_bat4.bmp", scale = (100,50))
         Enemy.__init__(self, self.animation.image, pos, player, *groups)
         self.speed = 4
 
