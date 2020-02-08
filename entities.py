@@ -1,4 +1,4 @@
-import pygame
+import pygame, random
 from pygame.locals import *
 import utilities
 
@@ -70,38 +70,33 @@ class MovingEntity(Entity):
         """
         moves the character at walking speed (normal speed) when the new location is not outside the defined bounds
         """
-        if not self._x_collison():
+        xcol, ycol = self._check_collision()
+        if not xcol:
             self.rect.x += self.speedx
-        if not self._y_collison():
+        if not ycol:
             self.rect.y += self.speedy
 
-    def _x_collison(self):
+    def _check_collision(self):
         """
-        Checks if an entity will collide with the border of the map or another entity for the x direction
-        :return: a boolean telling if the entity will collide or not
+        Check the collision of x and y simoultaniously and return if x and y have collision
+        :return:
         """
-        if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
-            return True
-        x_rect = self.bounding_box.move((self.speedx, 0))
-        overlapping_sprites = [sprite for sprite in Entity.groups(self)[0].sprites() if sprite.visible and sprite.bounding_box.colliderect(x_rect)]
-        for sprite in overlapping_sprites:
-            if sprite.collision:
-                return True
-        return False
-
-    def _y_collison(self):
-        """
-        Checks if an entity will collide with the border of the map or another entity for the y direction
-        :return: a boolean telling if the entity will collide or not
-        """
-        if (self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
-            return True
-        y_rect = self.bounding_box.move((0, self.speedy))
-        overlapping_sprites = [sprite for sprite in super().groups()[0].sprites() if sprite.bounding_box.colliderect(y_rect)]
-        for sprite in overlapping_sprites:
-            if sprite.collision:
-                return True
-        return False
+        xcol, ycol = False, False
+        #check for x and y collison as long as any of the two are false.
+        while (not xcol or not ycol):
+            if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
+                xcol = True
+            if (self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
+                ycol = True
+            x_rect = self.bounding_box.move((self.speedx, 0))
+            y_rect = self.bounding_box.move((0, self.speedy))
+            for sprite in super().groups()[0]:
+                if sprite.bounding_box.colliderect(x_rect) and sprite.collision:
+                    xcol = True
+                if sprite.bounding_box.colliderect(y_rect) and sprite.collision:
+                    ycol = True
+            break;
+        return [xcol, ycol]
 
 class Player(MovingEntity):
     def __init__(self, pos, *groups):
@@ -154,15 +149,15 @@ class Enemy(MovingEntity):
         """
         super().update(*args)
         playercenter = self.player.rect.center
-        if self.player.rect.right < self.rect.left:
+        if self.player.rect.right < self.bounding_box.left:
             self.speedx = - self.speed
-        elif self.player.rect.left > self.rect.right:
+        elif self.player.rect.left > self.bounding_box.right:
             self.speedx = self.speed
         else:
             self.speedx = 0
-        if self.player.rect.bottom < self.rect.top:
+        if self.player.rect.bottom < self.bounding_box.top:
             self.speedy = - self.speed
-        elif self.player.rect.top > self.rect.bottom:
+        elif self.player.rect.top > self.bounding_box.bottom:
             self.speedy = self.speed
         else:
             self.speedy = 0
@@ -185,28 +180,42 @@ class BadBat(Enemy):
         if (self.facing_right):
             self.flip_image()
 
-    def _x_collison(self):
+    def _get_bounding_box(self):
         """
-        checks for out of bounds of the map only
+        Create a bounding box smaller then the bat for collission checking with objects in the surroundings
+        :return: a pygame.Rect object that is smaller then the self.rect object with the same bottom value and a
+        new centered x value.
         """
-        if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
-            return True
-        return False
+        return self.rect.inflate((-self.rect.width * 0.8, - self.rect.height * 0.2))
 
-    def _y_collison(self):
+    def _check_collision(self):
         """
-        checks for out of bounds of the map only
+        Check the collision of x and y simoultaniously and return if x and y have collision
+        :return:
         """
-        if (self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
-            return True
-        return False
+        xcol, ycol = False, False
+        #check for x and y collison as long as any of the two are false.
+        while (not xcol or not ycol):
+            if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
+                xcol = True
+            if (self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
+                ycol = True
+            x_rect = self.bounding_box.move((self.speedx, 0))
+            y_rect = self.bounding_box.move((0, self.speedy))
+            for sprite in super().groups()[1]:
+                if sprite.bounding_box.colliderect(x_rect) and self != sprite:
+                    xcol = True
+                if sprite.bounding_box.colliderect(y_rect) and self != sprite:
+                    ycol = True
+            break;
+        return [xcol, ycol]
 
 class Animation:
     def __init__(self, speed = 10, *image_names):
         halfanimation = [pygame.transform.scale(utilities.load_image(name, (255,255,255)), (100,50)) for name in image_names]
         self.animation_images = halfanimation + halfanimation[1:-1:-1]
         self.frame_count = 0
-        self.current_frame = 0
+        self.current_frame = random.randint(0,len(self.animation_images) -1)
         self.image = self.animation_images[0]
 
     def update(self):

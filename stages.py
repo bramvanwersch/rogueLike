@@ -86,7 +86,7 @@ class ForestStage(BasicStage):
                                           self.tree_images["middle_forest2"],
                                           self.tree_images["middle_forest3"]))
                 if image:
-                    SolidTile(image,(x * 100, y * 100), self.tile_sprites, self.updater)
+                    SolidTile(image,(x * 100, y * 100), self.updater, self.tile_sprites)
 
 class Background(entities.Entity):
     def __init__(self, images,props, *groups):
