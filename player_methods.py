@@ -56,12 +56,11 @@ class Player(LivingEntity):
                 if event.key == K_s or event.key == K_DOWN:
                     self.speedy -= self.speed
         if self.speedx != 0 or self.speedy != 0:
-            self.image = self.walking_animation.image
-            # if (self.facing_right):
-            #     self.flip_image()
             self.walking_animation.update()
+            self._change_image(self.walking_animation.image)
         else:
-            self.image = self.idle_image
+            self._change_image(self.idle_image)
+
 
 class Inventory:
     def __init__(self):

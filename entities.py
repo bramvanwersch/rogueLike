@@ -52,7 +52,7 @@ class LivingEntity(Entity):
         self.damage = damage
         #second regen
         self.health_regen = health_regen
-        self.facing_right = True
+        self.flipped = False
         self._layer = utilities.TOP_LAYER
         self.text_values = []
         self.dead = False
@@ -62,34 +62,33 @@ class LivingEntity(Entity):
         super().update(*args)
         if self.dead:
             return
-        elif self.health[0] <= 0:
-            self.image = pygame.transform.rotate(self.image, 90)
-            self.dead = True
-            return
-        if (self.facing_right and self.speedx < 0) or (not self.facing_right and self.speedx > 0):
-            self.flip_image()
+        if (self.flipped and self.speedx > 0) or (not self.flipped and self.speedx < 0):
+            self.flipped = not self.flipped
         self.move()
         if self.health[0] < self.health[1]:
             self._change_health((utilities.GAME_TIME.get_time() / 1000) * self.health_regen)
-        for val in self.text_values:
-            if val.destroy:
-                super().groups().remove(val)
         if self.immune[0] and self.immune[1] <= 0:
             self.immune[0] = False
         if self.immune[0]:
             self.immune[1] -= 1
 
     def _change_health(self, amnt):
+        """
+        changes the health of the entity by a positive or negative value. Cannot heal over max and is declared dead if
+        hp is at or below 0
+        :param amnt: of health to change to.
+        """
         self.health[0] += amnt
         if self.health[0] > self.health[1]:
             self.health[0] = self.health[1]
+        if self.health[0] <= 0:
+            self.dead = True
 
-    def flip_image(self):
-        """
-        Flips the self.image along the x axis, can be used to make a entity face the other way.
-        """
-        self.image = pygame.transform.flip(self.image, True, False)
-        self.facing_right = not self.facing_right
+    def _change_image(self, image):
+        if self.flipped:
+            self.image = pygame.transform.flip(image, True, False)
+        else:
+            self.image = image
 
     def move(self):
         """
@@ -176,9 +175,8 @@ class BadBat(Enemy):
     def update(self, *args):
         super().update(*args)
         self.animation.update()
-        self.image = self.animation.image
-        if (self.facing_right):
-            self.flip_image()
+        self._change_image(self.animation.image)
+
 
     def _get_bounding_box(self):
         """
@@ -224,4 +222,4 @@ class TextSprite(Entity):
         self.lifespan[0] += utilities.GAME_TIME.get_time()
         if self.lifespan[0] >= self.lifespan[1]:
             self.kill()
-        self.rect.y -= 5
+        self.rect.y -= 2
