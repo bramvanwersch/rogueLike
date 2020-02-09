@@ -67,6 +67,7 @@ class Player(LivingEntity):
         if self.speedx != 0 or self.speedy != 0:
             self.walking_animation.update()
             self._change_image(self.walking_animation.image)
+            self.idle_animation.reset()
         else:
             #idle animation plays at random every 100 framesof inactivity
             if self.idle_animation.cycles == 0:
