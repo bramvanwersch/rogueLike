@@ -30,6 +30,7 @@ TEXT_LAYER = 4 # one above the top layer
 PLAYER_LAYER2 = 3
 PLAYER_LAYER1 = 2
 MIDDLE_LAYER = 1
+BOTTOM_LAYER = -1
 DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2500,2500)
 seed = 1
 
@@ -65,6 +66,14 @@ def load_sound(name):
 
 class Animation:
     def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0), start_frame = 0):
+        """
+        Stores an animation to be progressed when calling the update of the animation
+        :param image_names: list of all the images to be played in sequence
+        :param speed: the amount of updates needed before the next image is saved
+        :param color: the color of the images that need to be transparant
+        :param scale: a scale factor to apply to all the animation images
+        :param start_frame: the frame to start on or the keyword 'random' to start at a random frame
+        """
         self.animation_images = [pygame.transform.scale(load_image(name, color), scale) for name in image_names]
         self.frame_count = 0
         self.speed = speed
@@ -96,3 +105,25 @@ class Animation:
         self.current_frame = 0
         self.image = self.animation_images[0]
         self.cycles = 0
+
+class MarkedAnimation(Animation):
+    def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0), start_frame = 0, marked_frames = []):
+        """
+        allows some marked frames that then can be tracked by the marked property
+        :param marked_frames: a list of integers of marked frames
+        """
+        Animation.__init__(self, *image_names, speed = speed, color = color, scale = scale, start_frame=start_frame)
+        #list of frames that can be tracked by the special property
+        self.marked_frames = marked_frames
+        self.marked = False
+
+    def update(self):
+        super().update()
+        if self.current_frame in self.marked_frames:
+            self.marked = True
+        else:
+            self.marked = False
+
+    def reset(self):
+        super().reset()
+        self.marked = False

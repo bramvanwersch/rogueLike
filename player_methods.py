@@ -11,9 +11,9 @@ class Player(LivingEntity):
         self.walking_animation = utilities.Animation("player_walk0.bmp","player_walk1.bmp","player_walk2.bmp","player_walk1.bmp",
                                                      "player_walk0.bmp","player_walk3.bmp","player_walk4.bmp","player_walk3.bmp",
                                                      scale = (60,120))
-        self.idle_animation = utilities.Animation("player_idle1.bmp","player_idle2.bmp","player_idle3.bmp","player_idle4.bmp",
+        self.idle_animation = utilities.MarkedAnimation("player_idle1.bmp","player_idle2.bmp","player_idle3.bmp","player_idle4.bmp",
                                                   "player_idle4.bmp","player_idle3.bmp","player_idle2.bmp","player_idle1.bmp",
-                                                  scale = (60,120), speed = 40)
+                                                  scale = (60,120), speed = 40, marked_frames=[3,4,5,6])
         self.events = []
         self.inventory = Inventory()
         self._layer = utilities.PLAYER_LAYER2
@@ -71,6 +71,10 @@ class Player(LivingEntity):
             #idle animation plays at random every 100 framesof inactivity
             if self.idle_animation.cycles == 0:
                 self.idle_animation.update()
+                if self.idle_animation.marked:
+                    self.arm.visible = False
+                else:
+                    self.arm.visible = True
                 self._change_image(self.idle_animation.image)
             elif random.randint(1, 500) == 1:
                 self.idle_animation.reset()
