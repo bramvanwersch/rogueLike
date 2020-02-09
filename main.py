@@ -74,17 +74,20 @@ def run():
 
     FONT = pygame.font.Font(None, 30)
 
+    weaponparts = load_parts()
+
     player = player_methods.Player((0, 500))
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
+    player.arm.add(ents)
+    player.arm.equip(get_random_weapon(weaponparts[0]))
 
     #setup the stage
     stage = stages.ForestStage(ents, player)
     stage.create_tiles()
-    stage.add_enemy("red square", (600,500))
-    for i in range(10):
-        stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
+    # stage.add_enemy("red square", (600,500))
+    # for i in range(10):
+    #     stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
 
-    weaponparts = load_parts()
     # Main Loop
     going = True
     while going:
@@ -110,7 +113,7 @@ def run():
         player.events = events
         ents.update()
         ents.draw(screen)
-        loc = [0,0]
+        # loc = [0,0]
         # for _ in range(10):
         #     w1 = get_random_weapon(weaponparts[0])
         #     w1.image = pygame.transform.scale(w1.image, (int(w1.image.get_rect().width * 0.7), int(w1.image.get_rect().height * 0.7)))
@@ -118,6 +121,7 @@ def run():
         #     loc[0] += 50
         fps = FONT.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
         screen.blit(fps, (10,10))
+
         pygame.display.update()
     pygame.quit()
 

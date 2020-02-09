@@ -17,6 +17,7 @@ class Entity(pygame.sprite.Sprite):
         # if an entity has collision or if the player can just move trough it.
         self.collision = False
         self.bounding_box = self._get_bounding_box()
+        self.flipped = False
 
     def update(self, *args):
         """
@@ -52,8 +53,7 @@ class LivingEntity(Entity):
         self.damage = damage
         #second regen
         self.health_regen = health_regen
-        self.flipped = False
-        self._layer = utilities.TOP_LAYER
+        self._layer = utilities.PLAYER_LAYER1
         self.text_values = []
         self.dead = False
         self.immune = [False,0]
@@ -64,6 +64,7 @@ class LivingEntity(Entity):
             return
         if (self.flipped and self.speedx > 0) or (not self.flipped and self.speedx < 0):
             self.flipped = not self.flipped
+            self.image = pygame.transform.flip(self.image, True, False)
         self.move()
         if self.health[0] < self.health[1]:
             self._change_health((utilities.GAME_TIME.get_time() / 1000) * self.health_regen)
@@ -102,8 +103,8 @@ class LivingEntity(Entity):
 
     def _check_collision(self):
         """
-        Check the collision of x and y simoultaniously and return if x and y have collision
-        :return:
+        Check the collision of x and y simoultaniously and return if x or y have collision
+        :return: a list of 2 booleans for [xcol, ycol]
         """
         xcol, ycol = False, False
         #check for x and y collison as long as any of the two are false.

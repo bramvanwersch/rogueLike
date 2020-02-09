@@ -26,11 +26,12 @@ height = 1000
 GAME_TIME = pygame.time.Clock()
 
 SCREEN_SIZE = pygame.Rect(0,0,int(height /9 * 16), height)
-TEXT_LAYER = 3 # one above the top layer
-TOP_LAYER = 2
+TEXT_LAYER = 4 # one above the top layer
+PLAYER_LAYER2 = 3
+PLAYER_LAYER1 = 2
 MIDDLE_LAYER = 1
 DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2500,2500)
-seed = 5
+seed = 1
 
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)
