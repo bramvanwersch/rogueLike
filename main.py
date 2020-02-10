@@ -80,6 +80,12 @@ def run():
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
     player.arm.add(ents)
     player.arm.equip(get_random_weapon(weaponparts[0]))
+    # player.arm.equip(get_random_weapon(weaponparts[0]))
+    #
+    # player.arm.equip(get_random_weapon(weaponparts[0]))
+    #
+    # player.arm.equip(get_random_weapon(weaponparts[0]))
+
 
     #setup the stage
     stage = stages.ForestStage(ents, player)
@@ -99,10 +105,6 @@ def run():
                 going = False
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 going = False
-            elif event.type == MOUSEBUTTONDOWN:
-                print("Click")
-            elif event.type == MOUSEBUTTONUP:
-                print("un-Click")
             else:
                 events.append(event)
 

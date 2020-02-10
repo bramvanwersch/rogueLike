@@ -127,3 +127,26 @@ class MarkedAnimation(Animation):
     def reset(self):
         super().reset()
         self.marked = False
+
+# class AttackAnimation(Animation):
+#     def __init__(self, image, speed = 10, color = (255,255,255), scale = (0,0), start_frame = 0, anglerange = [0,50],
+#                  number_of_frames = 5 ):
+#         self.__image = image
+#         self.animation_images = [image]
+#         Animation.__init__(self, [], speed = speed, color = color, scale = scale, start_frame=start_frame)
+#         self.animation_images = [image]
+#         self.number_of_frames = number_of_frames
+#         self.angle_range = anglerange
+#
+#     def update(self):
+#         """
+#         Function to be called every update to progress the animation. This methods loops endlesly when called
+#         """
+#         self.frame_count += 1
+#         if self.frame_count % self.speed == 0:
+#             self.image = pygame.transform.rotate(self.__image, self.angle_range[1] / self.number_of_frames + self.angle_range[0])
+#             self.current_frame += 1
+#         if self.current_frame >= number:
+#             self.current_frame = 0
+#             self.frame_count = 0
+#             self.cycles += 1

@@ -33,6 +33,12 @@ class Entity(pygame.sprite.Sprite):
         """
         return self.rect
 
+    def _change_image(self, image):
+        if self.flipped:
+            self.image = pygame.transform.flip(image, True, False)
+        else:
+            self.image = image
+
 class SolidEntity(Entity):
     """
     Changes collision field so entity becomes solid and the player or other entitities cannot move trought it
@@ -62,9 +68,8 @@ class LivingEntity(Entity):
         super().update(*args)
         if self.dead:
             return
-        if (self.flipped and self.speedx > 0) or (not self.flipped and self.speedx < 0):
-            self.flipped = not self.flipped
-            self.image = pygame.transform.flip(self.image, True, False)
+        self.do_flip()
+
         self.move()
         if self.health[0] < self.health[1]:
             self._change_health((utilities.GAME_TIME.get_time() / 1000) * self.health_regen)
@@ -72,6 +77,11 @@ class LivingEntity(Entity):
             self.immune[0] = False
         if self.immune[0]:
             self.immune[1] -= 1
+
+    def do_flip(self):
+        if (self.flipped and self.speedx > 0) or (not self.flipped and self.speedx < 0):
+            self.flipped = not self.flipped
+            self.image = pygame.transform.flip(self.image, True, False)
 
     def _change_health(self, amnt):
         """
@@ -84,12 +94,6 @@ class LivingEntity(Entity):
             self.health[0] = self.health[1]
         if self.health[0] <= 0:
             self.dead = True
-
-    def _change_image(self, image):
-        if self.flipped:
-            self.image = pygame.transform.flip(image, True, False)
-        else:
-            self.image = image
 
     def move(self):
         """
