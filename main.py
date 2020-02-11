@@ -78,8 +78,9 @@ def run():
 
     player = player_methods.Player((0, 500))
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
-    player.arm.add(ents)
-    player.arm.equip(get_random_weapon(weaponparts[0]))
+    player.right_arm.add(ents)
+    player.left_arm.add(ents)
+    player.right_arm.equip(get_random_weapon(weaponparts[0]))
     # player.arm.equip(get_random_weapon(weaponparts[0]))
     #
     # player.arm.equip(get_random_weapon(weaponparts[0]))
@@ -90,9 +91,9 @@ def run():
     #setup the stage
     stage = stages.ForestStage(ents, player)
     stage.create_tiles()
-    # stage.add_enemy("red square", (600,500))
-    # for i in range(10):
-    #     stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
+    stage.add_enemy("red square", (600,500))
+    for i in range(10):
+        stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
 
     # Main Loop
     going = True
@@ -109,6 +110,7 @@ def run():
                 events.append(event)
 
         screen.fill([255, 255, 255])
+        # player.arm.equip(get_random_weapon(weaponparts[0]))
 
         #load the tiles around the player and generate new ones if needed.
         load_unload_sprites(player)

@@ -18,7 +18,8 @@ class Player(LivingEntity):
         self.inventory = Inventory()
         self._layer = utilities.PLAYER_LAYER2
         start_weapon = weapon.AbstractWeapon(utilities.load_image("starter_stick.bmp"))
-        self.arm = PlayerArm(start_weapon, (self.rect.centerx - 8, self.rect.centery - 8))
+        self.right_arm = RightArm(start_weapon, (self.rect.centerx - 8, self.rect.centery - 8))
+        self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8))
 
     def set_immune(self, time = 10):
         """
@@ -44,9 +45,9 @@ class Player(LivingEntity):
         super().update(*args)
         for event in self.events:
             if event.type == MOUSEBUTTONDOWN:
-                self.arm.attacking = True
+                self.right_arm.attacking = True
             elif event.type == MOUSEBUTTONUP:
-                self.arm.attacking = False
+                self.right_arm.attacking = False
             elif event.type == KEYDOWN:
                 if event.key == K_a or event.key == K_LEFT:
                     self.speedx -= self.speed
@@ -67,20 +68,22 @@ class Player(LivingEntity):
                 if event.key == K_s or event.key == K_DOWN:
                     self.speedy -= self.speed
         if self.flipped:
-            self.arm.rect.center = (self.rect.centerx - 5, self.rect.centery )
+            self.right_arm.move_arm((self.rect.centerx - 5, self.rect.centery))
+            self.left_arm.move_arm((self.rect.centerx - 5, self.rect.centery +14))
         elif not self.flipped:
-            self.arm.rect.center = (self.rect.centerx + 2, self.rect.centery + 2)
-        self.arm.updater()
+            self.right_arm.move_arm((self.rect.centerx + 2, self.rect.centery + 2))
         self.animations()
-        # self.flip_arm()
 
     def do_flip(self):
         if (self.flipped and self.speedx > 0) or (not self.flipped and self.speedx < 0):
             self.flipped = not self.flipped
             self.image = pygame.transform.flip(self.image, True, False)
-            self.arm.flip()
+            self.right_arm.flip()
+            self.left_arm.flip()
 
     def animations(self):
+        if self.right_arm.attacking:
+            self.idle_animation.reset()
         if self.speedx != 0 or self.speedy != 0:
             self.walking_animation.update()
             self._change_image(self.walking_animation.image)
@@ -91,28 +94,80 @@ class Player(LivingEntity):
             if self.idle_animation.cycles == 0:
                 self.idle_animation.update()
                 if self.idle_animation.marked:
-                    self.arm.visible = False
+                    self.right_arm.visible = False
+                    self.left_arm.visible = False
                 else:
-                    self.arm.visible = True
+                    self.right_arm.visible = True
+                    self.left_arm.visible = True
                 self._change_image(self.idle_animation.image)
             elif random.randint(1, 500) == 1:
                 self.idle_animation.reset()
             else:
                 self._change_image(self.idle_image)
 
-class PlayerArm(entities.Entity):
-    def __init__(self, weapon, pos):
+class GenericArm(entities.Entity):
+    def __init__(self, pos):
         self.arm = pygame.transform.scale(utilities.load_image("player_arm.bmp"), (15,30))
         entities.Entity.__init__(self, self.arm, pos)
-        self.equip(weapon)
         self._layer = utilities.PLAYER_LAYER2
-        self.attacking = False
-        self.orig_image = self.image
-        self.angle = 0
+        self.image.set_colorkey((255, 255, 255), RLEACCEL)
         self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
         self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
 
-    def updater(self, *args):
+    def flip(self):
+        """
+        Flips the image and puts it on the layer behind the player if the image is flipped as to not move the weapon
+        between hands
+        """
+        self.flipped = not self.flipped
+        self.image = pygame.transform.flip(self.image, True, False)
+        if self.flipped:
+            super().groups()[0].change_layer(self,utilities.PLAYER_LAYER1)
+        else:
+            super().groups()[0].change_layer(self,utilities.PLAYER_LAYER2)
+
+class LeftArm(GenericArm):
+    def __init__(self, pos):
+        GenericArm.__init__(self, pos)
+        self._layer = utilities.BOTTOM_LAYER
+
+    def flip(self):
+        """
+        When the right side is shown the left arm is invisible otherwise it will be visible
+        :return:
+        """
+        self.flipped = not self.flipped
+        if self.flipped:
+            self.visible = True
+            super().groups()[0].change_layer(self,utilities.PLAYER_LAYER2)
+        else:
+            self.visible = False
+            super().groups()[0].change_layer(self,utilities.BOTTOM_LAYER)
+
+
+    def move_arm(self, pos):
+        self.rect.center = pos
+
+class RightArm(GenericArm):
+    def __init__(self, weapon, pos):
+        GenericArm.__init__(self, pos)
+        self.equip(weapon)
+        self.attacking = False
+        #for tracking the original image when rotating
+        self.orig_image = self.image
+        self.angle = 0
+        #dont touch the numbers they are great and just work
+        self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
+        self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
+
+    def move_arm(self, pos):
+        """
+        They player class tells where to put the arm relative to the player. Then the arm is rotated based on the
+        current angle. This method is called every update from the player class.
+        :param pos: position to move the arm to.
+        :return:
+        """
+        self.rect.center = pos
         if not self.attacking:
             self.angle = 0
         else:
@@ -120,6 +175,9 @@ class PlayerArm(entities.Entity):
         self.rotate()
 
     def rotate(self):
+        """
+        Rotate an image and calculate a new position based on a offset and an angle.
+        """
         if not self.flipped:
             if self.angle !=  0:
                 self.image = pygame.transform.rotozoom(self.orig_image, self.angle, 1)
@@ -134,6 +192,10 @@ class PlayerArm(entities.Entity):
                 self.image = self.orig_image
             offset_rotated2 = self.offset2.rotate(self.angle)
             self.rect = self.image.get_rect(center=self.rect.center - offset_rotated2)
+
+    def flip(self):
+        super().flip()
+        self.orig_image = pygame.transform.flip(self.orig_image, True, False)
 
     def equip(self, weapon):
         """
@@ -151,19 +213,7 @@ class PlayerArm(entities.Entity):
         self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
         self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
 
-    def flip(self):
-        """
-        Flips the image and puts it on the layer behind the player if the image is flipped as to not move the weapon
-        between hands
-        """
-        self.flipped = not self.flipped
-        self.image = pygame.transform.flip(self.image, True, False)
-        self.orig_image = pygame.transform.flip(self.orig_image, True, False)
-        # self.rect = self.image.get_rect()
-        if self.flipped:
-            super().groups()[0].change_layer(self,utilities.PLAYER_LAYER1)
-        else:
-            super().groups()[0].change_layer(self,utilities.PLAYER_LAYER2)
+
 
     def __create_weapon_arm(self, weapon_image):
         """
@@ -186,6 +236,7 @@ class PlayerArm(entities.Entity):
 
         image.set_colorkey((255, 255, 255), RLEACCEL)
         image = image.convert_alpha()
+        if self.flipped: image = pygame.transform.flip(image, True, False)
         return image
 
 class Inventory:
