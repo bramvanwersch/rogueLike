@@ -1,4 +1,4 @@
-import pygame, random
+import pygame, random, math
 import utilities
 
 class Entity(pygame.sprite.Sprite):
@@ -49,12 +49,12 @@ class SolidEntity(Entity):
         self.collision = True
 
 class LivingEntity(Entity):
-    def __init__(self, image, pos, *groups, health = 100, damage = 10, health_regen = 1):
+    def __init__(self, image, pos, *groups, health = 100, damage = 10, health_regen = 1, speed = 10):
         """
         Collection of methods for enemies and player alike
         """
         Entity.__init__(self, image, pos, *groups)
-        self.speed = 10
+        self.max_speed = speed
         self.speedx, self.speedy = 0,0
         self.health = [health, health]
         self.damage = 10
@@ -71,13 +71,16 @@ class LivingEntity(Entity):
     def update(self, *args):
         super().update(*args)
         if self.dead:
+            #TODO needs an animation
             self.kill()
             return
         self.do_flip()
 
         self.move()
+        # regen health
         if self.health[0] < self.health[1]:
             self._change_health((utilities.GAME_TIME.get_time() / 1000) * self.health_regen)
+        #regulate i frames
         if self.immune[0] and self.immune[1] <= 0:
             self.immune[0] = False
         if self.immune[0]:
@@ -114,9 +117,19 @@ class LivingEntity(Entity):
 
     def move(self):
         """
-        moves the character at walking speed (normal speed) when the new location is not outside the defined bounds
+        moves the character at walking speed (normal speed) when the new location is not outside the defined bounds. Also
+        checks if the current speed is an acceptable one and if to high resets it to the max_speed.
         """
         xcol, ycol = self._check_collision()
+        if self.speedx > self.max_speed:
+            self.speedx = self.max_speed
+        elif self.speedx < - self.max_speed:
+            self.speedx = -self.max_speed
+        if self.speedy > self.max_speed:
+            self.speedy = self.max_speed
+        elif self.speedy < - self.max_speed:
+            self.speedy = -self.max_speed
+
         if not xcol:
             self.rect.x += self.speedx
         if not ycol:
@@ -153,8 +166,8 @@ class LivingEntity(Entity):
         self.text_values.append(TextSprite(text, self.rect.midtop, super().groups()[0], **kwargs))
 
 class Enemy(LivingEntity):
-    def __init__(self,image, pos, player, *groups):
-        LivingEntity.__init__(self, image, pos, *groups)
+    def __init__(self,image, pos, player, *groups, **kwargs):
+        LivingEntity.__init__(self, image, pos, *groups, **kwargs)
         self.player = player
         self.damage_color = "blue"
 
@@ -164,16 +177,16 @@ class Enemy(LivingEntity):
         """
         super().update(*args)
         playercenter = self.player.rect.center
-        if self.player.rect.right < self.bounding_box.left:
-            self.speedx = - self.speed
-        elif self.player.rect.left > self.bounding_box.right:
-            self.speedx = self.speed
+        if self.player.rect.left < self.bounding_box.left:
+            self.speedx -= 0.1 * self.max_speed
+        elif self.player.rect.right > self.bounding_box.right:
+            self.speedx += 0.1 * self.max_speed
         else:
             self.speedx = 0
-        if self.player.rect.bottom < self.bounding_box.top:
-            self.speedy = - self.speed
-        elif self.player.rect.top > self.bounding_box.bottom:
-            self.speedy = self.speed
+        if self.player.rect.top < self.bounding_box.top:
+            self.speedy -= 0.1 * self.max_speed
+        elif self.player.rect.bottom > self.bounding_box.bottom:
+            self.speedy += 0.1 * self.max_speed
         else:
             self.speedy = 0
         self._check_player_hit()
@@ -185,21 +198,19 @@ class Enemy(LivingEntity):
             self.player._change_health(- self.damage)
 
     def _check_self_hit(self):
-        if self.bounding_box.colliderect(self.player.right_arm.bounding_box) and not self.immune[0]:
+        if self.player.right_arm.attacking and self.rect.colliderect(self.player.right_arm.bounding_box) and not self.immune[0]:
             self.set_immune()
             self._change_health(- self.damage)
 
 class RedSquare(Enemy):
     def __init__(self, pos, player, *groups):
-        Enemy.__init__(self, utilities.load_image("red_square_enemy.bmp"), pos, player, *groups)
-        self.speed = 5
+        Enemy.__init__(self, utilities.load_image("red_square_enemy.bmp"), pos, player, *groups, speed = 5)
 
 class BadBat(Enemy):
     def __init__(self, pos, player, *groups):
         self.animation = utilities.Animation("bad_bat-1.bmp","bad_bat0.bmp","bad_bat1.bmp","bad_bat2.bmp","bad_bat3.bmp",
                                              "bad_bat4.bmp", scale = (100,50), start_frame="random")
-        Enemy.__init__(self, self.animation.image, pos, player, *groups)
-        self.speed = 4
+        Enemy.__init__(self, self.animation.image, pos, player, *groups, speed = 4)
 
     def update(self, *args):
         super().update(*args)

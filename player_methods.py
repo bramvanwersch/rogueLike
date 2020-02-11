@@ -20,6 +20,7 @@ class Player(LivingEntity):
         start_weapon = weapon.AbstractWeapon(utilities.load_image("starter_stick.bmp"))
         self.right_arm = RightArm(start_weapon, (self.rect.centerx - 8, self.rect.centery - 8))
         self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8))
+        self.pressed_up, self.pressed_down, self.pressed_forward, self.pressed_backwad = False, False, False, False
 
     def _get_bounding_box(self):
         """
@@ -36,35 +37,50 @@ class Player(LivingEntity):
         Processes user input to make the player do actions.
         """
         super().update(*args)
-        for event in self.events:
-            if event.type == KEYDOWN:
-                if event.key == K_k:
-                    if not self.right_arm.attacking:
-                        self.right_arm.do_attack()
-                if event.key == K_a or event.key == K_LEFT:
-                    self.speedx -= self.speed
-                if event.key == K_d or event.key == K_RIGHT:
-                    self.speedx += self.speed
-                if event.key == K_w or event.key == K_UP:
-                    self.speedy -= self.speed
-                if event.key == K_s or event.key == K_DOWN:
-                    self.speedy += self.speed
-
-            elif event.type == KEYUP:
-                if event.key == K_a or event.key == K_LEFT:
-                    self.speedx +=  self.speed
-                if event.key == K_d or event.key == K_RIGHT:
-                    self.speedx -= self.speed
-                if event.key == K_w or event.key == K_UP:
-                    self.speedy += self.speed
-                if event.key == K_s or event.key == K_DOWN:
-                    self.speedy -= self.speed
+        self.handle_user_input()
         if self.flipped:
             self.right_arm.move_arm((self.rect.centerx - 5, self.rect.centery))
             self.left_arm.move_arm((self.rect.centerx - 5, self.rect.centery +14))
         elif not self.flipped:
             self.right_arm.move_arm((self.rect.centerx + 2, self.rect.centery + 2))
         self.animations()
+
+    def handle_user_input(self):
+        for event in self.events:
+            if event.type == KEYDOWN:
+                if event.key == K_k:
+                    if not self.right_arm.attacking:
+                        self.right_arm.do_attack()
+                if event.key == K_a or event.key == K_LEFT:
+                    self.pressed_backwad = True
+                if event.key == K_d or event.key == K_RIGHT:
+                    self.pressed_forward = True
+                if event.key == K_w or event.key == K_UP:
+                    self.pressed_up = True
+                if event.key == K_s or event.key == K_DOWN:
+                    self.pressed_down = True
+
+            elif event.type == KEYUP:
+                if event.key == K_a or event.key == K_LEFT:
+                    self.pressed_backwad = False
+                if event.key == K_d or event.key == K_RIGHT:
+                    self.pressed_forward = False
+                if event.key == K_w or event.key == K_UP:
+                    self.pressed_up = False
+                if event.key == K_s or event.key == K_DOWN:
+                    self.pressed_down = False
+        if self.pressed_forward:
+            self.speedx += 0.1 * self.max_speed
+        if self.pressed_backwad:
+            self.speedx -= 0.1 * self.max_speed
+        if not self.pressed_backwad and not self.pressed_forward:
+            self.speedx *= 0.1
+        if self.pressed_up:
+            self.speedy -= 0.1 * self.max_speed
+        if self.pressed_down:
+            self.speedy += 0.1 * self.max_speed
+        if not self.pressed_up and not self.pressed_down:
+            self.speedy *= 0.1
 
     def do_flip(self):
         orig_flip = self.flipped
@@ -76,7 +92,7 @@ class Player(LivingEntity):
     def animations(self):
         if self.right_arm.attacking:
             self.idle_animation.reset()
-        if self.speedx != 0 or self.speedy != 0:
+        if int(self.speedx) != 0 or int(self.speedy) != 0:
             self.walking_animation.update()
             self._change_image(self.walking_animation.image)
             self.idle_animation.reset()
