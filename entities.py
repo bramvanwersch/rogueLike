@@ -74,9 +74,8 @@ class LivingEntity(Entity):
             #TODO needs an animation
             self.kill()
             return
-        self.do_flip()
-
         self.move()
+        self.do_flip()
         # regen health
         if self.health[0] < self.health[1]:
             self._change_health((utilities.GAME_TIME.get_time() / 1000) * self.health_regen)
@@ -120,7 +119,6 @@ class LivingEntity(Entity):
         moves the character at walking speed (normal speed) when the new location is not outside the defined bounds. Also
         checks if the current speed is an acceptable one and if to high resets it to the max_speed.
         """
-        xcol, ycol = self._check_collision()
         if self.speedx > self.max_speed:
             self.speedx = self.max_speed
         elif self.speedx < - self.max_speed:
@@ -129,6 +127,7 @@ class LivingEntity(Entity):
             self.speedy = self.max_speed
         elif self.speedy < - self.max_speed:
             self.speedy = -self.max_speed
+        xcol, ycol = self._check_collision()
 
         if not xcol:
             self.rect.x += self.speedx
@@ -147,8 +146,14 @@ class LivingEntity(Entity):
                 xcol = True
             if (self.bounding_box.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
                 ycol = True
-            x_rect = self.bounding_box.move((self.speedx, 0))
-            y_rect = self.bounding_box.move((0, self.speedy))
+            if self.speedx > 0:
+                x_rect = self.bounding_box.move((self.speedx + 1, 0))
+            else:
+                x_rect = self.bounding_box.move((self.speedx - 1, 0))
+            if self.speedy > 0:
+                y_rect = self.bounding_box.move((0, self.speedy + 1))
+            else:
+                y_rect = self.bounding_box.move((0, self.speedy - 1))
             for sprite in super().groups()[0]:
                 if sprite.bounding_box.colliderect(x_rect) and sprite.collision:
                     xcol = True
@@ -161,7 +166,7 @@ class LivingEntity(Entity):
         """
         Create text above the enitiy often signifying damage or similar effects
         :param text: the text to be displayed
-        :param **kwargs: can contain a color to make the text
+        :param **kwargs: can contain a color to color the text
         """
         self.text_values.append(TextSprite(text, self.rect.midtop, super().groups()[0], **kwargs))
 
@@ -176,19 +181,18 @@ class Enemy(LivingEntity):
         Basic movement towards the player.
         """
         super().update(*args)
-        playercenter = self.player.rect.center
-        if self.player.rect.left < self.bounding_box.left:
+        if self.player.rect.right < self.bounding_box.left:
             self.speedx -= 0.1 * self.max_speed
-        elif self.player.rect.right > self.bounding_box.right:
+        elif self.player.rect.left > self.bounding_box.right:
             self.speedx += 0.1 * self.max_speed
         else:
-            self.speedx = 0
-        if self.player.rect.top < self.bounding_box.top:
+            self.speedx *= 0.9
+        if self.player.rect.bottom < self.bounding_box.top:
             self.speedy -= 0.1 * self.max_speed
-        elif self.player.rect.bottom > self.bounding_box.bottom:
+        elif self.player.rect.top > self.bounding_box.bottom:
             self.speedy += 0.1 * self.max_speed
         else:
-            self.speedy = 0
+            self.speedy *= 0.9
         self._check_player_hit()
         self._check_self_hit()
 
@@ -237,8 +241,14 @@ class BadBat(Enemy):
                 xcol = True
             if (self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
                 ycol = True
-            x_rect = self.bounding_box.move((self.speedx, 0))
-            y_rect = self.bounding_box.move((0, self.speedy))
+            if self.speedx > 0:
+                x_rect = self.bounding_box.move((self.speedx + 1, 0))
+            else:
+                x_rect = self.bounding_box.move((self.speedx - 1, 0))
+            if self.speedy > 0:
+                y_rect = self.bounding_box.move((0, self.speedy + 1))
+            else:
+                y_rect = self.bounding_box.move((0, self.speedy - 1))
             for sprite in super().groups()[1]:
                 if sprite.bounding_box.colliderect(x_rect) and self != sprite:
                     xcol = True

@@ -7,7 +7,7 @@ from entities import LivingEntity
 class Player(LivingEntity):
     def __init__(self, pos, *groups):
         self.idle_image = pygame.transform.scale(utilities.load_image("player.bmp", (255, 255, 255)), (60,120))
-        LivingEntity.__init__(self, self.idle_image, pos)
+        LivingEntity.__init__(self, self.idle_image, pos, health_regen=100)
         self.walking_animation = utilities.Animation("player_walk0.bmp","player_walk1.bmp","player_walk2.bmp","player_walk1.bmp",
                                                      "player_walk0.bmp","player_walk3.bmp","player_walk4.bmp","player_walk3.bmp",
                                                      scale = (60,120))
@@ -69,18 +69,24 @@ class Player(LivingEntity):
                     self.pressed_up = False
                 if event.key == K_s or event.key == K_DOWN:
                     self.pressed_down = False
-        if self.pressed_forward:
-            self.speedx += 0.1 * self.max_speed
-        if self.pressed_backwad:
-            self.speedx -= 0.1 * self.max_speed
-        if not self.pressed_backwad and not self.pressed_forward:
-            self.speedx *= 0.1
-        if self.pressed_up:
-            self.speedy -= 0.1 * self.max_speed
-        if self.pressed_down:
-            self.speedy += 0.1 * self.max_speed
-        if not self.pressed_up and not self.pressed_down:
-            self.speedy *= 0.1
+        if self.pressed_forward and self.pressed_backwad:
+            self.speedx = 0
+        else:
+            if self.pressed_forward:
+                self.speedx += 0.1 * self.max_speed
+            if self.pressed_backwad:
+                self.speedx -= 0.1 * self.max_speed
+            if not self.pressed_backwad and not self.pressed_forward:
+                self.speedx *= 0.1
+        if self.pressed_down and self.pressed_up:
+            self.speedy = 0
+        else:
+            if self.pressed_up:
+                self.speedy -= 0.1 * self.max_speed
+            if self.pressed_down:
+                self.speedy += 0.1 * self.max_speed
+            if not self.pressed_up and not self.pressed_down:
+                self.speedy *= 0.1
 
     def do_flip(self):
         orig_flip = self.flipped

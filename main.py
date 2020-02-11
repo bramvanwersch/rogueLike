@@ -58,16 +58,25 @@ def load_unload_sprites(player):
     #roughly an area twice the screen size is loaded
     range_rect = pygame.Rect(0,0,int(utilities.SCREEN_SIZE.width * 2) , int(utilities.SCREEN_SIZE.height * 2))
     range_rect.center = player.rect.center
-    for i,tile in enumerate(sprites):
-        if tile.visible and not range_rect.colliderect(tile.rect):
-            tile.visible = False
-        elif not tile.visible and range_rect.colliderect(tile.rect):
-            tile.visible = True
+    for i,sprite in enumerate(sprites):
+        if sprite.visible and not range_rect.colliderect(sprite.rect):
+            sprite.visible = False
+        elif not sprite.visible and range_rect.colliderect(sprite.rect):
+            sprite.visible = True
+
+def draw_bounding_boxes(screen, player):
+    sprites = player.groups()[0].sprites()
+    for sprite in sprites:
+        if sprite.visible:
+            bb = sprite.bounding_box
+            pygame.draw.rect(screen, (0,0,0), bb, 5)
+
 
 def run():
     #create starting seed for consistent replayability using a seed.
     random.seed(utilities.seed)
     pygame.init()
+
     screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height), DOUBLEBUF)
     pygame.display.set_caption("Welcome to the forest")
     pygame.mouse.set_visible(True)
@@ -92,9 +101,8 @@ def run():
     stage = stages.ForestStage(ents, player)
     stage.create_tiles()
     stage.add_enemy("red square", (600,500))
-    for i in range(10):
+    for i in range(30):
         stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
-
     # Main Loop
     going = True
     while going:
@@ -117,6 +125,7 @@ def run():
         player.events = events
         ents.update()
         ents.draw(screen)
+
         # loc = [0,0]
         # for _ in range(10):
         #     w1 = get_random_weapon(weaponparts[0])
@@ -125,8 +134,10 @@ def run():
         #     loc[0] += 50
         fps = FONT.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
         screen.blit(fps, (10,10))
-
+        if utilities.TEST:
+            draw_bounding_boxes(screen, player)
         pygame.display.update()
+
     pygame.quit()
 
 if __name__ == "__main__":
