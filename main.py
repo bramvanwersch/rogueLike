@@ -98,7 +98,9 @@ def run():
     # Main Loop
     going = True
     while going:
-        utilities.GAME_TIME.tick(60)
+        utilities.GAME_TIME.tick(200)
+        if not player.dead:
+            load_unload_sprites(player)
         events = []
         # Handle Input Events
         for event in pygame.event.get():
@@ -112,8 +114,6 @@ def run():
         screen.fill([255, 255, 255])
         # player.arm.equip(get_random_weapon(weaponparts[0]))
 
-        #load the tiles around the player and generate new ones if needed.
-        load_unload_sprites(player)
         player.events = events
         ents.update()
         ents.draw(screen)

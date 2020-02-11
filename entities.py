@@ -49,15 +49,15 @@ class SolidEntity(Entity):
         self.collision = True
 
 class LivingEntity(Entity):
-    def __init__(self, image, pos, *groups, health = [100,100], damage = 10, health_regen = 1):
+    def __init__(self, image, pos, *groups, health = 100, damage = 10, health_regen = 1):
         """
         Collection of methods for enemies and player alike
         """
         Entity.__init__(self, image, pos, *groups)
         self.speed = 10
         self.speedx, self.speedy = 0,0
-        self.health = health
-        self.damage = damage
+        self.health = [health, health]
+        self.damage = 10
         #second regen
         self.health_regen = health_regen
         self._layer = utilities.PLAYER_LAYER1
@@ -65,10 +65,13 @@ class LivingEntity(Entity):
         self.dead = False
         self.immune = [False,0]
         self.flipped_image = pygame.transform.flip(self.image, True, False)
+        self.damage_color = "red"
+        self.healing_color = "green"
 
     def update(self, *args):
         super().update(*args)
         if self.dead:
+            self.kill()
             return
         self.do_flip()
 
@@ -79,6 +82,13 @@ class LivingEntity(Entity):
             self.immune[0] = False
         if self.immune[0]:
             self.immune[1] -= 1
+
+    def set_immune(self, time = 10):
+        """
+        Makes a LivingEntity immune to damage for a set amount of frames
+        :param time: the default frames to be immune. Expected to be an integer
+        """
+        self.immune = [True, time]
 
     def do_flip(self):
         if (self.flipped and self.speedx > 0) or (not self.flipped and self.speedx < 0):
@@ -95,6 +105,8 @@ class LivingEntity(Entity):
         :param amnt: of health to change to.
         """
         self.health[0] += amnt
+        if amnt < 0:
+            self.create_text(str(amnt), color = self.damage_color)
         if self.health[0] > self.health[1]:
             self.health[0] = self.health[1]
         if self.health[0] <= 0:
@@ -144,6 +156,7 @@ class Enemy(LivingEntity):
     def __init__(self,image, pos, player, *groups):
         LivingEntity.__init__(self, image, pos, *groups)
         self.player = player
+        self.damage_color = "blue"
 
     def update(self,*args):
         """
@@ -164,12 +177,17 @@ class Enemy(LivingEntity):
         else:
             self.speedy = 0
         self._check_player_hit()
+        self._check_self_hit()
 
     def _check_player_hit(self):
-        if self.bounding_box.colliderect(self.player.bounding_box) and not self.player.immune[0]:
-            self.player.create_text(- self.damage, color = "red")
+        if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
             self.player.set_immune()
             self.player._change_health(- self.damage)
+
+    def _check_self_hit(self):
+        if self.bounding_box.colliderect(self.player.right_arm.bounding_box) and not self.immune[0]:
+            self.set_immune()
+            self._change_health(- self.damage)
 
 class RedSquare(Enemy):
     def __init__(self, pos, player, *groups):
@@ -187,7 +205,6 @@ class BadBat(Enemy):
         super().update(*args)
         self.animation.update()
         self._change_image(self.animation.image)
-
 
     def _get_bounding_box(self):
         """
@@ -224,7 +241,7 @@ class TextSprite(Entity):
         image = pygame.font.Font(None, 30).render(str(text), True, pygame.Color(kwargs["color"]))
         Entity.__init__(self, image, pos, *groups)
         #current, maximum in ms
-        self.lifespan = [0,2000]
+        self.lifespan = [0,1000]
         self.destroy = False
         self._layer = utilities.TEXT_LAYER
 

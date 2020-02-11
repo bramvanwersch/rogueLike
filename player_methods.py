@@ -21,13 +21,6 @@ class Player(LivingEntity):
         self.right_arm = RightArm(start_weapon, (self.rect.centerx - 8, self.rect.centery - 8))
         self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8))
 
-    def set_immune(self, time = 10):
-        """
-        Makes a LivingEntity immune to damage for a set amount of frames
-        :param time: the default frames to be immune. Expected to be an integer
-        """
-        self.immune = [True, time]
-
     def _get_bounding_box(self):
         """
         Create a bounding box smaller then the player for collission checking with objects in the surroundings
