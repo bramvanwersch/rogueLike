@@ -114,6 +114,7 @@ def run():
     #setup the stage
     stage = stages.ForestStage(ents, player)
     stage.create_tiles()
+    stage.add_enemy("dummy", (600, 500))
     # stage.add_enemy("red square", (600,500))
     # for i in range(30):
     #     stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))

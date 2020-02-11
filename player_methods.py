@@ -212,6 +212,8 @@ class RightArm(GenericArm):
                 self.image = self.orig_image
             offset_rotated2 = self.offset2.rotate(self.angle)
             self.rect = self.image.get_rect(center=self.rect.center - offset_rotated2)
+        #ensure the bounding box is synced with the image location
+        self.bounding_box = self.rect
 
     def flip(self):
         super().flip()

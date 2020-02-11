@@ -257,6 +257,11 @@ class BadBat(Enemy):
             break;
         return [xcol, ycol]
 
+class TestDummy(Enemy):
+    def __init__(self, pos, player, *groups):
+        image = pygame.transform.scale(utilities.load_image("dummy.bmp", (255,255,255)),(50,100))
+        Enemy.__init__(self,image , pos, player, *groups,health=2000,health_regen=1000, speed = 0)
+
 class TextSprite(Entity):
     def __init__(self,text, pos, *groups, **kwargs):
         image = pygame.font.Font(None, 30).render(str(text), True, pygame.Color(kwargs["color"]))

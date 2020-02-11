@@ -18,6 +18,8 @@ class BasicStage:
             entities.RedSquare(pos, self.player, self.updater, self.enemy_sprites)
         elif name == "bad bat":
             entities.BadBat(pos, self.player, self.updater, self.enemy_sprites)
+        elif name == "dummy":
+            entities.TestDummy(pos, self.player, self.updater, self.enemy_sprites)
         else:
             print("Warning unknown enemy: "+ name)
 
