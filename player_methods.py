@@ -75,9 +75,9 @@ class Player(LivingEntity):
         self.animations()
 
     def do_flip(self):
-        if (self.flipped and self.speedx > 0) or (not self.flipped and self.speedx < 0):
-            self.flipped = not self.flipped
-            self.image = pygame.transform.flip(self.image, True, False)
+        orig_flip = self.flipped
+        super().do_flip()
+        if orig_flip != self.flipped:
             self.right_arm.flip()
             self.left_arm.flip()
 

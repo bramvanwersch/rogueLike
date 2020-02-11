@@ -11,6 +11,7 @@ class Entity(pygame.sprite.Sprite):
         """
         pygame.sprite.Sprite.__init__(self, *groups)
         self.image = image
+        self.orig_image = self.image
         self.rect = self.image.get_rect(topleft = pos)
         # if the sprite should be visible at the current moment.
         self.visible = True
@@ -63,6 +64,7 @@ class LivingEntity(Entity):
         self.text_values = []
         self.dead = False
         self.immune = [False,0]
+        self.flipped_image = pygame.transform.flip(self.image, True, False)
 
     def update(self, *args):
         super().update(*args)
@@ -81,7 +83,10 @@ class LivingEntity(Entity):
     def do_flip(self):
         if (self.flipped and self.speedx > 0) or (not self.flipped and self.speedx < 0):
             self.flipped = not self.flipped
-            self.image = pygame.transform.flip(self.image, True, False)
+            if self.flipped:
+                self.image = self.flipped_image
+            else:
+                self.image = self.orig_image
 
     def _change_health(self, amnt):
         """
