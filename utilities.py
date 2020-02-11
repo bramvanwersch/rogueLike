@@ -4,7 +4,7 @@ from pygame.compat import geterror
 
 #test constant
 FAST = True
-TEST = False
+TEST = True
 
 #some global constants
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]

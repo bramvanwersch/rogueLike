@@ -66,11 +66,25 @@ def load_unload_sprites(player):
 
 def draw_bounding_boxes(screen, player):
     sprites = player.groups()[0].sprites()
+    c = player.rect.center
+    sr = screen.get_rect()
     for sprite in sprites:
         if sprite.visible:
             bb = sprite.bounding_box
-            pygame.draw.rect(screen, (0,0,0), bb, 5)
+            if utilities.DEFAULT_LEVEL_SIZE.height - c[0] - sr.width / 2 < 0:
+                x = sr.width - (utilities.DEFAULT_LEVEL_SIZE.width - bb.x)
+            elif c[0] - sr.width / 2 > 0:
+                x = bb.x - (c[0] - sr.width / 2)
+            else:
+                x = bb.x
+            if utilities.DEFAULT_LEVEL_SIZE.height - c[1] - sr.height / 2 < 0:
+                y = sr.height - (utilities.DEFAULT_LEVEL_SIZE.height - bb.y)
+            elif c[1] - sr.height / 2 > 0:
+                y = bb.y - (c[1] - sr.height / 2)
 
+            else:
+                y = bb.y
+            pygame.draw.rect(screen, (0,0,0), (int(x), int(y), bb.width, bb.height), 5)
 
 def run():
     #create starting seed for consistent replayability using a seed.
@@ -100,9 +114,9 @@ def run():
     #setup the stage
     stage = stages.ForestStage(ents, player)
     stage.create_tiles()
-    stage.add_enemy("red square", (600,500))
-    for i in range(30):
-        stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
+    # stage.add_enemy("red square", (600,500))
+    # for i in range(30):
+    #     stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
     # Main Loop
     going = True
     while going:
