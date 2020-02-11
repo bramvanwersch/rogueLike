@@ -98,7 +98,7 @@ def run():
     # Main Loop
     going = True
     while going:
-        utilities.GAME_TIME.tick(200)
+        utilities.GAME_TIME.tick(60)
         events = []
         # Handle Input Events
         for event in pygame.event.get():

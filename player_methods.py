@@ -1,4 +1,4 @@
-import pygame, random
+import pygame, random, math
 import numpy as np
 from pygame.locals import *
 import entities, utilities, weapon
@@ -44,11 +44,10 @@ class Player(LivingEntity):
         """
         super().update(*args)
         for event in self.events:
-            if event.type == MOUSEBUTTONDOWN:
-                self.right_arm.attacking = True
-            elif event.type == MOUSEBUTTONUP:
-                self.right_arm.attacking = False
-            elif event.type == KEYDOWN:
+            if event.type == KEYDOWN:
+                if event.key == K_k:
+                    if not self.right_arm.attacking:
+                        self.right_arm.do_attack()
                 if event.key == K_a or event.key == K_LEFT:
                     self.speedx -= self.speed
                 if event.key == K_d or event.key == K_RIGHT:
@@ -160,6 +159,7 @@ class RightArm(GenericArm):
         self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
         self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
 
+
     def move_arm(self, pos):
         """
         They player class tells where to put the arm relative to the player. Then the arm is rotated based on the
@@ -168,11 +168,16 @@ class RightArm(GenericArm):
         :return:
         """
         self.rect.center = pos
-        if not self.attacking:
-            self.angle = 0
-        else:
-            self.angle += 10
+        if self.attacking:
+            self.angle -= 10
+            if self.angle < -30:
+                self.attacking = False
+                self.angle = 0
         self.rotate()
+
+    def do_attack(self):
+        self.attacking = True
+        self.angle = 150
 
     def rotate(self):
         """
@@ -204,7 +209,7 @@ class RightArm(GenericArm):
         """
         self.weapon = weapon
         weapon_image = pygame.transform.scale(self.weapon.image, (int(self.weapon.image.get_rect().width * 0.7),
-                                                                  int(self.weapon.image.get_rect().height * 0.7 )))
+                                                                  int(self.weapon.image.get_rect().height * 0.8)))
         weapon_image = pygame.transform.rotate(weapon_image, 90)
         weapon_image = pygame.transform.flip(weapon_image, True, False)
         self.image = self.__create_weapon_arm(weapon_image)
@@ -212,8 +217,6 @@ class RightArm(GenericArm):
         self.rect = self.image.get_rect(center = self.rect.center)
         self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
         self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
-
-
 
     def __create_weapon_arm(self, weapon_image):
         """
