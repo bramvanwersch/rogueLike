@@ -7,7 +7,7 @@ from entities import LivingEntity
 class Player(LivingEntity):
     def __init__(self, pos, *groups):
         self.idle_image = pygame.transform.scale(utilities.load_image("player.bmp", (255, 255, 255)), (60,120))
-        LivingEntity.__init__(self, self.idle_image, pos, health= 1)
+        LivingEntity.__init__(self, self.idle_image, pos)
         self.walking_animation = utilities.Animation("player_walk0.bmp","player_walk1.bmp","player_walk2.bmp","player_walk1.bmp",
                                                      "player_walk0.bmp","player_walk3.bmp","player_walk4.bmp","player_walk3.bmp",
                                                      scale = (60,120))
@@ -43,6 +43,8 @@ class Player(LivingEntity):
         Processes user input to make the player do actions.
         """
         super().update(*args)
+        if self.dead:
+            return
         self.handle_user_input()
         if self.flipped:
             self.right_arm.move_arm((self.rect.centerx - 5, self.rect.centery))
@@ -113,30 +115,28 @@ class Player(LivingEntity):
         self._change_image(self.dead_animation.image)
 
     def animations(self):
-        if not self.dead:
-
-            if self.right_arm.attacking:
-                self.idle_animation.reset()
-            if int(self.speedx) != 0 or int(self.speedy) != 0:
-                self.walking_animation.update()
-                self._change_image(self.walking_animation.image)
+        if self.right_arm.attacking:
+            self.idle_animation.reset()
+        if int(self.speedx) != 0 or int(self.speedy) != 0:
+            self.walking_animation.update()
+            self._change_image(self.walking_animation.image)
+            self.idle_animation.reset()
+        else:
+            #idle animation plays at random every 500 frames of inactivity
+            self.walking_animation.reset()
+            if self.idle_animation.cycles == 0:
+                self.idle_animation.update()
+                if self.idle_animation.marked:
+                    self.right_arm.visible = False
+                    self.left_arm.visible = False
+                else:
+                    self.right_arm.visible = True
+                    self.left_arm.visible = True
+                self._change_image(self.idle_animation.image)
+            elif random.randint(1, 500) == 1:
                 self.idle_animation.reset()
             else:
-                #idle animation plays at random every 500 frames of inactivity
-                self.walking_animation.reset()
-                if self.idle_animation.cycles == 0:
-                    self.idle_animation.update()
-                    if self.idle_animation.marked:
-                        self.right_arm.visible = False
-                        self.left_arm.visible = False
-                    else:
-                        self.right_arm.visible = True
-                        self.left_arm.visible = True
-                    self._change_image(self.idle_animation.image)
-                elif random.randint(1, 500) == 1:
-                    self.idle_animation.reset()
-                else:
-                    self._change_image(self.idle_image)
+                self._change_image(self.idle_image)
 
 class GenericArm(entities.Entity):
     def __init__(self, pos):

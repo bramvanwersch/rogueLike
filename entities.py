@@ -36,9 +36,9 @@ class Entity(pygame.sprite.Sprite):
 
     def _change_image(self, image):
         if self.flipped:
-            self.image = pygame.transform.flip(image, True, False)
+            self.image = image[1]
         else:
-            self.image = image
+            self.image = image[0]
 
 class SolidEntity(Entity):
     """
@@ -219,7 +219,7 @@ class BadBat(Enemy):
     def __init__(self, pos, player, *groups):
         self.animation = utilities.Animation("bad_bat-1.bmp","bad_bat0.bmp","bad_bat1.bmp","bad_bat2.bmp","bad_bat3.bmp",
                                              "bad_bat4.bmp", scale = (100,50), start_frame="random")
-        Enemy.__init__(self, self.animation.image, pos, player, *groups, speed = 4)
+        Enemy.__init__(self, self.animation.image[0], pos, player, *groups, speed = 4)
 
     def update(self, *args):
         super().update(*args)

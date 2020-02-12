@@ -97,7 +97,9 @@ def run():
     random.seed(utilities.seed)
     pygame.init()
 
-    screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height), DOUBLEBUF)
+    screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height), DOUBLEBUF | FULLSCREEN)
+    screen.set_alpha(None)
+
     pygame.display.set_caption("Welcome to the forest")
     pygame.mouse.set_visible(True)
 
@@ -153,10 +155,11 @@ def run():
         #     w1.image = pygame.transform.scale(w1.image, (int(w1.image.get_rect().width * 0.7), int(w1.image.get_rect().height * 0.7)))
         #     screen.blit(w1.image,loc)
         #     loc[0] += 50
-        if utilities.TEST and not player.dead:
+        if utilities.FPS:
             fps = FONT.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
+            screen.blit(fps, (10, 10))
+        if utilities.TEST and not player.dead:
             ve =  FONT.render(str(ve), True,pygame.Color('black'))
-            screen.blit(fps, (10,10))
             screen.blit(ve,(10,25))
             draw_bounding_boxes(screen, player)
         pygame.display.update()

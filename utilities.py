@@ -4,7 +4,8 @@ from pygame.compat import geterror
 
 #test constant
 FAST = True
-TEST = False
+TEST = True
+FPS = True
 
 #some global constants
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
@@ -75,7 +76,9 @@ class Animation:
         :param scale: a scale factor to apply to all the animation images
         :param start_frame: the frame to start on or the keyword 'random' to start at a random frame
         """
-        self.animation_images = [pygame.transform.scale(load_image(name, color), scale) for name in image_names]
+        animation_images = [pygame.transform.scale(load_image(name, color), scale) for name in image_names]
+        flipped_images = [pygame.transform.flip(img, True, False) for img in animation_images]
+        self.animation_images = list(zip(animation_images,flipped_images))
         self.frame_count = 0
         if isinstance(speed, list):
             assert len(speed) == len(self.animation_images)
