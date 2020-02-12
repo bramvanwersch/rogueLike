@@ -4,6 +4,8 @@ import weapon, utilities, entities, stages, camera, player_methods
 from pygame.locals import *
 from pygame.compat import geterror
 
+visible_ents = 0
+
 def get_random_weapon(parts, melee = True):
     """
     Gives a random weapon randoming from a pool of random parts. This is different for melee and projectile weapons
@@ -58,11 +60,15 @@ def load_unload_sprites(player):
     #roughly an area twice the screen size is loaded
     range_rect = pygame.Rect(0,0,int(utilities.SCREEN_SIZE.width * 2) , int(utilities.SCREEN_SIZE.height * 2))
     range_rect.center = player.rect.center
+    visible_ents = 0
     for i,sprite in enumerate(sprites):
         if sprite.visible and not range_rect.colliderect(sprite.rect):
             sprite.visible = False
         elif not sprite.visible and range_rect.colliderect(sprite.rect):
             sprite.visible = True
+        if sprite.visible:
+            visible_ents += 1
+    return visible_ents
 
 def draw_bounding_boxes(screen, player):
     sprites = player.groups()[0].sprites()
@@ -99,7 +105,7 @@ def run():
 
     weaponparts = load_parts()
 
-    player = player_methods.Player((0, 500))
+    player = player_methods.Player((150, 500))
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
     player.right_arm.add(ents)
     player.left_arm.add(ents)
@@ -115,15 +121,15 @@ def run():
     stage = stages.ForestStage(ents, player)
     stage.create_tiles()
     stage.add_enemy("dummy", (600, 500))
-    # stage.add_enemy("red square", (600,500))
-    # for i in range(30):
-    #     stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
+    stage.add_enemy("red square", (600,500))
+    for i in range(30):
+        stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
     # Main Loop
     going = True
     while going:
         utilities.GAME_TIME.tick(200)
         if not player.dead:
-            load_unload_sprites(player)
+            ve = load_unload_sprites(player)
         events = []
         # Handle Input Events
         for event in pygame.event.get():
@@ -147,9 +153,11 @@ def run():
         #     w1.image = pygame.transform.scale(w1.image, (int(w1.image.get_rect().width * 0.7), int(w1.image.get_rect().height * 0.7)))
         #     screen.blit(w1.image,loc)
         #     loc[0] += 50
-        fps = FONT.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
-        screen.blit(fps, (10,10))
         if utilities.TEST and not player.dead:
+            fps = FONT.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
+            ve =  FONT.render(str(ve), True,pygame.Color('black'))
+            screen.blit(fps, (10,10))
+            screen.blit(ve,(10,25))
             draw_bounding_boxes(screen, player)
         pygame.display.update()
 

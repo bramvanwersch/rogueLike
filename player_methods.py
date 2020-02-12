@@ -13,12 +13,12 @@ class Player(LivingEntity):
                                                      scale = (60,120))
         self.idle_animation = utilities.MarkedAnimation("player_idle1.bmp","player_idle2.bmp","player_idle3.bmp","player_idle4.bmp",
                                                   "player_idle4.bmp","player_idle3.bmp","player_idle2.bmp","player_idle1.bmp",
-                                                  scale = (60,120), speed = 40, marked_frames=[3,4,5,6])
+                                                  scale = (60,120), speed = 40, marked_frames=[2,3,4,5])
         self.dead_animation = utilities.MarkedAnimation("player_idle1.bmp","player_dead2.bmp","player_dead3.bmp",
                                                         "player_dead4.bmp","player_dead5.bmp","player_dead6.bmp",
                                                         "player_dead7.bmp","player_dead8.bmp","player_dead9.bmp",
                                                         "player_dead10.bmp",
-                                                        scale = (60,120), speed = [20,20,20,20,20,20,20,20,20,1000],
+                                                        scale = (60,120), speed = [15,15,15,15,15,15,15,15,15,1000],
                                                         marked_frames=[3,4,5,6,7,8,9,10])
         self.events = []
         self.inventory = Inventory()
@@ -83,7 +83,7 @@ class Player(LivingEntity):
             if self.pressed_backwad:
                 self.speedx -= 0.1 * self.max_speed
             if not self.pressed_backwad and not self.pressed_forward:
-                self.speedx *= 0.1
+                self.speedx = 0
         if self.pressed_down and self.pressed_up:
             self.speedy = 0
         else:
@@ -92,7 +92,7 @@ class Player(LivingEntity):
             if self.pressed_down:
                 self.speedy += 0.1 * self.max_speed
             if not self.pressed_up and not self.pressed_down:
-                self.speedy *= 0.1
+                self.speedy  = 0
 
     def do_flip(self):
         orig_flip = self.flipped

@@ -4,7 +4,7 @@ from pygame.compat import geterror
 
 #test constant
 FAST = True
-TEST = True
+TEST = False
 
 #some global constants
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
@@ -32,8 +32,8 @@ PLAYER_LAYER2 = 3
 PLAYER_LAYER1 = 2
 MIDDLE_LAYER = 1
 BOTTOM_LAYER = -1
-DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2500,2500)
-seed = 1
+DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2000,2000)
+seed = 2
 
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)

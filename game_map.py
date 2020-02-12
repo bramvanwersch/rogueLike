@@ -7,7 +7,7 @@ MAX_LEAF_SIZE = 10
 #binary space partitioning
 def build_map():
     did_split = True
-    leafs = [Leaf((0,0),(int(utilities.DEFAULT_LEVEL_SIZE.width / 100), int(utilities.DEFAULT_LEVEL_SIZE.height / 100)))]
+    leafs = [Leaf((0,0),(int((utilities.DEFAULT_LEVEL_SIZE.width - 400) / 100), int((utilities.DEFAULT_LEVEL_SIZE.height - 400) / 100)))]
     while did_split:
         did_split = False
         for l in leafs:
@@ -19,6 +19,9 @@ def build_map():
                         did_split = True
     leafs[0].create_blob()
     final_map = leafs[0].get_map()
+    for i, row in enumerate(final_map):
+        final_map[i] = [1,0] + row + [0,1]
+    final_map = [[1]* len(final_map[0]),[1]+ [0]* (len(final_map[0]) -2) + [1]] + final_map + [[1]+ [0]* (len(final_map[0]) -2) + [1],[1]* len(final_map[0])]
     return determine_pictures(final_map)
 
 def determine_pictures(game_map):
