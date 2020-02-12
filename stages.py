@@ -11,48 +11,47 @@ class BasicStage:
         self.updater = updater
         self.player = player
         self.tiles = TileGroup()
-        self.stage_map = game_map.build_map()
 
-    def _create_tiles(self, stage_name):
+    def _create_tiles(self, stage_names):
         for y, line in enumerate(self.stage_map):
             for x, letter in enumerate(line):
                 image = None
+                if letter != 0:
+                    number = int(letter[-1]) -1
+                    letter = letter[:-1]
+                    print(letter, number)
+
                 if letter == "blc":
-                    image = self.tile_images["bottom_left_corner_" + stage_name]
+                    image = self.tile_images["bottom_left_corner_" + stage_names[number]]
                 if letter == "tlc":
-                    image = self.tile_images["top_left_corner_" + stage_name]
+                    image = self.tile_images["top_left_corner_" + stage_names[number]]
                 if letter == "trc":
-                    image = self.tile_images["top_right_corner_" + stage_name]
+                    image = self.tile_images["top_right_corner_" + stage_names[number]]
                 if letter == "brc":
-                    image = self.tile_images["bottom_right_corner_" + stage_name]
+                    image = self.tile_images["bottom_right_corner_" + stage_names[number]]
                 if letter == "blic":
-                    image = self.tile_images["bottom_left_icorner_" + stage_name]
+                    image = self.tile_images["bottom_left_icorner_" + stage_names[number]]
                 if letter == "tlic":
-                    image = self.tile_images["top_left_icorner_" + stage_name]
+                    image = self.tile_images["top_left_icorner_" + stage_names[number]]
                 if letter == "tric":
-                    image = self.tile_images["top_right_icorner_" + stage_name]
+                    image = self.tile_images["top_right_icorner_" + stage_names[number]]
                 if letter == "bric":
-                    image = self.tile_images["bottom_right_icorner_" + stage_name]
+                    image = self.tile_images["bottom_right_icorner_" + stage_names[number]]
                 if letter == "ls":
-                    image = random.choice((self.tile_images["left_straight1_" + stage_name],
-                                           self.tile_images["left_straight2_" + stage_name],
-                                           self.tile_images["left_straight3_" + stage_name]))
+                    image = random.choice([self.tile_images[key] for key in self.tile_images if "left_straight" in \
+                                           key and stage_names[number] in key])
                 if letter == "ts":
-                    image = random.choice((self.tile_images["top_straight1_" + stage_name],
-                                           self.tile_images["top_straight2_" + stage_name],
-                                           self.tile_images["top_straight3_" + stage_name]))
+                    image = random.choice([self.tile_images[key] for key in self.tile_images if "top_straight" in \
+                                           key and stage_names[number] in key])
                 if letter == "rs":
-                    image = random.choice((self.tile_images["right_straight1_" + stage_name],
-                                           self.tile_images["right_straight2_" + stage_name],
-                                           self.tile_images["right_straight3_" + stage_name]))
+                    image = random.choice([self.tile_images[key] for key in self.tile_images if "right_straight" in \
+                                           key and stage_names[number] in key])
                 if letter == "bs":
-                    image = random.choice((self.tile_images["bottom_straight1_" + stage_name],
-                                           self.tile_images["bottom_straight2_" + stage_name],
-                                           self.tile_images["bottom_straight3_" + stage_name]))
+                    image = random.choice([self.tile_images[key] for key in self.tile_images if "bottom_straight" in \
+                                           key and stage_names[number] in key])
                 if letter == "m":
-                    image = random.choice((self.tile_images["middle1_" + stage_name],
-                                           self.tile_images["middle2_" + stage_name],
-                                           self.tile_images["middle3_" + stage_name]))
+                    image = random.choice([self.tile_images[key] for key in self.tile_images if "middle" in \
+                                           key and stage_names[number] in key])
                 if image:
                     self.tiles[y][x] = SolidTile(image, (x * 100, y * 100))
 
@@ -72,10 +71,11 @@ class ForestStage(BasicStage):
     """
     def __init__(self, updater, player):
         BasicStage.__init__(self, updater, player)
+        self.stage_map = game_map.build_map(wheights = [0.9,0.1])
         self.background_images = [pygame.transform.scale(self.load_image(x), (100, 100)) for x in utilities.FOREST_TILES]
         self.tile_images = {name[:-4]: pygame.transform.scale(self.load_image(name), (100, 100)) for name in utilities.TREE_IMAGES}
         self.props = [pygame.transform.scale(self.load_image(name), (100,100)) for name in utilities.FOREST_PROPS]
-        self._create_tiles("forest")
+        self._create_tiles(["forest","lake"])
         self.background = Background(self.background_images,self.props, self.tiles,"background", self.updater)
         self.tile_props = Background(self.background_images,self.props, self.tiles,"prop tiles", self.updater)
 

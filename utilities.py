@@ -3,8 +3,7 @@ from pygame.locals import *
 from pygame.compat import geterror
 
 #test constant
-FAST = True
-TEST = True
+TEST = False
 FPS = True
 
 #some global constants
@@ -22,7 +21,16 @@ TREE_IMAGES = ["bottom_left_corner_forest.bmp","bottom_left_icorner_forest.bmp",
                "left_straight1_forest.bmp","left_straight2_forest.bmp","left_straight3_forest.bmp",
                "top_straight1_forest.bmp","top_straight2_forest.bmp","top_straight3_forest.bmp",
                "bottom_straight1_forest.bmp","bottom_straight2_forest.bmp","bottom_straight3_forest.bmp",
-               "middle1_forest.bmp","middle2_forest.bmp","middle3_forest.bmp"]
+               "middle1_forest.bmp","middle2_forest.bmp","middle3_forest.bmp",
+               "bottom_left_corner_lake.bmp","bottom_left_icorner_lake.bmp",
+               "bottom_right_corner_lake.bmp","bottom_right_icorner_lake.bmp",
+               "top_right_corner_lake.bmp", "top_right_icorner_lake.bmp",
+               "top_left_corner_lake.bmp","top_left_icorner_lake.bmp",
+               "right_straight1_lake.bmp","right_straight2_lake.bmp",
+               "left_straight1_lake.bmp","left_straight2_lake.bmp",
+               "top_straight1_lake.bmp","top_straight2_lake.bmp",
+               "bottom_straight1_lake.bmp","bottom_straight2_lake.bmp",
+               "middle1_lake.bmp","middle2_lake.bmp","middle3_lake.bmp","middle4_lake.bmp"]
 
 height = 1000
 GAME_TIME = pygame.time.Clock()
@@ -136,26 +144,3 @@ class MarkedAnimation(Animation):
     def reset(self):
         super().reset()
         self.marked = False
-
-# class AttackAnimation(Animation):
-#     def __init__(self, image, speed = 10, color = (255,255,255), scale = (0,0), start_frame = 0, anglerange = [0,50],
-#                  number_of_frames = 5 ):
-#         self.__image = image
-#         self.animation_images = [image]
-#         Animation.__init__(self, [], speed = speed, color = color, scale = scale, start_frame=start_frame)
-#         self.animation_images = [image]
-#         self.number_of_frames = number_of_frames
-#         self.angle_range = anglerange
-#
-#     def update(self):
-#         """
-#         Function to be called every update to progress the animation. This methods loops endlesly when called
-#         """
-#         self.frame_count += 1
-#         if self.frame_count % self.speed == 0:
-#             self.image = pygame.transform.rotate(self.__image, self.angle_range[1] / self.number_of_frames + self.angle_range[0])
-#             self.current_frame += 1
-#         if self.current_frame >= number:
-#             self.current_frame = 0
-#             self.frame_count = 0
-#             self.cycles += 1

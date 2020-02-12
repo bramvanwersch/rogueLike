@@ -1,11 +1,11 @@
-import pygame, random
+import pygame, random, numpy
 import utilities
 
 MIN_LEAF_SIZE = 4
 MAX_LEAF_SIZE = 10
 
 #binary space partitioning
-def build_map():
+def build_map(wheights = [1]):
     did_split = True
     leafs = [Leaf((0,0),(int((utilities.DEFAULT_LEVEL_SIZE.width - 400) / 100), int((utilities.DEFAULT_LEVEL_SIZE.height - 400) / 100)))]
     while did_split:
@@ -17,7 +17,7 @@ def build_map():
                         leafs.append(l.rigth_leaf)
                         leafs.append(l.left_leaf)
                         did_split = True
-    leafs[0].create_blob()
+    leafs[0].create_blob(wheights)
     final_map = leafs[0].get_map()
     for i, row in enumerate(final_map):
         final_map[i] = [1,0] + row + [0,1]
@@ -29,7 +29,7 @@ def determine_pictures(game_map):
         for x, number in enumerate(row):
             if number == 0:
                 continue
-            elif number == 1:
+            else:
                 st = [0,0,0,0]
                 if y - 1 < 0 or game_map[y -1][x] != 0:
                     st[0] = 1
@@ -51,7 +51,7 @@ def determine_pictures(game_map):
                     elif y - 1 >= 0 and x - 1 >= 0 and (game_map[y-1][x-1] == 0):
                         name = "tlic"
 
-                game_map[y][x] = name
+                game_map[y][x] = name + str(number)
     return game_map
 
 def get_picture_code(st):
@@ -103,29 +103,29 @@ class Leaf:
             self.rigth_leaf = Leaf((self.rect.x + split,self.rect.y), (self.rect.width - split, self.rect.height))
         return True
 
-    def create_blob(self):
+    def create_blob(self, wheights):
         if self.left_leaf != None and self.rigth_leaf != None:
             if self.left_leaf != None:
-                self.left_leaf.create_blob()
+                self.left_leaf.create_blob(wheights)
             if self.rigth_leaf != None:
-                self.rigth_leaf.create_blob()
+                self.rigth_leaf.create_blob(wheights)
         else:
             self.leaf_map = [[0 for x in range(self.rect.width)] for y in range(self.rect.height)]
-            if random.randint(1,1) == 1:
-                #minimum size is 3
-                blobw = random.randint(3, self.rect.width - 1)
-                blobh = random.randint(3, self.rect.height - 1)
-                blobx = random.randint(self.rect.x, self.rect.right - blobw)
-                bloby = random.randint(self.rect.y, self.rect.bottom - blobh)
-                #create a blobmap within the leaf size that is atleast 2 by 2
-                for y in range(bloby - self.rect.y, bloby - self.rect.y + blobh - 1,1):
-                    for x in range(blobx - self.rect.x, blobx - self.rect.x +blobw - 1,1):
-                        #determines how likely branching is from the original blob
-                        if random.randint(1,3) == 1:
-                            self.leaf_map[y][x] = 1
-                            self.leaf_map[y][x + 1] = 1
-                            self.leaf_map[y + 1][x] = 1
-                            self.leaf_map[y + 1][x + 1] = 1
+            #minimum size is 3
+            blobw = random.randint(3, self.rect.width - 1)
+            blobh = random.randint(3, self.rect.height - 1)
+            blobx = random.randint(self.rect.x, self.rect.right - blobw)
+            bloby = random.randint(self.rect.y, self.rect.bottom - blobh)
+            number = numpy.random.choice([i for i in range(1,len(wheights)+1)], p = wheights)
+            #create a blobmap within the leaf size that is atleast 2 by 2
+            for y in range(bloby - self.rect.y, bloby - self.rect.y + blobh - 1,1):
+                for x in range(blobx - self.rect.x, blobx - self.rect.x +blobw - 1,1):
+                    #determines how likely branching is from the original blob
+                    if random.randint(1,3) == 1:
+                        self.leaf_map[y][x] = number
+                        self.leaf_map[y][x + 1] = number
+                        self.leaf_map[y + 1][x] = number
+                        self.leaf_map[y + 1][x + 1] = number
 
     def get_map(self):
         final_map = [[0 for x in range(self.rect.width)] for y in range(self.rect.height)]

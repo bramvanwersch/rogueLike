@@ -17,8 +17,8 @@ class Player(LivingEntity):
         self.dead_animation = utilities.MarkedAnimation("player_idle1.bmp","player_dead2.bmp","player_dead3.bmp",
                                                         "player_dead4.bmp","player_dead5.bmp","player_dead6.bmp",
                                                         "player_dead7.bmp","player_dead8.bmp","player_dead9.bmp",
-                                                        "player_dead10.bmp",
-                                                        scale = (60,120), speed = [15,15,15,15,15,15,15,15,15,1000],
+                                                        "player_dead10.bmp","player_dead11.bmp",
+                                                        scale = (60,120), speed = [15,15,15,15,15,15,15,15,15,15,100],
                                                         marked_frames=[3,4,5,6,7,8,9,10])
         self.events = []
         self.inventory = Inventory()
@@ -105,7 +105,6 @@ class Player(LivingEntity):
 
     def die(self):
         self.dead_animation.update()
-        # TODO needs to be in player class somehow
         if self.dead_animation.marked:
             self.right_arm.visible = False
             self.left_arm.visible = False

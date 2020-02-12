@@ -191,20 +191,23 @@ class Enemy(LivingEntity):
         Basic movement towards the player.
         """
         super().update(*args)
-        if self.player.rect.right < self.bounding_box.left:
+        self._use_brain()
+        self._check_player_hit()
+        self._check_self_hit()
+
+    def _use_brain(self):
+        if self.player.bounding_box.right < self.bounding_box.left:
             self.speedx -= 0.1 * self.max_speed
-        elif self.player.rect.left > self.bounding_box.right:
+        elif self.player.bounding_box.left > self.bounding_box.right:
             self.speedx += 0.1 * self.max_speed
         else:
             self.speedx *= 0.9
-        if self.player.rect.bottom < self.bounding_box.top:
+        if self.player.bounding_box.bottom < self.bounding_box.top:
             self.speedy -= 0.1 * self.max_speed
-        elif self.player.rect.top > self.bounding_box.bottom:
+        elif self.player.bounding_box.top > self.bounding_box.bottom:
             self.speedy += 0.1 * self.max_speed
         else:
             self.speedy *= 0.9
-        self._check_player_hit()
-        self._check_self_hit()
 
     def _check_player_hit(self):
         if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
