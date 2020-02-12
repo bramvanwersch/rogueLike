@@ -18,11 +18,11 @@ TREE_IMAGES = ["bottom_left_corner_forest.bmp","bottom_left_icorner_forest.bmp",
                "bottom_right_corner_forest.bmp","bottom_right_icorner_forest.bmp",
                "top_right_corner_forest.bmp", "top_right_icorner_forest.bmp",
                "top_left_corner_forest.bmp","top_left_icorner_forest.bmp",
-               "right_straight_forest1.bmp","right_straight_forest2.bmp","right_straight_forest3.bmp",
-               "left_straight_forest1.bmp","left_straight_forest2.bmp","left_straight_forest3.bmp",
-               "top_straight_forest1.bmp","top_straight_forest2.bmp","top_straight_forest3.bmp",
-               "bottom_straight_forest1.bmp","bottom_straight_forest2.bmp","bottom_straight_forest3.bmp",
-               "middle_forest1.bmp","middle_forest2.bmp","middle_forest3.bmp"]
+               "right_straight1_forest.bmp","right_straight2_forest.bmp","right_straight3_forest.bmp",
+               "left_straight1_forest.bmp","left_straight2_forest.bmp","left_straight3_forest.bmp",
+               "top_straight1_forest.bmp","top_straight2_forest.bmp","top_straight3_forest.bmp",
+               "bottom_straight1_forest.bmp","bottom_straight2_forest.bmp","bottom_straight3_forest.bmp",
+               "middle1_forest.bmp","middle2_forest.bmp","middle3_forest.bmp"]
 
 height = 1000
 GAME_TIME = pygame.time.Clock()

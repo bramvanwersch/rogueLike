@@ -72,7 +72,6 @@ def load_unload_sprites(player,screen):
         y = 1 + (sr.height / 2 - c[1]) / (sr.height / 2)
     else:
         y = 1
-    print(x,y)
     range_rect = pygame.Rect(0,0,int(utilities.SCREEN_SIZE.width * x) , int(utilities.SCREEN_SIZE.height * y))
     range_rect.center = player.rect.center
     visible_ents = 0
@@ -136,7 +135,8 @@ def run():
 
     #setup the stage
     stage = stages.ForestStage(ents, player)
-    stage.create_tiles()
+    player.tiles = stage.tiles
+
     # stage.add_enemy("dummy", (600, 500))
     # stage.add_enemy("red square", (600,500))
     # for i in range(30):

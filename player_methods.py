@@ -6,8 +6,8 @@ from entities import LivingEntity
 
 class Player(LivingEntity):
     def __init__(self, pos, *groups):
-        self.idle_image = pygame.transform.scale(utilities.load_image("player.bmp", (255, 255, 255)), (60,120))
-        LivingEntity.__init__(self, self.idle_image, pos)
+        idle_image = pygame.transform.scale(utilities.load_image("player.bmp", (255, 255, 255)), (60,120))
+        LivingEntity.__init__(self, idle_image, pos)
         self.walking_animation = utilities.Animation("player_walk0.bmp","player_walk1.bmp","player_walk2.bmp","player_walk1.bmp",
                                                      "player_walk0.bmp","player_walk3.bmp","player_walk4.bmp","player_walk3.bmp",
                                                      scale = (60,120))
@@ -136,7 +136,7 @@ class Player(LivingEntity):
             elif random.randint(1, 500) == 1:
                 self.idle_animation.reset()
             else:
-                self._change_image(self.idle_image)
+                self._change_image([self.image, self.flipped_image])
 
 class GenericArm(entities.Entity):
     def __init__(self, pos):
