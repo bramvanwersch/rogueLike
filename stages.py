@@ -118,9 +118,9 @@ class Background(entities.Entity):
         partspixels = pp0  + pp180
         proppixels = [pygame.surfarray.pixels3d(image) for image in props]
         image_rows = []
-        for i in range(int(utilities.DEFAULT_LEVEL_SIZE.width / 100 + 1)):
+        for i in range(int(utilities.DEFAULT_LEVEL_SIZE.width / 100 )):
             image_row = []
-            for j in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100 + 1)):
+            for j in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100 )):
                 image_row.append(random.choice(partspixels))
             image_rows.append(np.concatenate(image_row, 1))
         final_arr = np.concatenate(image_rows)

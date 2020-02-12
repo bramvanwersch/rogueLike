@@ -52,13 +52,28 @@ def load_parts():
             weaponparts[data["name"]] = weapon.ProjectilePart(data)
     return (meleeweaponparts, projectileweaponparts)
 
-def load_unload_sprites(player):
+def load_unload_sprites(player,screen):
     """
     Method for loading only sprites in an area around the player to reduce potential lag and other problems.
     """
     sprites = player.groups()[0].sprites()
-    #roughly an area twice the screen size is loaded
-    range_rect = pygame.Rect(0,0,int(utilities.SCREEN_SIZE.width * 2) , int(utilities.SCREEN_SIZE.height * 2))
+    sprites = player.groups()[0].sprites()
+    c = player.rect.center
+    sr = screen.get_rect()
+    if c[0] + sr.width / 2 - utilities.DEFAULT_LEVEL_SIZE.width > 0:
+        x = 1+ (c[0] + sr.width / 2 - utilities.DEFAULT_LEVEL_SIZE.width) / (sr.width / 2)
+    elif sr.width / 2 - c[0]  > 0:
+        x = 1 + (sr.width / 2 - c[0]) / (sr.width / 2)
+    else:
+        x = 1
+    if c[1] + sr.height / 2 - utilities.DEFAULT_LEVEL_SIZE.height > 0:
+        y = 1+ (c[1] + sr.height / 2 - utilities.DEFAULT_LEVEL_SIZE.width) / (sr.height / 2)
+    elif sr.height / 2 - c[1]  > 0:
+        y = 1 + (sr.height / 2 - c[1]) / (sr.height / 2)
+    else:
+        y = 1
+    print(x,y)
+    range_rect = pygame.Rect(0,0,int(utilities.SCREEN_SIZE.width * x) , int(utilities.SCREEN_SIZE.height * y))
     range_rect.center = player.rect.center
     visible_ents = 0
     for i,sprite in enumerate(sprites):
@@ -77,7 +92,7 @@ def draw_bounding_boxes(screen, player):
     for sprite in sprites:
         if sprite.visible:
             bb = sprite.bounding_box
-            if utilities.DEFAULT_LEVEL_SIZE.height - c[0] - sr.width / 2 < 0:
+            if utilities.DEFAULT_LEVEL_SIZE.width - c[0] - sr.width / 2 < 0:
                 x = sr.width - (utilities.DEFAULT_LEVEL_SIZE.width - bb.x)
             elif c[0] - sr.width / 2 > 0:
                 x = bb.x - (c[0] - sr.width / 2)
@@ -97,7 +112,7 @@ def run():
     random.seed(utilities.seed)
     pygame.init()
 
-    screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height), DOUBLEBUF | FULLSCREEN)
+    screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height), DOUBLEBUF) #| FULLSCREEN)
     screen.set_alpha(None)
 
     pygame.display.set_caption("Welcome to the forest")
@@ -122,16 +137,16 @@ def run():
     #setup the stage
     stage = stages.ForestStage(ents, player)
     stage.create_tiles()
-    stage.add_enemy("dummy", (600, 500))
-    stage.add_enemy("red square", (600,500))
-    for i in range(30):
-        stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
+    # stage.add_enemy("dummy", (600, 500))
+    # stage.add_enemy("red square", (600,500))
+    # for i in range(30):
+    #     stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
     # Main Loop
     going = True
     while going:
         utilities.GAME_TIME.tick(200)
         if not player.dead:
-            ve = load_unload_sprites(player)
+            ve = load_unload_sprites(player, screen)
         events = []
         # Handle Input Events
         for event in pygame.event.get():
@@ -142,7 +157,7 @@ def run():
             else:
                 events.append(event)
 
-        screen.fill([255, 255, 255])
+        screen.fill([0,0,0])
         # player.arm.equip(get_random_weapon(weaponparts[0]))
 
         player.events = events
