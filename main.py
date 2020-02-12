@@ -4,7 +4,8 @@ import weapon, utilities, entities, stages, camera, player_methods
 from pygame.locals import *
 from pygame.compat import geterror
 
-visible_ents = 0
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0,40)
+
 
 def get_random_weapon(parts, melee = True):
     """
@@ -85,6 +86,11 @@ def load_unload_sprites(player,screen):
     return visible_ents
 
 def draw_bounding_boxes(screen, player):
+    """
+    Draw boxes around all tiles and sprites for debugging purposes.
+    :param screen: the screen the game is being displayed on
+    :param player: the player that is the center of the screen
+    """
     sprites = player.groups()[0].sprites()
     c = player.rect.center
     sr = screen.get_rect()
@@ -105,6 +111,23 @@ def draw_bounding_boxes(screen, player):
             else:
                 y = bb.y
             pygame.draw.rect(screen, (0,0,0), (int(x), int(y), bb.width, bb.height), 5)
+    for tile in player.tiles.get_non_zero_tiles():
+        bb = tile
+        if utilities.DEFAULT_LEVEL_SIZE.width - c[0] - sr.width / 2 < 0:
+            x = sr.width - (utilities.DEFAULT_LEVEL_SIZE.width - bb.x)
+        elif c[0] - sr.width / 2 > 0:
+            x = bb.x - (c[0] - sr.width / 2)
+        else:
+            x = bb.x
+        if utilities.DEFAULT_LEVEL_SIZE.height - c[1] - sr.height / 2 < 0:
+            y = sr.height - (utilities.DEFAULT_LEVEL_SIZE.height - bb.y)
+        elif c[1] - sr.height / 2 > 0:
+            y = bb.y - (c[1] - sr.height / 2)
+
+        else:
+            y = bb.y
+        pygame.draw.rect(screen, (0,0,0), (int(x), int(y), bb.width, bb.height), 5)
+
 
 def run():
     #create starting seed for consistent replayability using a seed.

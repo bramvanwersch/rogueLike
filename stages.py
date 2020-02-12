@@ -138,7 +138,7 @@ class Background(entities.Entity):
         if len(prop_coords) > self.propnmbr:
             prop_coords = prop_coords[0:self.propnmbr]
         prop_coords = [(coord[0] * ps, coord[1] * ps) for coord in prop_coords]
-        non_zero_tiles = [tile for row in tiles for tile in row if tile != 0]
+        non_zero_tiles = tiles.get_non_zero_tiles()
         all_coords = prop_coords + non_zero_tiles
         all_coords.sort(key = lambda x: self.__sort_on_y_coord(x))
         final_arr = np.full((utilities.DEFAULT_LEVEL_SIZE.width, utilities.DEFAULT_LEVEL_SIZE.height, 3), 255)
@@ -181,6 +181,9 @@ class TileGroup:
 
     def __setitem__(self, key, value):
         self.tiles[key] = value
+
+    def get_non_zero_tiles(self):
+        return [tile for row in self.tiles for tile in row if tile != 0]
 
     def solid_collide(self, rect):
         """
