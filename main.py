@@ -149,7 +149,7 @@ def run():
         #     loc[0] += 50
         fps = FONT.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
         screen.blit(fps, (10,10))
-        if utilities.TEST:
+        if utilities.TEST and not player.dead:
             draw_bounding_boxes(screen, player)
         pygame.display.update()
 

@@ -70,8 +70,13 @@ class LivingEntity(Entity):
 
     def update(self, *args):
         super().update(*args)
-        if self.dead:
-            #TODO needs an animation
+        if self.dead and hasattr(self,"dead_animation"):
+            if self.dead_animation.cycles == 0:
+                self.die()
+            else:
+                self.kill()
+            return
+        elif self.dead:
             self.kill()
             return
         self.move()

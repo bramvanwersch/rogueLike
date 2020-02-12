@@ -77,7 +77,11 @@ class Animation:
         """
         self.animation_images = [pygame.transform.scale(load_image(name, color), scale) for name in image_names]
         self.frame_count = 0
-        self.speed = speed
+        if isinstance(speed, list):
+            assert len(speed) == len(self.animation_images)
+            self.speed = speed
+        else:
+            self.speed = [speed]* len(self.animation_images)
         if start_frame == "random":
             self.current_frame = random.randint(0,len(self.animation_images) -1)
         else:
@@ -90,13 +94,14 @@ class Animation:
         Function to be called every update to progress the animation. This methods loops endlesly when called
         """
         self.frame_count += 1
-        if self.frame_count % self.speed == 0:
-            self.image = self.animation_images[self.current_frame]
+        if self.frame_count % self.speed[self.current_frame] == 0:
             self.current_frame += 1
+            self.frame_count = 0
         if self.current_frame >= len(self.animation_images):
             self.current_frame = 0
-            self.frame_count = 0
             self.cycles += 1
+            return
+        self.image = self.animation_images[self.current_frame]
 
     def reset(self):
         """
