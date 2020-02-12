@@ -139,8 +139,8 @@ def run():
 
     # stage.add_enemy("dummy", (600, 500))
     # stage.add_enemy("red square", (600,500))
-    # for i in range(30):
-    #     stage.add_enemy("bad bat", (400 + i * 100,500 + i * 100))
+    for i in range(10):
+        stage.add_enemy("bad bat", (400 + i * 20,500 + i * 20))
     # Main Loop
     going = True
     while going:

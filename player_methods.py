@@ -34,7 +34,7 @@ class Player(LivingEntity):
         :return: a pygame.Rect object that is smaller then the self.rect object with the same bottom value and a
         new centered x value.
         """
-        bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.2))
+        bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.4))
         bb.center = (bb.centerx, bb.centery + bb.top - self.rect.top)
         return bb
 

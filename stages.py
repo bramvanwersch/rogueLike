@@ -6,12 +6,11 @@ import numpy as np
 
 class BasicStage:
     def __init__(self, updater, player):
-        self.tile_sprites = pygame.sprite.Group()
         self.enemy_sprites = pygame.sprite.Group()
         #layer updater or camera where the tile instances need to be added to.
         self.updater = updater
         self.player = player
-        self.tiles = []
+        self.tiles = TileGroup()
         self.stage_map = game_map.build_map()
 
     def _create_tiles(self, stage_name):
@@ -55,7 +54,7 @@ class BasicStage:
                                            self.tile_images["middle2_" + stage_name],
                                            self.tile_images["middle3_" + stage_name]))
                 if image:
-                    self.tiles.append(BasicTile(image, (x * 100, y * 100)))
+                    self.tiles[y][x] = SolidTile(image, (x * 100, y * 100))
 
     def add_enemy(self, name, pos):
         if name == "red square":
@@ -97,21 +96,20 @@ class Background(entities.Entity):
         :param back_images: images to make the background out of.
         :param groups: groups fro comaera movement.
         """
-        self.propnmbr = 150
+        self.propnmbr = 50
         if type == "background":
-            image = self.__create_background_image(back_images, props, tiles)
+            image = self.__create_background_image(back_images)
         elif type == "prop tiles":
             image = self.__create_props_and_tiles_image(props, tiles)
         self.background_group = pygame.sprite.Group()
         entities.Entity.__init__(self, image, (0,0), self.background_group, *groups)
 
-    def __create_background_image(self, images, props, tiles):
+    def __create_background_image(self, images):
         pygame.surfarray.use_arraytype("numpy")
         c180onvertedimages = [pygame.transform.rotate(image, 180) for image in images]
         pp0 = [pygame.surfarray.pixels3d(image) for image in images]
         pp180 = [pygame.surfarray.pixels3d(image) for image in c180onvertedimages]
         partspixels = pp0  + pp180
-        proppixels = [pygame.surfarray.pixels3d(image) for image in props]
         image_rows = []
         for i in range(int(utilities.DEFAULT_LEVEL_SIZE.width / 100 )):
             image_row = []
@@ -127,10 +125,11 @@ class Background(entities.Entity):
     def __create_props_and_tiles_image(self, props, tiles):
         pygame.surfarray.use_arraytype("numpy")
         ps = props[0].get_rect().width
-        tile_coords = [tile.topleft for tile in tiles]
+
+        proppixels = [pygame.surfarray.pixels3d(image) for image in props]
         max_props = min(int(utilities.DEFAULT_LEVEL_SIZE.width / ps),int(utilities.DEFAULT_LEVEL_SIZE.height / ps))
-        xcoords = [random.randint(0,int(utilities.DEFAULT_LEVEL_SIZE.width / ps)) for _ in range(self.propnmbr * 2)]
-        ycoords = [random.randint(0,int(utilities.DEFAULT_LEVEL_SIZE.height / ps)) for _ in range(self.propnmbr * 2)]
+        xcoords = [random.randint(0,int(utilities.DEFAULT_LEVEL_SIZE.width / ps)-1) for _ in range(self.propnmbr * 2)]
+        ycoords = [random.randint(0,int(utilities.DEFAULT_LEVEL_SIZE.height / ps)-1) for _ in range(self.propnmbr * 2)]
         prop_coords = []
         combcoords = list(zip(xcoords, ycoords))
         for coord in combcoords:
@@ -139,21 +138,23 @@ class Background(entities.Entity):
         if len(prop_coords) > self.propnmbr:
             prop_coords = prop_coords[0:self.propnmbr]
         prop_coords = [(coord[0] * ps, coord[1] * ps) for coord in prop_coords]
-        all_coords = prop_coords + tiles
-        all_coords.sort(key = lambda x: self.__sort_on_y_coord(x), reverse = True)
+        non_zero_tiles = [tile for row in tiles for tile in row if tile != 0]
+        all_coords = prop_coords + non_zero_tiles
+        all_coords.sort(key = lambda x: self.__sort_on_y_coord(x))
         final_arr = np.full((utilities.DEFAULT_LEVEL_SIZE.width, utilities.DEFAULT_LEVEL_SIZE.height, 3), 255)
         for coord in all_coords:
-            if isinstance(coord, BasicTile):
+            if isinstance(coord, SolidTile):
                 px = pygame.surfarray.pixels3d(coord.image)
                 final_arr[coord.x :coord.x + coord.width, coord.y: coord.y + coord.height] = px
-            #TODO add props part
+            else:
+                final_arr[coord[0] :coord[0] + ps, coord[1]: coord[1] + ps] = random.choice(proppixels)
         image = pygame.surfarray.make_surface(final_arr)
         image.set_colorkey((255,255,255), RLEACCEL)
         image = image.convert()
         return image
 
     def __sort_on_y_coord(self, val):
-        if isinstance(val, BasicTile):
+        if isinstance(val, SolidTile):
             return val.y
         else:
             return val[1]
@@ -167,39 +168,66 @@ class Background(entities.Entity):
         #             if np.array_equal(val,[255,255,255]): continue
         #             final_arr[prop_coords[i][1] * ps + y][prop_coords[i][0] * ps + x] = val
         #
+class TileGroup:
+    def __init__(self):
+        """
+        Class for managing the tiles as a group and calculating fast collisions or other things
+        """
+        #dont make fcking pointers
+        self.tiles = [[0] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
+
+    def __getitem__(self, i):
+        return self.tiles[i]
+
+    def __setitem__(self, key, value):
+        self.tiles[key] = value
+
+    def solid_collide(self, rect):
+        """
+        Fast method for calculating collision by checking the 4 cornors and seeing with what tiles they overlap. This
+        makes it at most 4 checks for collision
+        :param rect: a rectangle that is checked for an overlap
+        :return: a boolean indicating a collsion (True) or not (False)
+        """
+        xtl, ytl = [int(c/100) for c in rect.topleft]
+        tile = self.tiles[ytl][xtl]
+        if isinstance(tile, SolidTile):
+            return True
+        xtr, ytr = [int(c/100) for c in rect.topright]
+        tile = self.tiles[ytr][xtr]
+        if isinstance(tile,SolidTile):
+            return True
+        xbl, ybl = [int(c/100) for c in rect.bottomleft]
+        tile = self.tiles[ybl][xbl]
+        if isinstance(tile,SolidTile):
+            return True
+        xbr, ybr = [int(c/100) for c in rect.bottomright]
+        tile = self.tiles[ybr][xbr]
+        if isinstance(tile,SolidTile):
+            return True
+        return False
 
 class BasicTile:
-    def __init__(self,image, pos):
+    def __init__(self, pos):
         """
         The basic tile which is a rectangle of a 100 by a 100 that contains relevant information for that rectangle
         :param x: the x coordinate of the top left corner
         :param y: the y coordinate of the top left corner
         """
         self.rect = pygame.Rect(*pos,100,100)
-        self.image = image
-
-    def _get_bounding_box(self):
-        bb = rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.2))
-        bb.center = (bb.centerx, bb.centery + self.rect.top - bb.top)
-        return bb
 
     def __getattr__(self, name):
         return self.rect.__getattribute__(name)
 
-# class SolidTile(BasicTile):
-#     def __init__(self, image, pos, *groups):
-#         """
-#         Tile other entities cannot move trough.
-#         :param pos: see Entity
-#         :param image: see Entity
-#         :param groups: see Entity
-#         """
-#         entities.SolidEntity.__init__(self, image, pos, *groups)
-#         self._layer = utilities.MIDDLE_LAYER
-#
-#     def _get_bounding_box(self):
-#         bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.2))
-#         bb.center = (bb.centerx, bb.centery + self.rect.top - bb.top)
-#         return bb
+class SolidTile(BasicTile):
+    def __init__(self, image, pos):
+        BasicTile.__init__(self, pos)
+        self.bounding_box = self._get_bounding_box()
+        self.image = image
+
+    def _get_bounding_box(self):
+        bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.2))
+        bb.center = (bb.centerx, bb.centery + self.rect.top - bb.top)
+        return bb
 
 

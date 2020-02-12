@@ -160,11 +160,10 @@ class LivingEntity(Entity):
                 y_rect = self.bounding_box.move((0, self.speedy + 1))
             else:
                 y_rect = self.bounding_box.move((0, self.speedy - 1))
-            for tile in self.tiles:
-                if tile.colliderect(x_rect):
-                    xcol = True
-                if tile.colliderect(y_rect):
-                    ycol = True
+            if self.tiles.solid_collide(x_rect):
+                xcol = True
+            if self.tiles.solid_collide(y_rect):
+                ycol = True
             for sprite in super().groups()[0]:
                 if sprite.bounding_box.colliderect(x_rect) and sprite.collision:
                     xcol = True
@@ -219,13 +218,13 @@ class Enemy(LivingEntity):
 
 class RedSquare(Enemy):
     def __init__(self, pos, player, tiles, *groups):
-        Enemy.__init__(self, utilities.load_image("red_square_enemy.bmp"), pos, player, tiles, *groups, speed = 5)
+        Enemy.__init__(self, utilities.load_image("red_square_enemy.bmp"), pos, player, *groups, speed = 5, tiles = tiles)
 
 class BadBat(Enemy):
     def __init__(self, pos, player,tiles, *groups):
         self.animation = utilities.Animation("bad_bat-1.bmp","bad_bat0.bmp","bad_bat1.bmp","bad_bat2.bmp","bad_bat3.bmp",
                                              "bad_bat4.bmp", scale = (100,50), start_frame="random")
-        Enemy.__init__(self, self.animation.image[0], pos, player, *groups, speed = 4)
+        Enemy.__init__(self, self.animation.image[0], pos, player, *groups, speed = 4,tiles = tiles)
 
     def update(self, *args):
         super().update(*args)
@@ -271,7 +270,7 @@ class BadBat(Enemy):
 class TestDummy(Enemy):
     def __init__(self, pos, player,tiles, *groups):
         image = pygame.transform.scale(utilities.load_image("dummy.bmp", (255,255,255)),(50,100))
-        Enemy.__init__(self,image , pos, player, *groups,health=2000,health_regen=1000, speed = 0)
+        Enemy.__init__(self,image , pos, player, *groups,health=2000,health_regen=1000, speed = 0,tiles = tiles)
 
 class TextSprite(Entity):
     def __init__(self,text, pos, *groups, **kwargs):
