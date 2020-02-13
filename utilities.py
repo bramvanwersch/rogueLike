@@ -13,6 +13,7 @@ DATA_DIR = os.path.join(MAIN_DIR, "data")
 FOREST_TILES = ["forest_tile1.bmp","forest_tile2.bmp","forest_tile3.bmp","forest_tile4.bmp",]
 FOREST_PROPS = ["bush1.bmp","bush2.bmp","fern1.bmp","fern2.bmp","fern3.bmp","fern4.bmp",
                 "stone1.bmp","stone2.bmp","stone3.bmp","stone4.bmp"]
+
 TREE_IMAGES = ["bottom_left_corner_forest.bmp","bottom_left_icorner_forest.bmp",
                "bottom_right_corner_forest.bmp","bottom_right_icorner_forest.bmp",
                "top_right_corner_forest.bmp", "top_right_icorner_forest.bmp",
@@ -22,6 +23,12 @@ TREE_IMAGES = ["bottom_left_corner_forest.bmp","bottom_left_icorner_forest.bmp",
                "top_straight1_forest.bmp","top_straight2_forest.bmp","top_straight3_forest.bmp",
                "bottom_straight1_forest.bmp","bottom_straight2_forest.bmp","bottom_straight3_forest.bmp",
                "middle1_forest.bmp","middle2_forest.bmp","middle3_forest.bmp",
+               "diagonal_top_bottom_forest.bmp","diagonal_bottom_top_forest.bmp",
+               "bottom_top_left_corner_forest.bmp","bottom_top_right_corner_forest.bmp",
+               "right_top_left_corner_forest.bmp","right_bottom_left_corner_forest.bmp",
+               "left_top_right_corner_forest.bmp","left_bottom_right_corner_forest.bmp",
+               "top_bottom_left_corner_forest.bmp","top_bottom_right_corner_forest.bmp",
+
                "bottom_left_corner_lake.bmp","bottom_left_icorner_lake.bmp",
                "bottom_right_corner_lake.bmp","bottom_right_icorner_lake.bmp",
                "top_right_corner_lake.bmp", "top_right_icorner_lake.bmp",
@@ -30,7 +37,12 @@ TREE_IMAGES = ["bottom_left_corner_forest.bmp","bottom_left_icorner_forest.bmp",
                "left_straight1_lake.bmp","left_straight2_lake.bmp",
                "top_straight1_lake.bmp","top_straight2_lake.bmp",
                "bottom_straight1_lake.bmp","bottom_straight2_lake.bmp",
-               "middle1_lake.bmp","middle2_lake.bmp","middle3_lake.bmp","middle4_lake.bmp"]
+               "middle1_lake.bmp","middle2_lake.bmp","middle3_lake.bmp","middle4_lake.bmp",
+               "diagonal_top_bottom_lake.bmp","diagonal_bottom_top_lake.bmp",
+               "bottom_top_left_corner_lake.bmp","bottom_top_right_corner_lake.bmp",
+               "right_top_left_corner_lake.bmp","right_bottom_left_corner_lake.bmp",
+               "left_top_right_corner_lake.bmp","left_bottom_right_corner_lake.bmp",
+               "top_bottom_left_corner_lake.bmp","top_bottom_right_corner_lake.bmp"]
 
 height = 1000
 GAME_TIME = pygame.time.Clock()
@@ -42,7 +54,7 @@ PLAYER_LAYER1 = 2
 MIDDLE_LAYER = 1
 BOTTOM_LAYER = -1
 DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2000,2000)
-seed = 2
+seed = random.randint(0,1000)
 
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)

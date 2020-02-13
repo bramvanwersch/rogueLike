@@ -17,7 +17,10 @@ def build_map(wheights = [1]):
                         leafs.append(l.rigth_leaf)
                         leafs.append(l.left_leaf)
                         did_split = True
-    leafs[0].create_blob(wheights)
+    #create wheighted array for consistent random with a seed.
+    wheighted_array = [[i +1]* wheights[i] for i in range(len(wheights))]
+    wheighted_array = [number for row in wheighted_array for number in row]
+    leafs[0].create_blob(wheighted_array)
     final_map = leafs[0].get_map()
     for i, row in enumerate(final_map):
         final_map[i] = [1,0] + row + [0,1]
@@ -42,7 +45,13 @@ def determine_pictures(game_map):
                 name = get_picture_code(st)
                 # check for corner cases
                 if name == "m":
-                    if y + 1 < len(game_map) and x - 1 >= 0 and (game_map[y+1][x-1] == 0):
+                    if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(game_map) and x + 1 < len(row)\
+                            and game_map[y-1][x-1] == 0 and game_map[y+1][x+1] == 0:
+                        name = "tbd"
+                    elif y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(game_map) and x + 1 < len(row) \
+                            and (game_map[y - 1][x + 1] == 0) and (game_map[y + 1][x - 1] == 0):
+                        name = "btd"
+                    elif y + 1 < len(game_map) and x - 1 >= 0 and (game_map[y+1][x-1] == 0):
                         name = "blic"
                     elif y + 1 < len(game_map) and x + 1 < len(row) and (game_map[y+1][x+1] == 0):
                         name = "bric"
@@ -50,6 +59,34 @@ def determine_pictures(game_map):
                         name = "tric"
                     elif y - 1 >= 0 and x - 1 >= 0 and (game_map[y-1][x-1] == 0):
                         name = "tlic"
+                elif name == "rs":
+                    if y - 1 >= 0 and x - 1 >= 0 and x + 1 < len(row) \
+                         and game_map[y - 1][x - 1] == 0 and game_map[y][x + 1] == 0:
+                        name = "rtlc"
+                    elif y + 1 < len(game_map) and x - 1 >= 0 and x + 1 < len(row) \
+                        and game_map[y + 1][x - 1] == 0 and game_map[y][x + 1] == 0:
+                        name = "rblc"
+                elif name == "bs":
+                    if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(game_map)\
+                        and game_map[y-1][x-1] == 0 and game_map[y -1][x] == 0:
+                        name = "btlc"
+                    elif y - 1 >= 0 and x + 1 < len(row) and y + 1 < len(game_map)\
+                        and game_map[y-1][x+1] == 0 and game_map[y -1][x] == 0:
+                        name = "btrc"
+                elif name == "ls":
+                    if y - 1 >= 0 and x - 1 >= 0 and x + 1 < len(row)\
+                        and game_map[y-1][x+1] == 0 and game_map[y][x - 1] == 0:
+                        name = "ltrc"
+                    elif y + 1 < len(game_map) and x - 1 >= 0 and x + 1 < len(row) \
+                            and game_map[y + 1][x + 1] == 0 and game_map[y][x - 1] == 0:
+                        name = "lbrc"
+                elif name == "ts":
+                    if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(game_map)\
+                        and game_map[y+1][x-1] == 0 and game_map[y - 1][x] == 0:
+                        name = "tblc"
+                    elif y - 1 >= 0 and x - 1 < len(row) and y + 1 < len(game_map) \
+                            and game_map[y + 1][x + 1] == 0 and game_map[y - 1][x] == 0:
+                        name = "tbrc"
 
                 game_map[y][x] = name + str(number)
     return game_map
@@ -103,12 +140,12 @@ class Leaf:
             self.rigth_leaf = Leaf((self.rect.x + split,self.rect.y), (self.rect.width - split, self.rect.height))
         return True
 
-    def create_blob(self, wheights):
+    def create_blob(self, wheighted_array):
         if self.left_leaf != None and self.rigth_leaf != None:
             if self.left_leaf != None:
-                self.left_leaf.create_blob(wheights)
+                self.left_leaf.create_blob(wheighted_array)
             if self.rigth_leaf != None:
-                self.rigth_leaf.create_blob(wheights)
+                self.rigth_leaf.create_blob(wheighted_array)
         else:
             self.leaf_map = [[0 for x in range(self.rect.width)] for y in range(self.rect.height)]
             #minimum size is 3
@@ -116,7 +153,7 @@ class Leaf:
             blobh = random.randint(3, self.rect.height - 1)
             blobx = random.randint(self.rect.x, self.rect.right - blobw)
             bloby = random.randint(self.rect.y, self.rect.bottom - blobh)
-            number = numpy.random.choice([i for i in range(1,len(wheights)+1)], p = wheights)
+            number = random.choice(wheighted_array)
             #create a blobmap within the leaf size that is atleast 2 by 2
             for y in range(bloby - self.rect.y, bloby - self.rect.y + blobh - 1,1):
                 for x in range(blobx - self.rect.x, blobx - self.rect.x +blobw - 1,1):
