@@ -142,7 +142,9 @@ def run():
 
     FONT = pygame.font.Font(None, 30)
 
+    #pre random some weapons
     weaponparts = load_parts()
+    weapons = [get_random_weapon(weaponparts[0]) for _ in range(20)]
 
     player = player_methods.Player((150, 500))
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
@@ -150,7 +152,7 @@ def run():
     player.left_arm.add(ents)
 
     #setup the stage
-    stage = stages.ForestStage(ents, player)
+    stage = stages.ForestStage(ents, player, weapons = weapons)
     player.tiles = stage.tiles
 
     # stage.add_enemy("dummy", (600, 500))

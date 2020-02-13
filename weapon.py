@@ -11,10 +11,11 @@ if not pygame.font:
 if not pygame.mixer:
     print("Warning, sound disabled")
 
-class AbstractWeapon(entities.Entity):
+class AbstractWeapon:
     def __init__(self, image):
         #default pos will need to be assigned when relevant
-        entities.Entity.__init__(self,image, pos = (0,0))
+        self.image = image
+        self.rect = self.image.get_rect()
 
 class MeleeWeapon(AbstractWeapon):
     def __init__(self, weaponparts):

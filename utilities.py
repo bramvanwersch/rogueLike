@@ -86,6 +86,8 @@ def load_sound(name):
         raise SystemExit(str(geterror()))
     return sound
 
+
+
 class Animation:
     def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0), start_frame = 0):
         """

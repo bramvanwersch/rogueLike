@@ -1,13 +1,14 @@
 import pygame
 from pygame.locals import *
-import utilities, entities, game_map
+import utilities, entities, game_map, prop_entities
 import random
 import numpy as np
 
 class BasicStage:
-    def __init__(self, updater, player):
+    def __init__(self, updater, player, weapons = []):
         self.enemy_sprites = pygame.sprite.Group()
         #layer updater or camera where the tile instances need to be added to.
+        self.weapons = weapons
         self.updater = updater
         self.player = player
         self.tiles = TileGroup()
@@ -72,9 +73,18 @@ class BasicStage:
                     image = self.tile_images["top_bottom_right_corner_" + stage_names[number]]
                 if image:
                     self.tiles[y][x] = SolidTile(image, (x * 100, y * 100))
-        finishtile = FinishTile((int((self.tiles.size[0] - 2) * 100),int(self.tiles.size[1] / 2 * 100)), self.player, self.updater)
+        finishtile = FinishTile((int((self.tiles.size[0] - 2) * 100), int(self.tiles.size[1] / 2 * 100)), self.player, self.updater)
+        chest = prop_entities.Chest((int((self.tiles.size[0] - 2) * 100), int((self.tiles.size[1] / 2 -2)* 100)),\
+                                    self.player,self.get_random_weapons(), self.updater)
         self.tiles[int(self.tiles.size[1] / 2)][int(self.tiles.size[0] - 2)] = finishtile
         self.tiles.finish_tiles.append(finishtile)
+
+    def get_random_weapons(self, amnt = 1):
+        weapons = []
+        for i in range(amnt):
+            weapons.append(self.weapons.pop(-i))
+        return weapons
+
 
     def add_enemy(self, name, pos):
         if name == "red square":
@@ -90,8 +100,8 @@ class ForestStage(BasicStage):
     """
     Forest stage starting of
     """
-    def __init__(self, updater, player):
-        BasicStage.__init__(self, updater, player)
+    def __init__(self, updater, player, **kwargs):
+        BasicStage.__init__(self, updater, player, **kwargs)
         self.stage_map = game_map.build_map(wheights = [8,2])
         self.background_images = [pygame.transform.scale(self.load_image(x), (100, 100)) for x in utilities.FOREST_TILES]
         self.tile_images = {name[:-4]: pygame.transform.scale(self.load_image(name), (100, 100)) for name in utilities.TREE_IMAGES}
