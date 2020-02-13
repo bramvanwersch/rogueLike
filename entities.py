@@ -13,8 +13,8 @@ class Entity(pygame.sprite.Sprite):
         self.image = image
         self.orig_image = self.image
         self.rect = self.image.get_rect(topleft = pos)
-        # if the sprite should be visible at the current moment.
-        self.visible = True
+        # if the sprite should be visible at the current moment. and if it should be able to be unloaded
+        self.visible = [True, True]
         # if an entity has collision or if the player can just move trough it.
         self.collision = False
         self.bounding_box = self._get_bounding_box()
@@ -40,13 +40,23 @@ class Entity(pygame.sprite.Sprite):
         else:
             self.image = image[0]
 
-class SolidEntity(Entity):
+class InteractingEntity(Entity):
     """
     Changes collision field so entity becomes solid and the player or other entitities cannot move trought it
     """
-    def __init__(self, image, pos, *groups):
+    def __init__(self, image, pos, player, *groups):
         Entity.__init__(self, image, pos, *groups)
-        self.collision = True
+        self.player = player
+
+    def update(self, *args):
+        super().update(*args)
+        if self.visible[0] and self.player.interacting:
+            if self.rect.colliderect(self.player.rect):
+                self.interact()
+
+    #implemented by inheriting methods
+    def interact(self):
+        pass
 
 class LivingEntity(Entity):
     def __init__(self, image, pos, *groups, health = 100, damage = 10, health_regen = 1, speed = 10, tiles = []):

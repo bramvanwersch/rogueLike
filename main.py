@@ -77,10 +77,10 @@ def load_unload_sprites(player,screen):
     range_rect.center = player.rect.center
     visible_ents = 0
     for i,sprite in enumerate(sprites):
-        if sprite.visible and not range_rect.colliderect(sprite.rect):
-            sprite.visible = False
-        elif not sprite.visible and range_rect.colliderect(sprite.rect):
-            sprite.visible = True
+        if all(sprite.visible) and not range_rect.colliderect(sprite.rect):
+            sprite.visible = [False,True]
+        elif sprite.visible[1] and not sprite.visible[0] and range_rect.colliderect(sprite.rect):
+            sprite.visible = [True, True]
         if sprite.visible:
             visible_ents += 1
     return visible_ents
@@ -148,29 +148,22 @@ def run():
     ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
     player.right_arm.add(ents)
     player.left_arm.add(ents)
-    player.right_arm.equip(get_random_weapon(weaponparts[0]))
-    # player.arm.equip(get_random_weapon(weaponparts[0]))
-    #
-    # player.arm.equip(get_random_weapon(weaponparts[0]))
-    #
-    # player.arm.equip(get_random_weapon(weaponparts[0]))
-
 
     #setup the stage
     stage = stages.ForestStage(ents, player)
     player.tiles = stage.tiles
 
     # stage.add_enemy("dummy", (600, 500))
-    # stage.add_enemy("red square", (600,500))
-    for i in range(10):
+    stage.add_enemy("red square", (600,500))
+    for i in range(1):
         stage.add_enemy("bad bat", (400 + i * 20,500 + i * 20))
     # Main Loop
     going = True
     while going:
         utilities.GAME_TIME.tick(200)
+        events = []
         if not player.dead:
             ve = load_unload_sprites(player, screen)
-        events = []
         # Handle Input Events
         for event in pygame.event.get():
             if event.type == QUIT:
@@ -181,18 +174,18 @@ def run():
                 events.append(event)
 
         screen.fill([0,0,0])
-        # player.arm.equip(get_random_weapon(weaponparts[0]))
 
         player.events = events
+
+        # for some reason ensure the layer because otherwise the order of adding sprites seems to be important for the
+        # drawing order on screen
+        for sprite in ents.sprites():
+            ents.change_layer(sprite, sprite._layer)
+
         ents.update()
         ents.draw(screen)
 
-        # loc = [0,0]
-        # for _ in range(10):
-        #     w1 = get_random_weapon(weaponparts[0])
-        #     w1.image = pygame.transform.scale(w1.image, (int(w1.image.get_rect().width * 0.7), int(w1.image.get_rect().height * 0.7)))
-        #     screen.blit(w1.image,loc)
-        #     loc[0] += 50
+        #testing values and methods
         if utilities.FPS:
             fps = FONT.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
             screen.blit(fps, (10, 10))
@@ -200,6 +193,7 @@ def run():
             ve =  FONT.render(str(ve), True,pygame.Color('black'))
             screen.blit(ve,(10,25))
             draw_bounding_boxes(screen, player)
+
         pygame.display.update()
 
     pygame.quit()

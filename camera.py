@@ -1,5 +1,6 @@
 import pygame
 from pygame import *
+import player_methods
 from utilities import SCREEN_SIZE
 
 # thanks to https://stackoverflow.com/questions/14354171/add-scrolling-to-a-platformer-in-pygame
@@ -34,7 +35,8 @@ class CameraAwareLayeredUpdates(pygame.sprite.LayeredUpdates):
         dirty_append = dirty.append
         init_rect = self._init_rect
         for spr in self.sprites():
-            if not spr.visible: continue
+            if not spr.visible[0]:
+                continue
             rec = spritedict[spr]
             newrect = surface_blit(spr.image, spr.rect.move(self.cam))
             if rec is init_rect:

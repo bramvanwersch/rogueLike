@@ -27,6 +27,7 @@ class Player(LivingEntity):
         self.right_arm = RightArm(start_weapon, (self.rect.centerx - 8, self.rect.centery - 8))
         self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8))
         self.pressed_up, self.pressed_down, self.pressed_forward, self.pressed_backwad = False, False, False, False
+        self.interacting = False
 
     def _get_bounding_box(self):
         """
@@ -59,6 +60,8 @@ class Player(LivingEntity):
                 if event.key == K_k:
                     if not self.right_arm.attacking:
                         self.right_arm.do_attack()
+                if event.key == K_e:
+                    self.interacting = True
                 if event.key == K_a or event.key == K_LEFT:
                     self.pressed_backwad = True
                 if event.key == K_d or event.key == K_RIGHT:
@@ -69,6 +72,8 @@ class Player(LivingEntity):
                     self.pressed_down = True
 
             elif event.type == KEYUP:
+                if event.key == K_e:
+                    self.interacting = False
                 if event.key == K_a or event.key == K_LEFT:
                     self.pressed_backwad = False
                 if event.key == K_d or event.key == K_RIGHT:
@@ -106,11 +111,8 @@ class Player(LivingEntity):
     def die(self):
         self.dead_animation.update()
         if self.dead_animation.marked:
-            self.right_arm.visible = False
-            self.left_arm.visible = False
-        else:
-            self.right_arm.visible = True
-            self.left_arm.visible = True
+            self.right_arm.visible = [False, False]
+            self.left_arm.visible = [False, False]
         self._change_image(self.dead_animation.image)
 
     def animations(self):
@@ -126,11 +128,8 @@ class Player(LivingEntity):
             if self.idle_animation.cycles == 0:
                 self.idle_animation.update()
                 if self.idle_animation.marked:
-                    self.right_arm.visible = False
-                    self.left_arm.visible = False
-                else:
-                    self.right_arm.visible = True
-                    self.left_arm.visible = True
+                    self.right_arm.visible = [False, True]
+                    self.left_arm.visible = [False, self.left_arm.visible[1]]
                 self._change_image(self.idle_animation.image)
             elif random.randint(1, 500) == 1:
                 self.idle_animation.reset()
@@ -161,7 +160,8 @@ class GenericArm(entities.Entity):
 class LeftArm(GenericArm):
     def __init__(self, pos):
         GenericArm.__init__(self, pos)
-        self._layer = utilities.BOTTOM_LAYER
+        self._layer = utilities.PLAYER_LAYER2
+        self.visible = [False, False]
 
     def flip(self):
         """
@@ -170,8 +170,10 @@ class LeftArm(GenericArm):
         """
         self.flipped = not self.flipped
         if self.flipped:
+            self.visible = [True, True]
             super().groups()[0].change_layer(self,utilities.PLAYER_LAYER2)
         else:
+            self.visible = [False, False]
             super().groups()[0].change_layer(self,utilities.BOTTOM_LAYER)
 
     def move_arm(self, pos):
@@ -188,7 +190,6 @@ class RightArm(GenericArm):
         #dont touch the numbers they are great and just work
         self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
         self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
-
 
     def move_arm(self, pos):
         """

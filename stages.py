@@ -72,6 +72,9 @@ class BasicStage:
                     image = self.tile_images["top_bottom_right_corner_" + stage_names[number]]
                 if image:
                     self.tiles[y][x] = SolidTile(image, (x * 100, y * 100))
+        finishtile = FinishTile((int((self.tiles.size[0] - 2) * 100),int(self.tiles.size[1] / 2 * 100)), self.player, self.updater)
+        self.tiles[int(self.tiles.size[1] / 2)][int(self.tiles.size[0] - 2)] = finishtile
+        self.tiles.finish_tiles.append(finishtile)
 
     def add_enemy(self, name, pos):
         if name == "red square":
@@ -93,9 +96,12 @@ class ForestStage(BasicStage):
         self.background_images = [pygame.transform.scale(self.load_image(x), (100, 100)) for x in utilities.FOREST_TILES]
         self.tile_images = {name[:-4]: pygame.transform.scale(self.load_image(name), (100, 100)) for name in utilities.TREE_IMAGES}
         self.props = [pygame.transform.scale(self.load_image(name), (100,100)) for name in utilities.FOREST_PROPS]
+
         self._create_tiles(["forest","lake"])
+
         self.background = Background(self.background_images,self.props, self.tiles,"background", self.updater)
         self.tile_props = Background(self.background_images,self.props, self.tiles,"prop tiles", self.updater)
+
 
     def load_image(self, imagename, colorkey=None):
         """
@@ -172,20 +178,13 @@ class Background(entities.Entity):
         return image
 
     def __sort_on_y_coord(self, val):
-        if isinstance(val, SolidTile):
+        if isinstance(val, BasicTile):
             return val.y
+        elif isinstance(val, FinishTile):
+            return val.rect.y
         else:
             return val[1]
 
-        # places props in the background and makes sure that each white pixel is made into the background color.
-        # is a quit expensive process
-        # for i in range(len(prop_coords)):
-        #     prop = random.choice(proppixels)
-        #     for y, row in enumerate(prop):
-        #         for x, val in enumerate(row):
-        #             if np.array_equal(val,[255,255,255]): continue
-        #             final_arr[prop_coords[i][1] * ps + y][prop_coords[i][0] * ps + x] = val
-        #
 class TileGroup:
     def __init__(self):
         """
@@ -193,15 +192,24 @@ class TileGroup:
         """
         #dont make fcking pointers
         self.tiles = [[0] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
+        self.finish_tiles = []
 
     def __getitem__(self, i):
         return self.tiles[i]
 
-    def __setitem__(self, key, value):
-        self.tiles[key] = value
-
     def get_non_zero_tiles(self):
-        return [tile for row in self.tiles for tile in row if tile != 0]
+        return [tile for row in self.tiles for tile in row if isinstance(tile, BasicTile)]
+
+    @property
+    def size(self):
+        return (len(self.tiles[0]),len(self.tiles))
+
+    def finish_collide(self, rect):
+        #propably one tile
+        for finish in self.finish_tiles:
+            if finish.colliderect(rect):
+                return True
+        return False
 
     def solid_collide(self, rect):
         """
@@ -250,5 +258,15 @@ class SolidTile(BasicTile):
         bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.2))
         bb.center = (bb.centerx, bb.centery + self.rect.top - bb.top)
         return bb
+
+class FinishTile(entities.InteractingEntity):
+    def __init__(self, pos, player, *groups):
+        image = pygame.transform.scale(utilities.load_image("hatch.bmp", (255,255,255)), (80,80))
+        entities.InteractingEntity.__init__(self, image, pos, player, *groups)
+        self._layer = utilities.MIDDLE_LAYER
+
+
+    def interact(self):
+        print("interacting")
 
 
