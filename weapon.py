@@ -14,7 +14,7 @@ if not pygame.mixer:
 class AbstractWeapon:
     def __init__(self, image):
         #default pos will need to be assigned when relevant
-        self.image = image
+        self.image = pygame.transform.scale(image, (int(image.get_rect().width * 0.7),int(image.get_rect().height * 0.8)))
         self.rect = self.image.get_rect()
 
 class MeleeWeapon(AbstractWeapon):

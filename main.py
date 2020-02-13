@@ -157,12 +157,12 @@ def run():
 
     # stage.add_enemy("dummy", (600, 500))
     stage.add_enemy("red square", (600,500))
-    for i in range(1):
+    for i in range(5):
         stage.add_enemy("bad bat", (400 + i * 20,500 + i * 20))
     # Main Loop
     going = True
     while going:
-        utilities.GAME_TIME.tick(200)
+        utilities.GAME_TIME.tick(60)
         events = []
         if not player.dead:
             ve = load_unload_sprites(player, screen)

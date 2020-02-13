@@ -12,8 +12,8 @@ class Player(LivingEntity):
                                                      "player_walk0.bmp","player_walk3.bmp","player_walk4.bmp","player_walk3.bmp",
                                                      scale = (60,120))
         self.idle_animation = utilities.MarkedAnimation("player_idle1.bmp","player_idle2.bmp","player_idle3.bmp","player_idle4.bmp",
-                                                  "player_idle4.bmp","player_idle3.bmp","player_idle2.bmp","player_idle1.bmp",
-                                                  scale = (60,120), speed = 40, marked_frames=[2,3,4,5])
+                                                        "player_idle4.bmp","player_idle3.bmp","player_idle2.bmp","player_idle1.bmp",
+                                                        scale = (60,120), speed = 40, marked_frames=[2,3,4,5])
         self.dead_animation = utilities.MarkedAnimation("player_idle1.bmp","player_dead2.bmp","player_dead3.bmp",
                                                         "player_dead4.bmp","player_dead5.bmp","player_dead6.bmp",
                                                         "player_dead7.bmp","player_dead8.bmp","player_dead9.bmp",
@@ -241,8 +241,7 @@ class RightArm(GenericArm):
         :param weapon: an instance of a AbstractWeapon class or further
         """
         self.weapon = weapon
-        weapon_image = pygame.transform.scale(self.weapon.image, (int(self.weapon.image.get_rect().width * 0.7),
-                                                                  int(self.weapon.image.get_rect().height * 0.8)))
+        weapon_image = self.weapon.image
         weapon_image = pygame.transform.rotate(weapon_image, 90)
         weapon_image = pygame.transform.flip(weapon_image, True, False)
         self.image = self.__create_weapon_arm(weapon_image)
