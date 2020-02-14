@@ -275,7 +275,6 @@ class FinishTile(entities.InteractingEntity):
         entities.InteractingEntity.__init__(self, image, pos, player, *groups)
         self._layer = utilities.MIDDLE_LAYER
 
-
     def interact(self):
         print("interacting")
 

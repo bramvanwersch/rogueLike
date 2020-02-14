@@ -157,7 +157,7 @@ pause_sprites = pygame.sprite.LayeredUpdates()
 pause_menu = menu_methods.MenuPane((*sr.center,int(sr.width * 0.4),int(sr.height * 0.8)),
                                    utilities.load_image("Menu//paused_screen_menu.bmp", (255,255,255)),
                                    pause_sprites, name = "Options")
-
+pause_menu.add_widget((100,100), menu_methods.Button(text = "Test"))
 class MainScene():
     def __init__(self):
         self.nr_loaded_sprites = 0
