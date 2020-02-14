@@ -130,7 +130,7 @@ def draw_bounding_boxes(screen, player):
 
 random.seed(utilities.seed)
 pygame.init()
-FONT = pygame.font.Font(None, 30)
+FONT = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 20)
 
 screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height),
                                  DOUBLEBUF)  # | FULLSCREEN)

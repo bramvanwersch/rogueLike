@@ -287,7 +287,7 @@ class TestDummy(Enemy):
 
 class TextSprite(Entity):
     def __init__(self,text, pos, *groups, **kwargs):
-        image = pygame.font.Font(None, 30).render(str(text), True, pygame.Color(kwargs["color"]))
+        image = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 20).render(str(text), True, pygame.Color(kwargs["color"]))
         Entity.__init__(self, image, pos, *groups)
         #current, maximum in ms
         self.lifespan = [0,1000]
