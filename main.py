@@ -128,76 +128,111 @@ def draw_bounding_boxes(screen, player):
             y = bb.y
         pygame.draw.rect(screen, (0,0,0), (int(x), int(y), bb.width, bb.height), 5)
 
+random.seed(utilities.seed)
+pygame.init()
+FONT = pygame.font.Font(None, 30)
 
-def run():
-    #create starting seed for consistent replayability using a seed.
-    random.seed(utilities.seed)
-    pygame.init()
+screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height),
+                                 DOUBLEBUF)  # | FULLSCREEN)
+screen.set_alpha(None)
 
-    screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height), DOUBLEBUF) #| FULLSCREEN)
-    screen.set_alpha(None)
+pygame.display.set_caption("Welcome to the forest")
+pygame.mouse.set_visible(True)
 
-    pygame.display.set_caption("Welcome to the forest")
-    pygame.mouse.set_visible(True)
+# pre random some weapons
+weaponparts = load_parts()
+weapons = [get_random_weapon(weaponparts[0]) for _ in range(20)]
 
-    FONT = pygame.font.Font(None, 30)
+player = player_methods.Player((150, 500))
+ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
+player.right_arm.add(ents)
+player.left_arm.add(ents)
 
-    #pre random some weapons
-    weaponparts = load_parts()
-    weapons = [get_random_weapon(weaponparts[0]) for _ in range(20)]
+# setup the stage
+stage = stages.ForestStage(ents, player, weapons=weapons)
+player.tiles = stage.tiles
 
-    player = player_methods.Player((150, 500))
-    ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
-    player.right_arm.add(ents)
-    player.left_arm.add(ents)
+class MainScene():
+    def __init__(self):
+        self.nr_loaded_sprites = 0
+        self.going = True
 
-    #setup the stage
-    stage = stages.ForestStage(ents, player, weapons = weapons)
-    player.tiles = stage.tiles
-
-    # stage.add_enemy("dummy", (600, 500))
-    stage.add_enemy("red square", (600,500))
-    for i in range(5):
-        stage.add_enemy("bad bat", (400 + i * 20,500 + i * 20))
-    # Main Loop
-    going = True
-    while going:
-        utilities.GAME_TIME.tick(200)
-        events = []
-        if not player.dead:
-            ve = load_unload_sprites(player, screen)
-        # Handle Input Events
-        for event in pygame.event.get():
+    def handle_events(self, events):
+        player_events = []
+        for event in events:
             if event.type == QUIT:
+                global going
                 going = False
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
-                going = False
+                global scene
+                scene = scenes["Pause"]
+                #go to pause scene
             else:
-                events.append(event)
+                player_events.append(event)
+        player.events = player_events
+        if not player.dead:
+            self.nr_loaded_sprites = load_unload_sprites(player, screen)
 
-        screen.fill([0,0,0])
-
-        player.events = events
-
-        # for some reason ensure the layer because otherwise the order of adding sprites seems to be important for the
-        # drawing order on screen
+    def update(self):
         for sprite in ents.sprites():
             ents.change_layer(sprite, sprite._layer)
-
         ents.update()
-        ents.draw(screen)
 
-        #testing values and methods
+    def draw(self):
+        screen.fill([0, 0, 0])
+        ents.draw(screen)
         if utilities.FPS:
             fps = FONT.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
             screen.blit(fps, (10, 10))
         if utilities.TEST and not player.dead:
-            ve =  FONT.render(str(ve), True,pygame.Color('black'))
+            ve =  FONT.render(str(self.nr_loaded_sprites), True,pygame.Color('black'))
             screen.blit(ve,(10,25))
             draw_bounding_boxes(screen, player)
 
-        pygame.display.update()
+class PauseScene():
+    def __init__(self):
+        sr = screen.get_rect()
+        rect = pygame.Rect(0,0,int(sr.width * 0.5),int(sr.height * 0.8))
+        rect.center = sr.center
+        self.window_rect = rect
 
+    def handle_events(self, events):
+        for event in events:
+            if event.type == QUIT:
+                global going
+                going = False
+            elif event.type == KEYDOWN and event.key == K_ESCAPE:
+                global scene
+                scene = scenes["Main"]
+
+    def update(self):
+        pass
+
+    def draw(self):
+        pygame.draw.rect(screen, (0,0,0), self.window_rect)
+
+scenes = {"Main": MainScene(),
+          "Pause": PauseScene()}
+scene = scenes["Main"]
+
+def run():
+    #create starting seed for consistent replayability using a seed.
+
+    # stage.add_enemy("dummy", (600, 500))
+    #TODO needs to be moved to different place
+    stage.add_enemy("red square", (600,500))
+    for i in range(5):
+        stage.add_enemy("bad bat", (400 + i * 20,500 + i * 20))
+    # Main Loop
+    global going
+    going = True
+    while going:
+        print(scene)
+        utilities.GAME_TIME.tick(200)
+        scene.handle_events(pygame.event.get())
+        scene.update()
+        scene.draw()
+        pygame.display.update()
     pygame.quit()
 
 if __name__ == "__main__":
