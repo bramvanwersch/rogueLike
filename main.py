@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os, pygame, random
-import weapon, utilities, entities, stages, camera, player_methods
+import weapon, utilities, entities, stages, camera, player_methods, menu_methods
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -135,6 +135,7 @@ FONT = pygame.font.Font(None, 30)
 screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height),
                                  DOUBLEBUF)  # | FULLSCREEN)
 screen.set_alpha(None)
+sr = screen.get_rect()
 
 pygame.display.set_caption("Welcome to the forest")
 pygame.mouse.set_visible(True)
@@ -143,19 +144,23 @@ pygame.mouse.set_visible(True)
 weaponparts = load_parts()
 weapons = [get_random_weapon(weaponparts[0]) for _ in range(20)]
 
+#setup the board and player sprites
 player = player_methods.Player((150, 500))
-ents = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
-player.right_arm.add(ents)
-player.left_arm.add(ents)
+game_sprites = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
+player.right_arm.add(game_sprites)
+player.left_arm.add(game_sprites)
 
-# setup the stage
-stage = stages.ForestStage(ents, player, weapons=weapons)
+stage = stages.ForestStage(game_sprites, player, weapons=weapons)
 player.tiles = stage.tiles
+
+pause_sprites = pygame.sprite.LayeredUpdates()
+pause_menu = menu_methods.MenuPane((*sr.center,int(sr.width * 0.4),int(sr.height * 0.8)),
+                                   utilities.load_image("Menu//paused_screen_menu.bmp", (255,255,255)),
+                                   pause_sprites, name = "Options")
 
 class MainScene():
     def __init__(self):
         self.nr_loaded_sprites = 0
-        self.going = True
 
     def handle_events(self, events):
         player_events = []
@@ -174,13 +179,13 @@ class MainScene():
             self.nr_loaded_sprites = load_unload_sprites(player, screen)
 
     def update(self):
-        for sprite in ents.sprites():
-            ents.change_layer(sprite, sprite._layer)
-        ents.update()
+        for sprite in game_sprites.sprites():
+            game_sprites.change_layer(sprite, sprite._layer)
+        game_sprites.update()
 
     def draw(self):
         screen.fill([0, 0, 0])
-        ents.draw(screen)
+        game_sprites.draw(screen)
         if utilities.FPS:
             fps = FONT.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
             screen.blit(fps, (10, 10))
@@ -190,13 +195,9 @@ class MainScene():
             draw_bounding_boxes(screen, player)
 
 class PauseScene():
-    def __init__(self):
-        sr = screen.get_rect()
-        rect = pygame.Rect(0,0,int(sr.width * 0.5),int(sr.height * 0.8))
-        rect.center = sr.center
-        self.window_rect = rect
 
     def handle_events(self, events):
+        menu_events = []
         for event in events:
             if event.type == QUIT:
                 global going
@@ -204,12 +205,17 @@ class PauseScene():
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 global scene
                 scene = scenes["Main"]
+            else:
+                menu_events.append(event)
+        pause_menu.events = menu_events
 
     def update(self):
-        pass
+        for sprite in pause_sprites.sprites():
+            pause_sprites.change_layer(sprite, sprite._layer)
+        pause_sprites.update()
 
     def draw(self):
-        pygame.draw.rect(screen, (0,0,0), self.window_rect)
+        pause_sprites.draw(screen)
 
 scenes = {"Main": MainScene(),
           "Pause": PauseScene()}
@@ -227,7 +233,6 @@ def run():
     global going
     going = True
     while going:
-        print(scene)
         utilities.GAME_TIME.tick(200)
         scene.handle_events(pygame.event.get())
         scene.update()

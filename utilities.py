@@ -48,7 +48,7 @@ height = 1000
 GAME_TIME = pygame.time.Clock()
 
 #drawing methods
-SCREEN_SIZE = pygame.Rect(0,0,int(height /9 * 16), height)
+SCREEN_SIZE = pygame.Rect(0,0,int(height /9 * 17), height)
 TEXT_LAYER = 4 # one above the top layer
 PLAYER_LAYER2 = 3
 PLAYER_LAYER1 = 2
@@ -57,7 +57,6 @@ BOTTOM_LAYER = -1
 DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2000,2000)
 
 #game settings
-RUNNING, PAUSE = 0, 1
 seed = random.randint(0,1000)
 
 def load_image(name, colorkey=None):
