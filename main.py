@@ -162,7 +162,7 @@ def run():
     # Main Loop
     going = True
     while going:
-        utilities.GAME_TIME.tick(60)
+        utilities.GAME_TIME.tick(200)
         events = []
         if not player.dead:
             ve = load_unload_sprites(player, screen)

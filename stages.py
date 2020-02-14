@@ -74,8 +74,9 @@ class BasicStage:
                 if image:
                     self.tiles[y][x] = SolidTile(image, (x * 100, y * 100))
         finishtile = FinishTile((int((self.tiles.size[0] - 2) * 100), int(self.tiles.size[1] / 2 * 100)), self.player, self.updater)
+        #temporary
         chest = prop_entities.Chest((int((self.tiles.size[0] - 2) * 100), int((self.tiles.size[1] / 2 -2)* 100)),\
-                                    self.player,self.get_random_weapons(), self.updater)
+                                    self.player,self.get_random_weapons(5), self.updater)
         self.tiles[int(self.tiles.size[1] / 2)][int(self.tiles.size[0] - 2)] = finishtile
         self.tiles.finish_tiles.append(finishtile)
 
@@ -84,7 +85,6 @@ class BasicStage:
         for i in range(amnt):
             weapons.append(self.weapons.pop(-i))
         return weapons
-
 
     def add_enemy(self, name, pos):
         if name == "red square":
