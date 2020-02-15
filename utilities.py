@@ -58,6 +58,8 @@ DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2000,2000)
 
 #game settings
 seed = random.randint(0,1000)
+scene_name = "Main"
+going = True
 
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)

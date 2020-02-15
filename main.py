@@ -153,12 +153,35 @@ player.left_arm.add(game_sprites)
 stage = stages.ForestStage(game_sprites, player, weapons=weapons)
 player.tiles = stage.tiles
 
+#pause menu
 pause_sprites = pygame.sprite.LayeredUpdates()
 pause_menu = menu_methods.MenuPane((*sr.center,int(sr.width * 0.4),int(sr.height * 0.8)),
                                    utilities.load_image("Menu//paused_screen_menu.bmp", (255,255,255)),
                                    pause_sprites, name = "Options")
-pause_menu.add_widget((100,100), menu_methods.Button(text = "Test"))
-class MainScene():
+buttonResume = menu_methods.Button(text = "Resume")
+pause_menu.add_widget(("c",100), buttonResume)
+def resumeAction():
+    utilities.scene_name = "Main"
+buttonResume.set_action(resumeAction)
+
+buttonQuit = menu_methods.Button(text= "Quit")
+pause_menu.add_widget(("c",150), buttonQuit)
+def QuitAction():
+    utilities.going = False
+buttonQuit.set_action(QuitAction)
+
+class Scene():
+
+    def handle_events(self):
+        pass
+
+    def update(self):
+        pass
+
+    def draw(self):
+        pass
+
+class MainScene(Scene):
     def __init__(self):
         self.nr_loaded_sprites = 0
 
@@ -166,11 +189,9 @@ class MainScene():
         player_events = []
         for event in events:
             if event.type == QUIT:
-                global going
-                going = False
+                utilities.going = False
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
-                global scene
-                scene = scenes["Pause"]
+                utilities.scene_name = "Pause"
                 #go to pause scene
             else:
                 player_events.append(event)
@@ -194,17 +215,15 @@ class MainScene():
             screen.blit(ve,(10,25))
             draw_bounding_boxes(screen, player)
 
-class PauseScene():
+class PauseScene(Scene):
 
     def handle_events(self, events):
         menu_events = []
         for event in events:
             if event.type == QUIT:
-                global going
-                going = False
+                utilities.going = False
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
-                global scene
-                scene = scenes["Main"]
+                utilities.scene_name = "Main"
             else:
                 menu_events.append(event)
         pause_menu.events = menu_events
@@ -219,7 +238,6 @@ class PauseScene():
 
 scenes = {"Main": MainScene(),
           "Pause": PauseScene()}
-scene = scenes["Main"]
 
 def run():
     #create starting seed for consistent replayability using a seed.
@@ -230,9 +248,8 @@ def run():
     for i in range(5):
         stage.add_enemy("bad bat", (400 + i * 20,500 + i * 20))
     # Main Loop
-    global going
-    going = True
-    while going:
+    while utilities.going:
+        scene = scenes[utilities.scene_name]
         utilities.GAME_TIME.tick(200)
         scene.handle_events(pygame.event.get())
         scene.update()
