@@ -12,6 +12,7 @@ class MenuPane(pygame.sprite.Sprite):
         #index of selected widget in the widgets list
         self.selected_widget = 0
         self.events = []
+        self._layer = utilities.BOTTOM_LAYER
 
     def update(self, *args):
         x,y = pygame.mouse.get_pos()
@@ -33,7 +34,8 @@ class MenuPane(pygame.sprite.Sprite):
                     self.__change_selectd_widget(False)
                 else:
                     selected_widget_events.append(event)
-        self.widgets[self.selected_widget].action(selected_widget_events)
+        if self.widgets:
+            self.widgets[self.selected_widget].action(selected_widget_events)
 
     def __change_selectd_widget(self, up = True):
         self.widgets[self.selected_widget].set_selected(False)

@@ -182,6 +182,12 @@ def quitAction():
     utilities.going = False
 buttonQuit.set_action(quitAction)
 
+#inventory
+inventory_sprites = pygame.sprite.LayeredUpdates()
+inventory_menu = menu_methods.MenuPane((*sr.center,int(sr.width * 0.8),int(sr.height * 0.8)),
+                                       utilities.load_image("Menu//inventory.bmp",(255,255,255)),
+                                       inventory_sprites, name = "Inventory")
+
 class Scene():
 
     def handle_events(self):
@@ -205,6 +211,8 @@ class MainScene(Scene):
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 utilities.scene_name = "Pause"
                 #go to pause scene
+            elif event.type == KEYDOWN and event.key == K_i:
+                utilities.scene_name = "Inventory"
             else:
                 player_events.append(event)
         player.events = player_events
@@ -248,12 +256,32 @@ class PauseScene(Scene):
     def draw(self):
         pause_sprites.draw(screen)
 
+class InventoryScene(Scene):
+
+    def handle_events(self, events):
+        inventory_events = []
+        for event in events:
+            if event.type == QUIT:
+                utilities.going = False
+            elif event.type == KEYDOWN and event.key == K_ESCAPE:
+                utilities.scene_name = "Main"
+            else:
+                inventory_events.append(event)
+        inventory_menu.events = inventory_events
+
+    def update(self):
+        for sprite in inventory_sprites.sprites():
+            inventory_sprites.change_layer(sprite, sprite._layer)
+        inventory_sprites.update()
+
+    def draw(self):
+        inventory_sprites.draw(screen)
+
 scenes = {"Main": MainScene(),
-          "Pause": PauseScene()}
+          "Pause": PauseScene(),
+          "Inventory": InventoryScene()}
 
 def run():
-    #create starting seed for consistent replayability using a seed.
-
     # stage.add_enemy("dummy", (600, 500))
     #TODO needs to be moved to different place
     stage.add_enemy("red square", (600,500))
