@@ -164,11 +164,23 @@ def resumeAction():
     utilities.scene_name = "Main"
 buttonResume.set_action(resumeAction)
 
+buttonRestart = menu_methods.Button(text = "Restart")
+pause_menu.add_widget(("c", 150), buttonRestart)
+def restartAction():
+    print("needs implementation")
+buttonRestart.set_action(restartAction)
+
+buttonOptions = menu_methods.Button(text = "Options")
+pause_menu.add_widget(("c", 200), buttonOptions)
+def optionAction():
+    print("needs implementation")
+buttonOptions.set_action(optionAction)
+
 buttonQuit = menu_methods.Button(text= "Quit")
-pause_menu.add_widget(("c",150), buttonQuit)
-def QuitAction():
+pause_menu.add_widget(("c",250), buttonQuit)
+def quitAction():
     utilities.going = False
-buttonQuit.set_action(QuitAction)
+buttonQuit.set_action(quitAction)
 
 class Scene():
 

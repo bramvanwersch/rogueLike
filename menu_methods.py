@@ -12,7 +12,6 @@ class MenuPane(pygame.sprite.Sprite):
         #index of selected widget in the widgets list
         self.selected_widget = 0
         self.events = []
-        self.scene = "Pause"
 
     def update(self, *args):
         x,y = pygame.mouse.get_pos()
