@@ -2,17 +2,28 @@ import pygame, utilities
 from pygame.locals import *
 
 class MenuPane(pygame.sprite.Sprite):
-    def __init__(self, rect_size, image, *groups, name = None):
+    def __init__(self, rect_size, image, *groups, title = None):
         pygame.sprite.Sprite.__init__(self, *groups)
         self.menu_group = groups[0]
         self.image = pygame.transform.scale(image, (rect_size[2],rect_size[3]))
         self.rect = self.image.get_rect(center = (rect_size[0], rect_size[1]))
-        self.name = name
         self.widgets = []
         #index of selected widget in the widgets list
         self.selected_widget = 0
         self.events = []
         self._layer = utilities.BOTTOM_LAYER
+        if title:
+            self.__set_title(title)
+
+    def __set_title(self, title):
+        """
+        Sets a title at the top of the menupane
+        :param title: the text to be displayed as title
+        """
+        font = pygame.font.Font(utilities.DATA_DIR + "//Menu//font//manaspc.ttf", 30)
+        title = font.render(title, True, (0,0,0))
+        tr = title.get_rect()
+        self.image.blit(title, (int(0.5 * self.rect.width - 0.5 * tr.width),10))
 
     def update(self, *args):
         x,y = pygame.mouse.get_pos()

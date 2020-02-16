@@ -157,7 +157,7 @@ player.tiles = stage.tiles
 pause_sprites = pygame.sprite.LayeredUpdates()
 pause_menu = menu_methods.MenuPane((*sr.center,int(sr.width * 0.4),int(sr.height * 0.8)),
                                    utilities.load_image("Menu//paused_screen_menu.bmp", (255,255,255)),
-                                   pause_sprites, name = "Options")
+                                   pause_sprites, title = "Paused")
 buttonResume = menu_methods.Button(text = "Resume")
 pause_menu.add_widget(("c",100), buttonResume)
 def resumeAction():
@@ -186,7 +186,7 @@ buttonQuit.set_action(quitAction)
 inventory_sprites = pygame.sprite.LayeredUpdates()
 inventory_menu = menu_methods.MenuPane((*sr.center,int(sr.width * 0.8),int(sr.height * 0.8)),
                                        utilities.load_image("Menu//inventory.bmp",(255,255,255)),
-                                       inventory_sprites, name = "Inventory")
+                                       inventory_sprites, title = "Inventory")
 
 class Scene():
 
