@@ -61,6 +61,6 @@ class LootableWeapon(entities.InteractingEntity):
 
     def interact(self):
         if self.lootable:
-            self.player.right_arm.equip(self.weapon)
+            self.player.inventory.add(self.weapon)
             self.kill()
 

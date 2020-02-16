@@ -188,6 +188,9 @@ inventory_menu = menu_methods.MenuPane((*sr.center,int(sr.width * 0.8),int(sr.he
                                        utilities.load_image("Menu//inventory.bmp",(255,255,255)),
                                        inventory_sprites, title = "Inventory")
 
+item_list = menu_methods.ListDisplay(player.inventory)
+inventory_menu.add_widget((100,100), item_list, center = False)
+
 class Scene():
 
     def handle_events(self):
@@ -284,10 +287,10 @@ scenes = {"Main": MainScene(),
 def run():
     # stage.add_enemy("dummy", (600, 500))
     #TODO needs to be moved to different place
-    stage.add_enemy("red square", (600,500))
-    for i in range(5):
-        stage.add_enemy("bad bat", (400 + i * 20,500 + i * 20))
-    # Main Loop
+    # stage.add_enemy("red square", (600,500))
+    # for i in range(5):
+    #     stage.add_enemy("bad bat", (400 + i * 20,500 + i * 20))
+    # # Main Loop
     while utilities.going:
         scene = scenes[utilities.scene_name]
         utilities.GAME_TIME.tick(200)

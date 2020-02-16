@@ -117,11 +117,11 @@ class Player(LivingEntity):
 
     def animations(self):
         if self.right_arm.attacking:
-            self.idle_animation.reset()
+            self.idle_animation.cycles += 1
         if int(self.speedx) != 0 or int(self.speedy) != 0:
             self.walking_animation.update()
             self._change_image(self.walking_animation.image)
-            self.idle_animation.reset()
+            self.idle_animation.cycles += 1
         else:
             #idle animation plays at random every 500 frames of inactivity
             self.walking_animation.reset()
@@ -276,4 +276,12 @@ class RightArm(GenericArm):
 
 class Inventory:
     def __init__(self):
-        pass
+        self.size = 16
+        self.items = []
+
+    def add(self, item):
+        if len(self.items) <= self.size:
+            self.items.append(item)
+
+    def remove(self, item):
+        self.items.remove(item)

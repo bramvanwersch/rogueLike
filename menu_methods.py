@@ -9,6 +9,7 @@ class MenuPane(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(center = (rect_size[0], rect_size[1]))
         self.widgets = []
         #index of selected widget in the widgets list
+        self.selectable_widgets = []
         self.selected_widget = 0
         self.events = []
         self._layer = utilities.BOTTOM_LAYER
@@ -49,7 +50,8 @@ class MenuPane(pygame.sprite.Sprite):
             self.widgets[self.selected_widget].action(selected_widget_events)
 
     def __change_selectd_widget(self, up = True):
-        self.widgets[self.selected_widget].set_selected(False)
+        if not self.selectable_widgets: return
+        self.selectable_widgets[self.selected_widget].set_selected(False)
         if up:
             if self.selected_widget <= 0:
                 self.selected_widget = len(self.widgets) - 1
@@ -60,13 +62,15 @@ class MenuPane(pygame.sprite.Sprite):
                 self.selected_widget = 0
             else:
                 self.selected_widget += 1
-        self.widgets[self.selected_widget].set_selected(True)
+        self.selectable_widgets[self.selected_widget].set_selected(True)
 
-    def add_widget(self, pos, widget):
+    def add_widget(self, pos, widget, center = True):
         widget.add(self.menu_group)
-        widget.set_pos(self.__get_relative_postion(pos), center = True)
+        widget.set_pos(self.__get_relative_postion(pos), center = center)
         self.widgets.append(widget)
-        self.widgets.sort(key = lambda x: x.rect.y)
+        if widget.selectable:
+            self.selectable_widgets.append(widget)
+            self.selectable_widgets.sort(key = lambda x: x.rect.y)
 
     def __get_relative_postion(self, pos):
         moved_pos = [*pos]
@@ -81,19 +85,27 @@ class MenuPane(pygame.sprite.Sprite):
         return moved_pos
 
 class Widget(pygame.sprite.Sprite):
-    def __init__(self, pos):
+    def __init__(self,  background_color = (165,103,10)):
         pygame.sprite.Sprite.__init__(self)
         self.font = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 30)
+        self.background_color = background_color
         self.action_function = None
+        self.selectable = False
 
     def action(self, e):
         pass
 
+    def set_pos(self, pos, center = False):
+        if center:
+            self.rect.center = pos
+        else:
+            self.rect.topleft = pos
+
 class Button(Widget):
-    def __init__(self,pos = (0,0), text = "", text_color = (0,0,0), background_color = (165,103,10), highlight_color = (252, 151, 0)):
-        Widget.__init__(self, pos)
+    def __init__(self, text = "", text_color = (0,0,0), background_color = (165,103,10), highlight_color = (252, 151, 0)):
+        Widget.__init__(self, background_color = background_color)
         #create a selected and unselected image to swich between
-        text = self.font.render(text, True, text_color, background_color)
+        text = self.font.render(text, True, text_color, self.background_color)
         unselected_surface = pygame.Surface((text.get_rect().width + 14, text.get_rect().height + 14))
         unselected_surface.fill(background_color)
         self.rect = unselected_surface.blit(text, (text.get_rect().x + 7, text.get_rect().y + 7))
@@ -105,14 +117,8 @@ class Button(Widget):
 
         self.image = self.unselected_image
         self.text = text
-        self.rect = self.image.get_rect(topleft = pos)
+        self.selectable = True
         self.selected = False
-
-    def set_pos(self, pos, center = False):
-        if center:
-            self.rect.center = pos
-        else:
-            self.rect.topleft = pos
 
     def set_action(self, action_function):
         self.action_function = action_function
@@ -131,3 +137,27 @@ class Button(Widget):
             elif e.key == K_RETURN:
                 self.action_function()
 
+
+class ListDisplay(Widget):
+    def __init__(self, inventory):
+        Widget.__init__(self)
+        self.inventory = inventory
+        self.items = inventory.items.copy()
+        self.image = self.__make_list_display()
+        self.rect = self.image.get_rect()
+
+    def update(self, *args):
+        super().update(*args)
+        if self.items != self.inventory.items:
+            self.items = self.inventory.items.copy()
+            self.image = self.__make_list_display()
+
+    def __make_list_display(self):
+        final_surface = pygame.Surface((150,(50* len(self.items))))
+        final_surface.fill( self.background_color)
+        for i, item in enumerate(self.items):
+            ii = item.image
+            iir = pygame.transform.flip(pygame.transform.rotate(ii, 90), True, False)
+            scaled_iir = pygame.transform.scale(iir, (int(iir.get_rect().width * 1.5), int(iir.get_rect().height * 1.5)))
+            final_surface.blit(scaled_iir,(10, i * 50))
+        return final_surface
