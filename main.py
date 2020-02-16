@@ -188,7 +188,7 @@ inventory_menu = menu_methods.MenuPane((*sr.center,int(sr.width * 0.8),int(sr.he
                                        utilities.load_image("Menu//inventory.bmp",(255,255,255)),
                                        inventory_sprites, title = "Inventory")
 
-item_list = menu_methods.ListDisplay(player.inventory)
+item_list = menu_methods.ListDisplay((250,550), player.inventory, inventory_sprites, title = "Weapons:")
 inventory_menu.add_widget((100,100), item_list, center = False)
 
 class Scene():
