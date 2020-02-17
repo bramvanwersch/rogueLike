@@ -145,7 +145,7 @@ weaponparts = load_parts()
 weapons = [get_random_weapon(weaponparts[0]) for _ in range(20)]
 
 #setup the board and player sprites
-player = player_methods.Player((150, 500))
+player = player_methods.Player((150, 500), get_random_weapon(weaponparts[0]))
 game_sprites = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
 player.right_arm.add(game_sprites)
 player.left_arm.add(game_sprites)
@@ -287,10 +287,10 @@ scenes = {"Main": MainScene(),
 def run():
     # stage.add_enemy("dummy", (600, 500))
     #TODO needs to be moved to different place
-    # stage.add_enemy("red square", (600,500))
-    # for i in range(5):
-    #     stage.add_enemy("bad bat", (400 + i * 20,500 + i * 20))
-    # # Main Loop
+    stage.add_enemy("red square", (600,500))
+    for i in range(5):
+        stage.add_enemy("bad bat", (400 + i * 20,500 + i * 20))
+    # Main Loop
     while utilities.going:
         scene = scenes[utilities.scene_name]
         utilities.GAME_TIME.tick(200)

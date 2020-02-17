@@ -5,9 +5,9 @@ import entities, utilities, weapon
 from entities import LivingEntity
 
 class Player(LivingEntity):
-    def __init__(self, pos, *groups):
+    def __init__(self, pos, start_weapon, *groups):
         idle_image = pygame.transform.scale(utilities.load_image("player.bmp", (255, 255, 255)), (60,120))
-        LivingEntity.__init__(self, idle_image, pos)
+        LivingEntity.__init__(self, idle_image, pos,damage=5)
         self.walking_animation = utilities.Animation("player_walk0.bmp","player_walk1.bmp","player_walk2.bmp","player_walk1.bmp",
                                                      "player_walk0.bmp","player_walk3.bmp","player_walk4.bmp","player_walk3.bmp",
                                                      scale = (60,120))
@@ -23,11 +23,11 @@ class Player(LivingEntity):
         self.events = []
         self.inventory = Inventory()
         self._layer = utilities.PLAYER_LAYER2
-        start_weapon = weapon.AbstractWeapon(utilities.load_image("starter_stick.bmp"))
         self.right_arm = RightArm(start_weapon, (self.rect.centerx - 8, self.rect.centery - 8))
         self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8))
         self.pressed_up, self.pressed_down, self.pressed_forward, self.pressed_backwad = False, False, False, False
         self.interacting = False
+        self.attacking = False
 
     def _get_bounding_box(self):
         """
@@ -58,8 +58,7 @@ class Player(LivingEntity):
         for event in self.events:
             if event.type == KEYDOWN:
                 if event.key == K_k:
-                    if not self.right_arm.attacking:
-                        self.right_arm.do_attack()
+                    self.attacking = True
                 if event.key == K_e:
                     self.interacting = True
                 if event.key == K_a or event.key == K_LEFT:
@@ -74,6 +73,9 @@ class Player(LivingEntity):
             elif event.type == KEYUP:
                 if event.key == K_e:
                     self.interacting = False
+                if event.key == K_k:
+                    self.attacking = False
+
                 if event.key == K_a or event.key == K_LEFT:
                     self.pressed_backwad = False
                 if event.key == K_d or event.key == K_RIGHT:
@@ -100,6 +102,8 @@ class Player(LivingEntity):
                 self.speedy += 0.1 * self.max_speed
             if not self.pressed_up and not self.pressed_down:
                 self.speedy  = 0
+        if not self.right_arm.attacking and self.attacking:
+            self.right_arm.do_attack()
 
     def do_flip(self):
         orig_flip = self.flipped
@@ -184,12 +188,15 @@ class RightArm(GenericArm):
         GenericArm.__init__(self, pos)
         self.equip(weapon)
         self.attacking = False
+        self.weapon = weapon
         #for tracking the original image when rotating
         self.orig_image = self.image
         self.angle = 0
         #dont touch the numbers they are great and just work
         self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
         self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
+
+        self.damage = self.weapon.damage
 
     def move_arm(self, pos):
         """
@@ -200,11 +207,21 @@ class RightArm(GenericArm):
         """
         self.rect.center = pos
         if self.attacking:
-            self.angle -= 10
+            self.angle -= self.__get_angle_reduction()
             if self.angle < -30:
                 self.attacking = False
                 self.angle = 0
         self.rotate()
+
+    def __get_angle_reduction(self):
+        """
+        Calculate the amount of distance a sword needs to move based on fps and attack speed when a player is attacking
+        :return: a float representing the amount of degrees the arm has tot travel this frame
+        """
+        fps = utilities.GAME_TIME.get_fps()
+        #amount degrees to be moved this second
+        to_move = 180 * self.weapon.fire_rate
+        return to_move / fps
 
     def do_attack(self):
         self.attacking = True
@@ -249,6 +266,7 @@ class RightArm(GenericArm):
         self.rect = self.image.get_rect(center = self.rect.center)
         self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
         self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
+        self.damage = weapon.damage
 
     def __create_weapon_arm(self, weapon_image):
         """

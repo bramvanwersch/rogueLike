@@ -6,10 +6,10 @@ import utilities, entities, manufacturers
 from pygame.locals import *
 from pygame.compat import geterror
 
-if not pygame.font:
-    print("Warning, fonts disabled")
-if not pygame.mixer:
-    print("Warning, sound disabled")
+# if not pygame.font:
+#     print("Warning, fonts disabled")
+# if not pygame.mixer:
+#     print("Warning, sound disabled")
 
 class AbstractWeapon:
     def __init__(self, image):

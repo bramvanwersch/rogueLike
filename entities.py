@@ -227,7 +227,7 @@ class Enemy(LivingEntity):
     def _check_self_hit(self):
         if self.player.right_arm.attacking and self.rect.colliderect(self.player.right_arm.bounding_box) and not self.immune[0]:
             self.set_immune()
-            self._change_health(- self.damage)
+            self._change_health(- self.player.right_arm.damage)
 
 class RedSquare(Enemy):
     def __init__(self, pos, player, tiles, *groups):
