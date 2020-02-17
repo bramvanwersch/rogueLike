@@ -23,7 +23,9 @@ class Player(LivingEntity):
         self.events = []
         self.inventory = Inventory()
         self._layer = utilities.PLAYER_LAYER2
-        self.right_arm = RightArm(start_weapon, (self.rect.centerx - 8, self.rect.centery - 8))
+        self.inventory.add(start_weapon)
+        self.right_arm = RightArm((self.rect.centerx - 8, self.rect.centery - 8))
+        self.equip(start_weapon)
         self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8))
         self.pressed_up, self.pressed_down, self.pressed_forward, self.pressed_backwad = False, False, False, False
         self.interacting = False
@@ -53,6 +55,7 @@ class Player(LivingEntity):
         elif not self.flipped:
             self.right_arm.move_arm((self.rect.centerx + 2, self.rect.centery + 2))
         self.animations()
+
 
     def handle_user_input(self):
         for event in self.events:
@@ -140,6 +143,15 @@ class Player(LivingEntity):
             else:
                 self._change_image([self.image, self.flipped_image])
 
+    def equip(self, weapon):
+        """
+        Things to do when the player equips a new weapon
+        :param weapon:
+        :return:
+        """
+        self.right_arm.equip(weapon)
+        self.speed = 10 *(1- self.right_arm.weapon.weight / 250)
+
 class GenericArm(entities.Entity):
     def __init__(self, pos):
         self.arm = pygame.transform.scale(utilities.load_image("player_arm.bmp"), (15,30))
@@ -184,9 +196,8 @@ class LeftArm(GenericArm):
         self.rect.center = pos
 
 class RightArm(GenericArm):
-    def __init__(self, weapon, pos):
+    def __init__(self, pos):
         GenericArm.__init__(self, pos)
-        self.equip(weapon)
         self.attacking = False
         self.weapon = weapon
         #for tracking the original image when rotating
@@ -296,10 +307,13 @@ class Inventory:
     def __init__(self):
         self.size = 16
         self.items = []
+        self.weight = 0
 
     def add(self, item):
         if len(self.items) <= self.size:
             self.items.append(item)
+            self.weight += item.weight
 
     def remove(self, item):
         self.items.remove(item)
+        self.weight -= item.weight
