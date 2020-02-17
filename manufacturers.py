@@ -1,5 +1,19 @@
 import random
 
+def get_manufacturer(name):
+    if name == "Hock":
+        return HocManufactorer()
+    elif name == "Vockar":
+        return VockarManufactorer()
+    elif name == "Majina":
+        return MajinaManufactorer()
+    elif name == "Bright":
+        return BrightManufactorer()
+    elif name == "Sternwel":
+        return SternwelManufactorer()
+    elif name == "Jenkins":
+        return JenkinsManufactorer()
+
 class AbstractManufactorer:
     def __init__(self):
         self.reload_speed = 2 #seconds

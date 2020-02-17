@@ -1,10 +1,10 @@
 import unittest
-import manufactorers
+import manufacturers
 
 class TestManufactorers(unittest.TestCase):
 
     def testHocManufactorer(self):
-        m = manufactorers.HocManufactorer()
+        m = manufacturers.HocManufactorer()
         self.assertEqual(m.reload_speed, 1)
         self.assertEqual(m.damage, 3.5)
         self.assertEqual(m.fire_rate, 10)
@@ -13,7 +13,7 @@ class TestManufactorers(unittest.TestCase):
         self.assertEqual(m.weight, 10)
 
     def testVockarManufactorer(self):
-        m = manufactorers.VockarManufactorer()
+        m = manufacturers.VockarManufactorer()
         self.assertEqual(m.reload_speed, 3)
         self.assertEqual(m.damage, 7.5)
         self.assertEqual(m.fire_rate, 2.5)
@@ -22,7 +22,7 @@ class TestManufactorers(unittest.TestCase):
         self.assertEqual(m.weight, 6)
 
     def testMajinaManufactorer(self):
-        m = manufactorers.MajinaManufactorer()
+        m = manufacturers.MajinaManufactorer()
         self.assertEqual(m.reload_speed, 0.6)
         self.assertEqual(m.damage, 3)
         self.assertEqual(m.fire_rate, 5)
@@ -31,7 +31,7 @@ class TestManufactorers(unittest.TestCase):
         self.assertEqual(m.weight, 1)
 
     def testBrightManufactorer(self):
-        m = manufactorers.BrightManufactorer()
+        m = manufacturers.BrightManufactorer()
         self.assertEqual(m.reload_speed, 2)
         self.assertEqual(m.damage, 10)
         self.assertEqual(m.fire_rate, 5)
@@ -40,7 +40,7 @@ class TestManufactorers(unittest.TestCase):
         self.assertEqual(m.weight, 30)
 
     def testJenkinsManufactorer(self):
-        m = manufactorers.JenkinsManufactorer()
+        m = manufacturers.JenkinsManufactorer()
         self.assertEqual(m.reload_speed, 2)
         self.assertEqual(m.damage, 5)
         self.assertEqual(m.fire_rate, 5)
@@ -49,7 +49,7 @@ class TestManufactorers(unittest.TestCase):
         self.assertEqual(m.weight, 10)
 
     def testSternwelManufactorer(self):
-        m = manufactorers.SternwelManufactorer()
+        m = manufacturers.SternwelManufactorer()
         self.assertEqual(m.reload_speed, 2)
         self.assertEqual(m.damage, 3.5)
         self.assertEqual(m.fire_rate, 5)

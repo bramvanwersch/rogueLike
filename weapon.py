@@ -2,7 +2,7 @@
 # Import Modules
 import os, pygame
 import numpy as np
-import utilities, entities
+import utilities, entities, manufacturers
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -14,6 +14,7 @@ if not pygame.mixer:
 class AbstractWeapon:
     def __init__(self, image):
         #default pos will need to be assigned when relevant
+        #TODO at some point this transform needs to go and the images cobined using blitting.
         self.image = pygame.transform.scale(image, (int(image.get_rect().width * 0.7),int(image.get_rect().height * 0.8)))
         self.rect = self.image.get_rect()
 
@@ -21,6 +22,21 @@ class MeleeWeapon(AbstractWeapon):
     def __init__(self, weaponparts):
         self.parts = weaponparts
         AbstractWeapon.__init__(self, self.__create_weapon_image())
+        self.damage, self.reload_speed, self.fire_rate, self.weight = self.__calculate_stats()
+
+    def __calculate_stats(self):
+        #handle determines the manufactorer of the melee weapon
+        manufactorer = manufacturers.get_manufacturer(self.parts["handle"].manufacturer)
+        damage =  manufactorer.damage
+        reload_speed = manufactorer.reload_speed
+        fire_rate = manufactorer.fire_rate
+        weight = manufactorer.weight
+        for part in self.parts:
+            damage += self.parts[part].damage
+            reload_speed += self.parts[part].reload_speed
+            fire_rate += self.parts[part].fire_rate
+            weight += self.parts[part].weight
+        return damage, reload_speed, fire_rate, weight
 
     def __create_weapon_image(self):
         """
@@ -57,6 +73,11 @@ class AbstractPart:
         self.image = utilities.load_image(data["imageName"])
         self.type = data["partType"]
         self.name = data["name"]
+        self.damage = int(data["damage"])
+        self.manufacturer = data["manufacturer"]
+        self.reload_speed = int(data["reload speed"])
+        self.fire_rate = int(data["fire rate"])
+        self.weight = int(data["wheight"])
 
 class MeleePart(AbstractPart):
     def __init__(self, data):
