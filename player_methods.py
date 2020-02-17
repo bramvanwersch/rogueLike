@@ -199,7 +199,6 @@ class RightArm(GenericArm):
     def __init__(self, pos):
         GenericArm.__init__(self, pos)
         self.attacking = False
-        self.weapon = weapon
         #for tracking the original image when rotating
         self.orig_image = self.image
         self.angle = 0
@@ -207,7 +206,6 @@ class RightArm(GenericArm):
         self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
         self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
 
-        self.damage = self.weapon.damage
 
     def move_arm(self, pos):
         """

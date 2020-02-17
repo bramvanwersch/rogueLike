@@ -142,68 +142,89 @@ pygame.mouse.set_visible(True)
 
 # pre random some weapons
 weaponparts = load_parts()
-weapons = [get_random_weapon(weaponparts[0]) for _ in range(20)]
 
 #setup the board and player sprites
-player = player_methods.Player((150, 500), get_random_weapon(weaponparts[0]))
-game_sprites = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
-player.right_arm.add(game_sprites)
-player.left_arm.add(game_sprites)
+def setup_board():
+    weapons = [get_random_weapon(weaponparts[0]) for _ in range(20)]
 
-stage = stages.ForestStage(game_sprites, player, weapons=weapons)
-player.tiles = stage.tiles
+    player = player_methods.Player((150, 500), get_random_weapon(weaponparts[0]))
+    game_sprites = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
+    player.right_arm.add(game_sprites)
+    player.left_arm.add(game_sprites)
 
-#pause menu
-pause_sprites = pygame.sprite.LayeredUpdates()
-pause_menu = menu_methods.MenuPane((*sr.center,int(sr.width * 0.4),int(sr.height * 0.8)),
-                                   utilities.load_image("Menu//paused_screen_menu.bmp", (255,255,255)),
-                                   pause_sprites, title = "Paused")
-buttonResume = menu_methods.Button(text = "Resume")
-pause_menu.add_widget(("c",100), buttonResume)
-def resumeAction():
-    utilities.scene_name = "Main"
-buttonResume.set_action(resumeAction)
+    global stage
+    stage = stages.ForestStage(game_sprites, player, weapons=weapons)
+    player.tiles = stage.tiles
 
-buttonRestart = menu_methods.Button(text = "Restart")
-pause_menu.add_widget(("c", 150), buttonRestart)
-def restartAction():
-    print("needs implementation")
-buttonRestart.set_action(restartAction)
+    # stage.add_enemy("dummy", (600, 500))
+    # TODO needs to be moved to different place
+    stage.add_enemy("red square", (600, 500))
+    for i in range(5):
+        stage.add_enemy("bad bat", (400 + i * 20, 500 + i * 20))
 
-buttonOptions = menu_methods.Button(text = "Options")
-pause_menu.add_widget(("c", 200), buttonOptions)
-def optionAction():
-    print("needs implementation")
-buttonOptions.set_action(optionAction)
+    #pause menu
+    pause_sprites = pygame.sprite.LayeredUpdates()
+    pause_menu = menu_methods.MenuPane((*sr.center,int(sr.width * 0.4),int(sr.height * 0.8)),
+                                       utilities.load_image("Menu//paused_screen_menu.bmp", (255,255,255)),
+                                       pause_sprites, title = "Paused")
+    buttonResume = menu_methods.Button(text = "Resume")
+    pause_menu.add_widget(("c",100), buttonResume)
+    def resumeAction():
+        utilities.scene_name = "Main"
+    buttonResume.set_action(resumeAction)
 
-buttonQuit = menu_methods.Button(text= "Quit")
-pause_menu.add_widget(("c",250), buttonQuit)
-def quitAction():
-    utilities.going = False
-buttonQuit.set_action(quitAction)
+    buttonRestart = menu_methods.Button(text = "Restart")
+    pause_menu.add_widget(("c", 150), buttonRestart)
+    def restartAction():
+        utilities.scene_name = "Main"
+        setup_board()
+    buttonRestart.set_action(restartAction)
 
-#inventory
-inventory_sprites = pygame.sprite.LayeredUpdates()
-inventory_menu = menu_methods.MenuPane((*sr.center,int(sr.width * 0.8),int(sr.height * 0.8)),
-                                       utilities.load_image("Menu//inventory.bmp",(255,255,255)),
-                                       inventory_sprites, title = "Inventory")
+    buttonOptions = menu_methods.Button(text = "Options")
+    pause_menu.add_widget(("c", 200), buttonOptions)
+    def optionAction():
+        print("needs implementation")
+    buttonOptions.set_action(optionAction)
 
-item_list = menu_methods.ListDisplay((250,550), player.inventory, inventory_sprites, title = "Weapons:")
-inventory_menu.add_widget((100,100), item_list, center = False)
+    buttonQuit = menu_methods.Button(text= "Quit")
+    pause_menu.add_widget(("c",250), buttonQuit)
+    def quitAction():
+        utilities.going = False
+    buttonQuit.set_action(quitAction)
+
+    #inventory
+    inventory_sprites = pygame.sprite.LayeredUpdates()
+    inventory_menu = menu_methods.MenuPane((*sr.center,int(sr.width * 0.8),int(sr.height * 0.8)),
+                                           utilities.load_image("Menu//inventory.bmp",(255,255,255)),
+                                           inventory_sprites, title = "Inventory")
+
+    item_list = menu_methods.ListDisplay((250,550), player.inventory, inventory_sprites, title = "Weapons:")
+    inventory_menu.add_widget((100,100), item_list, center = False)
+
+    global scenes
+    scenes = {"Main": MainScene(game_sprites,player),
+              "Pause": PauseScene(pause_sprites, pause_menu),
+              "Inventory": InventoryScene(inventory_sprites, inventory_menu)}
 
 class Scene():
+    def __init__(self, sprites, event_sprite):
+        self.sprites = sprites
+        self.event_sprite = event_sprite
 
     def handle_events(self):
         pass
 
     def update(self):
-        pass
+        for sprite in self.sprites.sprites():
+            self.sprites.change_layer(sprite, sprite._layer)
+        self.sprites.update()
 
     def draw(self):
-        pass
+        self.sprites.draw(screen)
 
 class MainScene(Scene):
-    def __init__(self):
+    def __init__(self, sprites, event_sprite):
+        Scene.__init__(self, sprites, event_sprite)
         self.nr_loaded_sprites = 0
 
     def handle_events(self, events):
@@ -218,48 +239,39 @@ class MainScene(Scene):
                 utilities.scene_name = "Inventory"
             else:
                 player_events.append(event)
-        player.events = player_events
-        if not player.dead:
-            self.nr_loaded_sprites = load_unload_sprites(player, screen)
-
-    def update(self):
-        for sprite in game_sprites.sprites():
-            game_sprites.change_layer(sprite, sprite._layer)
-        game_sprites.update()
+        self.event_sprite.events = player_events
+        if not self.event_sprite.dead:
+            self.nr_loaded_sprites = load_unload_sprites(self.event_sprite, screen)
 
     def draw(self):
         screen.fill([0, 0, 0])
-        game_sprites.draw(screen)
+        super().draw()
         if utilities.FPS:
             fps = FONT.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
             screen.blit(fps, (10, 10))
-        if utilities.TEST and not player.dead:
+        if utilities.TEST and not self.event_sprite.dead:
             ve =  FONT.render(str(self.nr_loaded_sprites), True,pygame.Color('black'))
             screen.blit(ve,(10,25))
-            draw_bounding_boxes(screen, player)
+            draw_bounding_boxes(screen, self.event_sprite)
 
 class PauseScene(Scene):
+    def __init__(self, sprites, event_sprite):
+        Scene.__init__(self, sprites, event_sprite)
 
     def handle_events(self, events):
         menu_events = []
         for event in events:
             if event.type == QUIT:
                 utilities.going = False
-            elif event.type == KEYDOWN and event.key == K_ESCAPE:
+            elif (event.type == KEYDOWN and event.key == K_ESCAPE) or event.type == KEYDOWN and event.key == K_i:
                 utilities.scene_name = "Main"
             else:
                 menu_events.append(event)
-        pause_menu.events = menu_events
-
-    def update(self):
-        for sprite in pause_sprites.sprites():
-            pause_sprites.change_layer(sprite, sprite._layer)
-        pause_sprites.update()
-
-    def draw(self):
-        pause_sprites.draw(screen)
+        self.event_sprite.events = menu_events
 
 class InventoryScene(Scene):
+    def __init__(self, sprites, event_sprite):
+        Scene.__init__(self, sprites, event_sprite)
 
     def handle_events(self, events):
         inventory_events = []
@@ -270,27 +282,12 @@ class InventoryScene(Scene):
                 utilities.scene_name = "Main"
             else:
                 inventory_events.append(event)
-        inventory_menu.events = inventory_events
-
-    def update(self):
-        for sprite in inventory_sprites.sprites():
-            inventory_sprites.change_layer(sprite, sprite._layer)
-        inventory_sprites.update()
-
-    def draw(self):
-        inventory_sprites.draw(screen)
-
-scenes = {"Main": MainScene(),
-          "Pause": PauseScene(),
-          "Inventory": InventoryScene()}
+        self.event_sprite.events = inventory_events
 
 def run():
-    # stage.add_enemy("dummy", (600, 500))
-    #TODO needs to be moved to different place
-    stage.add_enemy("red square", (600,500))
-    for i in range(5):
-        stage.add_enemy("bad bat", (400 + i * 20,500 + i * 20))
     # Main Loop
+    setup_board()
+
     while utilities.going:
         scene = scenes[utilities.scene_name]
         utilities.GAME_TIME.tick(200)
