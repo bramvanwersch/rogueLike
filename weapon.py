@@ -17,12 +17,14 @@ class AbstractWeapon:
         #TODO at some point this transform needs to go and the images cobined using blitting.
         self.image = pygame.transform.scale(image, (int(image.get_rect().width * 0.7),int(image.get_rect().height * 0.8)))
         self.rect = self.image.get_rect()
+        self.font25 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 25)
 
 class MeleeWeapon(AbstractWeapon):
     def __init__(self, weaponparts):
         self.parts = weaponparts
         AbstractWeapon.__init__(self, self.__create_weapon_image())
         self.damage, self.reload_speed, self.fire_rate, self.weight = self.__calculate_stats()
+        self.inventory_text = self.__create_inventory_text()
 
     def __calculate_stats(self):
         #handle determines the manufactorer of the melee weapon
@@ -63,6 +65,32 @@ class MeleeWeapon(AbstractWeapon):
         # image = pygame.transform.scale(image, (int(image.get_rect()[2] * 0.8), int(image.get_rect()[3] * 0.8)))
         image = image.convert()
         return image
+
+    def __create_inventory_text(self):
+        text_surface = pygame.Surface((550,550))
+        text_surface.fill(utilities.BACKGROUND_COLOR)
+
+        name = self.font25.render("Damage:", True, (0,0,0))
+        value = self.font25.render(str(self.damage), True, (0,0,0))
+        text_surface.blit(name, (0,0))
+        text_surface.blit(value, (250, 0))
+
+        name = self.font25.render("Reload speed:", True, (0,0,0))
+        value = self.font25.render(str(self.reload_speed), True, (0,0,0))
+        text_surface.blit(name, (0,50))
+        text_surface.blit(value, (250, 50))
+
+        name = self.font25.render("Attacks/s:", True, (0,0,0))
+        value = self.font25.render(str(self.fire_rate), True, (0,0,0))
+        text_surface.blit(name, (0,100))
+        text_surface.blit(value, (250, 100))
+
+        name = self.font25.render("Weight:", True, (0,0,0))
+        value = self.font25.render(str(self.weight), True, (0,0,0))
+        text_surface.blit(name, (0,150))
+        text_surface.blit(value, (250, 150))
+        return text_surface
+
 
 class ProjectileWeapon(AbstractWeapon):
     def __init__(self):

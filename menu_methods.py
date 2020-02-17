@@ -1,7 +1,7 @@
 import pygame, utilities
+from utilities import BACKGROUND_COLOR
 from pygame.locals import *
 
-BACKGROUND_COLOR = (165,103,10)
 
 class Widget(pygame.sprite.Sprite):
     def __init__(self, *groups):
@@ -9,11 +9,25 @@ class Widget(pygame.sprite.Sprite):
         self.font30 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 30)
         self.font25 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 25)
         self.font20 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 20)
-        self.action_function = None
+        self.action_functions = {}
         self.selectable = False
 
     def action(self, e):
-        pass
+        """
+        You can define a set of action functions linked to keys these are then executed when the widget is selected. If
+        it is marked with SELECTION the action function is activated upon selection
+        :param e: a list of events that passed the menu pane loop
+        """
+        if "SELECTION" in self.action_functions:
+            self.action_functions["SELECTION"]()
+        for event in e:
+            if event.type in self.action_functions:
+                self.action_functions[event.type]()
+            elif event.key in self.action_functions:
+                self.action_functions[event.key]()
+
+    def set_action(self, action_function, key):
+        self.action_functions[key] = action_function
 
     def set_pos(self, pos, center = False):
         if center:
@@ -131,9 +145,6 @@ class Button(Widget):
         self.selectable = True
         self.selected = False
 
-    def set_action(self, action_function):
-        self.action_function = action_function
-
     def set_selected(self, selected):
         self.selected = selected
         if self.selected:
@@ -141,22 +152,17 @@ class Button(Widget):
         else:
             self.image = self.unselected_image
 
-    def action(self, events):
-        for e in events:
-            if e.type == MOUSEBUTTONDOWN:
-                self.action_function()
-            elif e.key == K_RETURN:
-                self.action_function()
-
 class ListDisplay(MenuPane):
     def __init__(self, size, inventory, *groups, title = None):
         image = pygame.Surface(size)
         pygame.draw.rect(image,(0,0,0), image.get_rect(),3)
         MenuPane.__init__(self, (0,0,*size), image, *groups)
         self.inventory = inventory
-        self.items = inventory.items.copy()
+        #force an update when the sprite is updated if at creation weapons are put into the inventory
+        self.items = []
         self.image = pygame.Surface(self.rect.size)
         self.image.fill(BACKGROUND_COLOR)
+        self.list_functions = {}
         if title:
             pygame.draw.rect(self.image, (0, 0, 0), (0, 30, self.rect.width, self.rect.height - 30), 8)
             self._set_title(title, 25)
@@ -168,11 +174,13 @@ class ListDisplay(MenuPane):
     def update(self, *args):
         super().update(*args)
         if self.items != self.inventory.items:
-            print("")
             self.items = self.inventory.items.copy()
             self.__make_list_display()
 
     def __make_list_display(self):
+        """
+        Adds a weapon image for each weapon in the inventory including a text that displays some stats about the image
+        """
         self.widgets = []
         self.selectable_widgets = []
         offset = 0
@@ -181,14 +189,27 @@ class ListDisplay(MenuPane):
         for i, item in enumerate(self.items):
             size = (self.rect.width - 20, 60)
             #reverse size because image will be flipped before placing in the label
-            lbl = SelectableLabel(item.image, size)
+            lbl = WeaponItemLabel(item, size)
             self.add_widget(("c", offset + i*60), lbl)
+            for key in self.list_functions:
+                lbl.set_action(self.list_functions[key], key)
 
-class SelectableLabel(Widget):
-    def __init__(self, image, size, Border = True):
+class Label(Widget):
+    def __init__(self, size):
         Widget.__init__(self)
+        self.image = pygame.Surface(size)
+        self.image.fill(BACKGROUND_COLOR)
+        self.rect = self.image.get_rect()
+
+    def set_image(self, image):
+        self.image = image
+
+class SelectableLabel(Label):
+    def __init__(self, item, size):
+        Label.__init__(self, size)
         self.selectable = True
-        self.image, self.selected_image = self.__make_images(image, size)
+        self.item = item
+        self.image, self.selected_image = self.__make_images(item.image, size)
         self.unselected_image = self.image
         self.rect = pygame.Rect(0,0,*size)
 
@@ -215,3 +236,22 @@ class SelectableLabel(Widget):
         imgsel = img.copy()
         pygame.draw.rect(imgsel, (0, 0, 0), (0, 0, *imgsel.get_rect().size), 5)
         return img, imgsel
+
+class WeaponItemLabel(SelectableLabel):
+    def __init__(self, item, size):
+        SelectableLabel.__init__(self, item, size)
+
+    def action(self, e):
+        """
+        overwrite action function to have the selction function activate with an image
+        """
+        if "SELECTION" in self.action_functions:
+            self.action_functions["SELECTION"](self.item.inventory_text)
+        for event in e:
+            if event.type in self.action_functions:
+                self.action_functions[event.type]()
+            elif event.key == K_e:
+                self.action_functions[event.key](self.item)
+            elif event.key in self.action_functions:
+                self.action_functions[event.key]()
+

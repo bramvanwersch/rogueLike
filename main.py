@@ -169,28 +169,32 @@ def setup_board():
                                        pause_sprites, title = "Paused")
     buttonResume = menu_methods.Button(text = "Resume")
     pause_menu.add_widget(("c",100), buttonResume)
-    def resumeAction():
+    def resume_action():
         utilities.scene_name = "Main"
-    buttonResume.set_action(resumeAction)
+    buttonResume.set_action(resume_action, MOUSEBUTTONDOWN)
+    buttonResume.set_action(resume_action, K_RETURN)
 
     buttonRestart = menu_methods.Button(text = "Restart")
     pause_menu.add_widget(("c", 150), buttonRestart)
-    def restartAction():
+    def restart_action():
         utilities.scene_name = "Main"
         setup_board()
-    buttonRestart.set_action(restartAction)
+    buttonRestart.set_action(restart_action, MOUSEBUTTONDOWN)
+    buttonRestart.set_action(restart_action, K_RETURN)
 
     buttonOptions = menu_methods.Button(text = "Options")
     pause_menu.add_widget(("c", 200), buttonOptions)
-    def optionAction():
+    def option_action():
         print("needs implementation")
-    buttonOptions.set_action(optionAction)
+    buttonOptions.set_action(option_action, MOUSEBUTTONDOWN)
+    buttonOptions.set_action(option_action, K_RETURN)
 
     buttonQuit = menu_methods.Button(text= "Quit")
     pause_menu.add_widget(("c",250), buttonQuit)
-    def quitAction():
+    def quit_action():
         utilities.going = False
-    buttonQuit.set_action(quitAction)
+    buttonQuit.set_action(quit_action, MOUSEBUTTONDOWN)
+    buttonQuit.set_action(quit_action, K_RETURN)
 
     #inventory
     inventory_sprites = pygame.sprite.LayeredUpdates()
@@ -199,7 +203,14 @@ def setup_board():
                                            inventory_sprites, title = "Inventory")
 
     item_list = menu_methods.ListDisplay((250,550), player.inventory, inventory_sprites, title = "Weapons:")
+    text_lbl = menu_methods.Label((550,550))
+    def show_weapon_text(*args):
+        text_lbl.set_image(*args)
+    def equip_weapon(*args):
+        player.equip(*args)
+    item_list.list_functions = {"SELECTION": show_weapon_text, K_e : equip_weapon}
     inventory_menu.add_widget((100,100), item_list, center = False)
+    inventory_menu.add_widget((400,100), text_lbl, center = False)
 
     global scenes
     scenes = {"Main": MainScene(game_sprites,player),
