@@ -21,10 +21,11 @@ class Widget(pygame.sprite.Sprite):
         if "SELECTION" in self.action_functions:
             self.action_functions["SELECTION"]()
         for event in e:
-            if hasattr(event, "type") and event.type in self.action_functions:
+            if event.type in self.action_functions:
                 self.action_functions[event.type]()
-            elif hasattr(event, "key") and event.key in self.action_functions:
-                self.action_functions[event.key]()
+            if event.type == KEYDOWN:
+                if event.key in self.action_functions:
+                    self.action_functions[event.key]()
 
     def set_action(self, action_function, key):
         """
@@ -291,10 +292,11 @@ class WeaponItemLabel(SelectableLabel):
         if "SELECTION" in self.action_functions:
             self.action_functions["SELECTION"](self.item.inventory_text)
         for event in e:
-            if hasattr(event, "type") and event.type in self.action_functions:
+            if event.type in self.action_functions:
                 self.action_functions[event.type]()
-            elif hasattr(event, "key") and event.key == K_e:
-                self.action_functions[event.key](self.item)
-            elif hasattr(event, "key") and event.key in self.action_functions:
-                self.action_functions[event.key]()
+            if event.type == KEYDOWN:
+                if event.key == K_e:
+                    self.action_functions[event.key](self.item)
+                elif event.key in self.action_functions:
+                    self.action_functions[event.key]()
 
