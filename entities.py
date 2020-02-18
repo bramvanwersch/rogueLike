@@ -195,6 +195,7 @@ class Enemy(LivingEntity):
         LivingEntity.__init__(self, image, pos, *groups, **kwargs)
         self.player = player
         self.damage_color = "blue"
+        self.previous_acctack_cycle = 0
 
     def update(self,*args):
         """
@@ -225,9 +226,10 @@ class Enemy(LivingEntity):
             self.player._change_health(- self.damage)
 
     def _check_self_hit(self):
-        if self.player.right_arm.attacking and self.rect.colliderect(self.player.right_arm.bounding_box) and not self.immune[0]:
-            self.set_immune()
+        if self.player.right_arm.attacking and self.rect.colliderect(self.player.right_arm.bounding_box) and\
+                self.previous_acctack_cycle != self.player.right_arm.attack_cycle:
             self._change_health(- self.player.right_arm.damage)
+            self.previous_acctack_cycle = self.player.right_arm.attack_cycle
 
 class RedSquare(Enemy):
     def __init__(self, pos, player, tiles, *groups):

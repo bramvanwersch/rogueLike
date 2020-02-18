@@ -3,7 +3,7 @@ from pygame.locals import *
 from pygame.compat import geterror
 
 #test constant
-TEST = True
+TEST = False
 FPS = True
 
 #some global constants
@@ -91,8 +91,6 @@ def load_sound(name):
         print("Cannot load sound: %s" % fullname)
         raise SystemExit(str(geterror()))
     return sound
-
-
 
 class Animation:
     def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0), start_frame = 0):

@@ -206,7 +206,8 @@ class RightArm(GenericArm):
         #dont touch the numbers they are great and just work
         self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
         self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
-
+        #tracks the number of attacks and helps enemies track damage
+        self.attack_cycle = 0
 
     def move_arm(self, pos):
         """
@@ -236,6 +237,7 @@ class RightArm(GenericArm):
     def do_attack(self):
         self.attacking = True
         self.angle = 150
+        self.attack_cycle += 1
 
     def rotate(self):
         """
