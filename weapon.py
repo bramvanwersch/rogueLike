@@ -89,6 +89,13 @@ class MeleeWeapon(AbstractWeapon):
         value = self.font25.render(str(self.weight), True, (0,0,0))
         text_surface.blit(name, (0,150))
         text_surface.blit(value, (250, 150))
+
+        name = self.font25.render("Parts:", True, (0,0,0))
+        text_surface.blit(name, (0,200))
+
+        for i, part in enumerate(self.parts):
+            name = self.font25.render(" - {} ({})".format(self.parts[part].name, self.parts[part].manufacturer), True, (0,0,0))
+            text_surface.blit(name, (0,250 + 50 * i))
         return text_surface
 
 

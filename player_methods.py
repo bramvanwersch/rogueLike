@@ -151,6 +151,7 @@ class Player(LivingEntity):
         """
         self.right_arm.equip(weapon)
         self.speed = 10 *(1- self.right_arm.weapon.weight / 250)
+        self.inventory.equiped = weapon
 
 class GenericArm(entities.Entity):
     def __init__(self, pos):
@@ -306,6 +307,7 @@ class Inventory:
         self.size = 16
         self.items = []
         self.weight = 0
+        self.equiped = None
 
     def add(self, item):
         if len(self.items) <= self.size:

@@ -21,9 +21,9 @@ class Widget(pygame.sprite.Sprite):
         if "SELECTION" in self.action_functions:
             self.action_functions["SELECTION"]()
         for event in e:
-            if event.type in self.action_functions:
+            if hasattr(event, "type") and event.type in self.action_functions:
                 self.action_functions[event.type]()
-            elif event.key in self.action_functions:
+            elif hasattr(event, "key") and event.key in self.action_functions:
                 self.action_functions[event.key]()
 
     def set_action(self, action_function, key):
@@ -152,7 +152,7 @@ class Button(Widget):
         else:
             self.image = self.unselected_image
 
-class ListDisplay(MenuPane):
+class WeaponListDisplay(MenuPane):
     def __init__(self, size, inventory, *groups, title = None):
         image = pygame.Surface(size)
         pygame.draw.rect(image,(0,0,0), image.get_rect(),3)
@@ -164,8 +164,8 @@ class ListDisplay(MenuPane):
         self.image.fill(BACKGROUND_COLOR)
         self.list_functions = {}
         if title:
-            pygame.draw.rect(self.image, (0, 0, 0), (0, 30, self.rect.width, self.rect.height - 30), 8)
-            self._set_title(title, 25)
+            pygame.draw.rect(self.image, (0, 0, 0), (0, 50, self.rect.width, self.rect.height - 50), 8)
+            self._set_title(title, 30)
             self.title = True
         else:
             pygame.draw.rect(self.image,(0,0,0), (0, 0, *self.rect.size),8)
@@ -185,7 +185,7 @@ class ListDisplay(MenuPane):
         self.selectable_widgets = []
         offset = 0
         if self.title:
-            offset = 70
+            offset = 90
         for i, item in enumerate(self.items):
             size = (self.rect.width - 20, 60)
             #reverse size because image will be flipped before placing in the label
@@ -205,11 +205,10 @@ class Label(Widget):
         self.image = image
 
 class SelectableLabel(Label):
-    def __init__(self, item, size):
+    def __init__(self, image, size):
         Label.__init__(self, size)
         self.selectable = True
-        self.item = item
-        self.image, self.selected_image = self.__make_images(item.image, size)
+        self.image, self.selected_image = self.__make_images(image, size)
         self.unselected_image = self.image
         self.rect = pygame.Rect(0,0,*size)
 
@@ -238,8 +237,11 @@ class SelectableLabel(Label):
         return img, imgsel
 
 class WeaponItemLabel(SelectableLabel):
-    def __init__(self, item, size):
-        SelectableLabel.__init__(self, item, size)
+    def __init__(self, item, size, equiped = False):
+        SelectableLabel.__init__(self, item.image, size)
+        self.item = item
+        if equiped:
+            self.image.blit(self.font25.render("E",True, (0,0,0)))
 
     def action(self, e):
         """
@@ -248,10 +250,10 @@ class WeaponItemLabel(SelectableLabel):
         if "SELECTION" in self.action_functions:
             self.action_functions["SELECTION"](self.item.inventory_text)
         for event in e:
-            if event.type in self.action_functions:
+            if hasattr(event, "type") and event.type in self.action_functions:
                 self.action_functions[event.type]()
-            elif event.key == K_e:
+            elif hasattr(event, "key") and event.key == K_e:
                 self.action_functions[event.key](self.item)
-            elif event.key in self.action_functions:
+            elif hasattr(event, "key") and event.key in self.action_functions:
                 self.action_functions[event.key]()
 

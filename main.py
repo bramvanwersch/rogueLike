@@ -202,15 +202,15 @@ def setup_board():
                                            utilities.load_image("Menu//inventory.bmp",(255,255,255)),
                                            inventory_sprites, title = "Inventory")
 
-    item_list = menu_methods.ListDisplay((250,550), player.inventory, inventory_sprites, title = "Weapons:")
-    text_lbl = menu_methods.Label((550,550))
+    item_list = menu_methods.WeaponListDisplay((250, 550), player.inventory, inventory_sprites, title ="Weapons:")
+    text_lbl = menu_methods.Label((700,550))
     def show_weapon_text(*args):
         text_lbl.set_image(*args)
     def equip_weapon(*args):
         player.equip(*args)
     item_list.list_functions = {"SELECTION": show_weapon_text, K_e : equip_weapon}
     inventory_menu.add_widget((100,100), item_list, center = False)
-    inventory_menu.add_widget((400,100), text_lbl, center = False)
+    inventory_menu.add_widget((400,150), text_lbl, center = False)
 
     global scenes
     scenes = {"Main": MainScene(game_sprites,player),
@@ -274,7 +274,7 @@ class PauseScene(Scene):
         for event in events:
             if event.type == QUIT:
                 utilities.going = False
-            elif (event.type == KEYDOWN and event.key == K_ESCAPE) or event.type == KEYDOWN and event.key == K_i:
+            elif (event.type == KEYDOWN and event.key == K_ESCAPE) or (event.type == KEYDOWN and event.key == K_i):
                 utilities.scene_name = "Main"
             else:
                 menu_events.append(event)
