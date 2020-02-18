@@ -72,34 +72,10 @@ class Player(LivingEntity):
         for event in self.events:
             if event.type == KEYDOWN:
                 self.pressed_keys[event.key] = True
-                # if event.key == K_k:
-                #     self.attacking = True
-                # if event.key == K_e:
-                #     self.interacting = True
-                # if event.key == K_a or event.key == K_LEFT:
-                #     self.pressed_backwad = True
-                # if event.key == K_d or event.key == K_RIGHT:
-                #     self.pressed_forward = True
-                # if event.key == K_w or event.key == K_UP:
-                #     self.pressed_up = True
-                # if event.key == K_s or event.key == K_DOWN:
-                #     self.pressed_down = True
-
             elif event.type == KEYUP:
                 self.pressed_keys[event.key] = False
-                # if event.key == K_e:
-                #     self.interacting = False
-                # if event.key == K_k:
-                #     self.attacking = False
-                #
-                # if event.key == K_a or event.key == K_LEFT:
-                #     self.pressed_backwad = False
-                # if event.key == K_d or event.key == K_RIGHT:
-                #     self.pressed_forward = False
-                # if event.key == K_w or event.key == K_UP:
-                #     self.pressed_up = False
-                # if event.key == K_s or event.key == K_DOWN:
-                #     self.pressed_down = False
+
+#moving
         if self.pressed_keys[RIGHT] and self.pressed_keys[LEFT]:
             self.speedx = 0
         else:
@@ -118,13 +94,24 @@ class Player(LivingEntity):
                 self.speedy += 0.1 * self.max_speed
             if not self.pressed_keys[UP] and not self.pressed_keys[DOWN]:
                 self.speedy  = 0
-        if not self.right_arm.attacking and self.pressed_keys[ATTACK]:
-            self.right_arm.do_attack()
+#attacking
+        if self.pressed_keys[A_LEFT]:
+            if not self.flipped:
+                self.flipped = not self.flipped
+            if not self.right_arm.attacking:
+                self.right_arm.do_attack()
+        if self.pressed_keys[A_RIGHT]:
+            if self.flipped:
+                self.flipped = not self.flipped
+            if not self.right_arm.attacking:
+                self.right_arm.do_attack()
 
     def do_flip(self):
-        orig_flip = self.flipped
-        super().do_flip()
-        if orig_flip != self.flipped:
+        if self.flipped:
+            self.image = self.flipped_image
+        else:
+            self.image = self.orig_image
+        if self.right_arm.flipped != self.flipped:
             self.right_arm.flip()
             self.left_arm.flip()
 
