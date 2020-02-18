@@ -203,7 +203,7 @@ def setup_board():
                                            inventory_sprites, title = "Inventory")
 
     item_list = menu_methods.WeaponListDisplay((250, 550), player.inventory, inventory_sprites, title ="Weapons:")
-    text_lbl = menu_methods.Label((700,550))
+    text_lbl = menu_methods.Label((900,550))
     def show_weapon_text(*args):
         text_lbl.set_image(*args)
     def equip_weapon(*args):

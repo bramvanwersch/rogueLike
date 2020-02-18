@@ -27,6 +27,12 @@ class Widget(pygame.sprite.Sprite):
                 self.action_functions[event.key]()
 
     def set_action(self, action_function, key):
+        """
+        Bind a function to a key that is called when the widget is selected. There is an optional keyword SELECTION that
+        makes sure that the function is called upon selection and each frame after while the widget is selected
+        :param action_function: a function defenition
+        :param key: a key typically an integer representing a key as defined in pygame.locals
+        """
         self.action_functions[key] = action_function
 
     def set_pos(self, pos, center = False):
@@ -36,8 +42,15 @@ class Widget(pygame.sprite.Sprite):
             self.rect.topleft = pos
 
 class MenuPane(Widget):
-    def __init__(self, rect, image, *groups, title = None, **kwargs):
-        Widget.__init__(self, *groups, **kwargs)
+    def __init__(self, rect, image, *groups, title = None):
+        """
+        Creates a MenuPane that holds othger widgets and regulated selection of the widgets in the pane itself.
+        :param rect: size of the pane
+        :param image: image to be displayed on the pane
+        :param groups: sprite group for this widget and widgets in this widget to be added to
+        :param title: optional title
+        """
+        Widget.__init__(self, *groups)
         self.menu_group = groups[0]
         self.image = pygame.transform.scale(image, (rect[2], rect[3]))
         self.rect = self.image.get_rect(center = (rect[0], rect[1]))
@@ -154,6 +167,14 @@ class Button(Widget):
 
 class WeaponListDisplay(MenuPane):
     def __init__(self, size, inventory, *groups, title = None):
+        """
+        MenuPane that is a list display of weapons the player has in his inventory
+        :param size: the size of the pane for the weapons to be displayed on
+        :param inventory: the inventory of the player
+        :param groups: the sprite group this widget and widgets added by this widget have to be added to
+        :param title: an optional title of the display.
+        TODO make this more object oriented by implementing a List display class that has the basic functionality
+        """
         image = pygame.Surface(size)
         pygame.draw.rect(image,(0,0,0), image.get_rect(),3)
         MenuPane.__init__(self, (0,0,*size), image, *groups)
@@ -162,6 +183,7 @@ class WeaponListDisplay(MenuPane):
         self.items = []
         self.image = pygame.Surface(self.rect.size)
         self.image.fill(BACKGROUND_COLOR)
+        #functions to be assigned to selectable objects made in this pane.
         self.list_functions = {}
         if title:
             pygame.draw.rect(self.image, (0, 0, 0), (0, 50, self.rect.width, self.rect.height - 50), 8)
@@ -196,16 +218,29 @@ class WeaponListDisplay(MenuPane):
 
 class Label(Widget):
     def __init__(self, size):
+        """
+        Container class for holdign an image. The default is an image given by the default background color
+        :param size: the size of the image. The new image has to be as big or bigger
+        """
         Widget.__init__(self)
         self.image = pygame.Surface(size)
         self.image.fill(BACKGROUND_COLOR)
         self.rect = self.image.get_rect()
 
     def set_image(self, image):
+        """
+        change the image of the label
+        :param image: pygame.Surface object
+        """
         self.image = image
 
 class SelectableLabel(Label):
     def __init__(self, image, size):
+        """
+        Extension of the label class that
+        :param image:
+        :param size:
+        """
         Label.__init__(self, size)
         self.selectable = True
         self.image, self.selected_image = self.__make_images(image, size)
@@ -238,6 +273,12 @@ class SelectableLabel(Label):
 
 class WeaponItemLabel(SelectableLabel):
     def __init__(self, item, size, equiped = False):
+        """
+        Extension of the selected label class to have action functions that can take arguments
+        :param item:
+        :param size:
+        :param equiped:
+        """
         SelectableLabel.__init__(self, item.image, size)
         self.item = item
         if equiped:

@@ -67,7 +67,7 @@ class MeleeWeapon(AbstractWeapon):
         return image
 
     def __create_inventory_text(self):
-        text_surface = pygame.Surface((550,550))
+        text_surface = pygame.Surface((900,550))
         text_surface.fill(utilities.BACKGROUND_COLOR)
 
         name = self.font25.render("Damage:", True, (0,0,0))
