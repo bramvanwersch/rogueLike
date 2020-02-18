@@ -1,5 +1,5 @@
 import pygame, random, math
-import utilities
+import utilities, constants
 
 class Entity(pygame.sprite.Sprite):
     def __init__(self, image, pos, *groups):
@@ -50,7 +50,7 @@ class InteractingEntity(Entity):
 
     def update(self, *args):
         super().update(*args)
-        if self.visible[0] and self.player.interacting:
+        if self.visible[0] and self.player.pressed_keys[constants.INTERACT]:
             if self.rect.colliderect(self.player.rect):
                 self.interact()
 

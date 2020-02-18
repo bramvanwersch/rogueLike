@@ -1,7 +1,8 @@
 import pygame, random, math
 import numpy as np
 from pygame.locals import *
-import entities, utilities, weapon
+import entities, utilities, weapon, constants
+from constants import *
 from entities import LivingEntity
 
 class Player(LivingEntity):
@@ -27,9 +28,20 @@ class Player(LivingEntity):
         self.right_arm = RightArm((self.rect.centerx - 8, self.rect.centery - 8))
         self.equip(start_weapon)
         self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8))
-        self.pressed_up, self.pressed_down, self.pressed_forward, self.pressed_backwad = False, False, False, False
-        self.interacting = False
-        self.attacking = False
+        l = [KEYDOWN, KEYUP, KMOD_ALT, KMOD_CAPS, KMOD_CTRL, KMOD_LALT, KMOD_LCTRL, KMOD_LMETA, KMOD_LSHIFT, KMOD_META,
+             KMOD_MODE, KMOD_NONE, KMOD_NUM, KMOD_RALT, KMOD_RCTRL, KMOD_RMETA, KMOD_RSHIFT, KMOD_SHIFT, K_0, K_1, K_2,
+             K_3, K_4, K_5, K_6, K_7, K_8, K_9, K_AMPERSAND, K_ASTERISK, K_AT, K_BACKQUOTE, K_BACKSLASH, K_BACKSPACE,
+             K_BREAK, K_CAPSLOCK, K_CARET, K_CLEAR, K_COLON, K_COMMA, K_DELETE, K_DOLLAR, K_DOWN, K_END, K_EQUALS,
+             K_ESCAPE, K_EURO, K_EXCLAIM, K_F1, K_F10, K_F11, K_F12, K_F13, K_F14, K_F15, K_F2, K_F3, K_F4, K_F5, K_F6,
+             K_F7, K_F8, K_F9, K_FIRST, K_GREATER, K_HASH, K_HELP, K_HOME, K_INSERT, K_KP0, K_KP1, K_KP2, K_KP3, K_KP4,
+             K_KP5, K_KP6, K_KP7, K_KP8, K_KP9, K_KP_DIVIDE, K_KP_ENTER, K_KP_EQUALS, K_KP_MINUS, K_KP_MULTIPLY,
+             K_KP_PERIOD, K_KP_PLUS, K_LALT, K_LAST, K_LCTRL, K_LEFT, K_LEFTBRACKET, K_LEFTPAREN, K_LESS, K_LMETA,
+             K_LSHIFT, K_LSUPER, K_MENU, K_MINUS, K_MODE, K_NUMLOCK, K_PAGEDOWN, K_PAGEUP, K_PAUSE, K_PERIOD, K_PLUS,
+             K_POWER, K_PRINT, K_QUESTION, K_QUOTE, K_QUOTEDBL, K_RALT, K_RCTRL, K_RETURN, K_RIGHT, K_RIGHTBRACKET,
+             K_RIGHTPAREN, K_RMETA, K_RSHIFT, K_RSUPER, K_SCROLLOCK, K_SEMICOLON, K_SLASH, K_SPACE, K_SYSREQ, K_TAB,
+             K_UNDERSCORE, K_UNKNOWN, K_UP, K_a, K_b, K_c, K_d, K_e, K_f, K_g, K_h, K_i, K_j, K_k, K_l, K_m, K_n, K_o,
+             K_p, K_q, K_r, K_s, K_t, K_u, K_v, K_w, K_x, K_y, K_z]
+        self.pressed_keys = {key : False for key in l}
 
     def _get_bounding_box(self):
         """
@@ -56,56 +68,57 @@ class Player(LivingEntity):
             self.right_arm.move_arm((self.rect.centerx + 2, self.rect.centery + 2))
         self.animations()
 
-
     def handle_user_input(self):
         for event in self.events:
             if event.type == KEYDOWN:
-                if event.key == K_k:
-                    self.attacking = True
-                if event.key == K_e:
-                    self.interacting = True
-                if event.key == K_a or event.key == K_LEFT:
-                    self.pressed_backwad = True
-                if event.key == K_d or event.key == K_RIGHT:
-                    self.pressed_forward = True
-                if event.key == K_w or event.key == K_UP:
-                    self.pressed_up = True
-                if event.key == K_s or event.key == K_DOWN:
-                    self.pressed_down = True
+                self.pressed_keys[event.key] = True
+                # if event.key == K_k:
+                #     self.attacking = True
+                # if event.key == K_e:
+                #     self.interacting = True
+                # if event.key == K_a or event.key == K_LEFT:
+                #     self.pressed_backwad = True
+                # if event.key == K_d or event.key == K_RIGHT:
+                #     self.pressed_forward = True
+                # if event.key == K_w or event.key == K_UP:
+                #     self.pressed_up = True
+                # if event.key == K_s or event.key == K_DOWN:
+                #     self.pressed_down = True
 
             elif event.type == KEYUP:
-                if event.key == K_e:
-                    self.interacting = False
-                if event.key == K_k:
-                    self.attacking = False
-
-                if event.key == K_a or event.key == K_LEFT:
-                    self.pressed_backwad = False
-                if event.key == K_d or event.key == K_RIGHT:
-                    self.pressed_forward = False
-                if event.key == K_w or event.key == K_UP:
-                    self.pressed_up = False
-                if event.key == K_s or event.key == K_DOWN:
-                    self.pressed_down = False
-        if self.pressed_forward and self.pressed_backwad:
+                self.pressed_keys[event.key] = False
+                # if event.key == K_e:
+                #     self.interacting = False
+                # if event.key == K_k:
+                #     self.attacking = False
+                #
+                # if event.key == K_a or event.key == K_LEFT:
+                #     self.pressed_backwad = False
+                # if event.key == K_d or event.key == K_RIGHT:
+                #     self.pressed_forward = False
+                # if event.key == K_w or event.key == K_UP:
+                #     self.pressed_up = False
+                # if event.key == K_s or event.key == K_DOWN:
+                #     self.pressed_down = False
+        if self.pressed_keys[RIGHT] and self.pressed_keys[LEFT]:
             self.speedx = 0
         else:
-            if self.pressed_forward:
+            if self.pressed_keys[RIGHT]:
                 self.speedx += 0.1 * self.max_speed
-            if self.pressed_backwad:
+            if self.pressed_keys[LEFT]:
                 self.speedx -= 0.1 * self.max_speed
-            if not self.pressed_backwad and not self.pressed_forward:
+            if not self.pressed_keys[LEFT] and not self.pressed_keys[RIGHT]:
                 self.speedx = 0
-        if self.pressed_down and self.pressed_up:
+        if self.pressed_keys[DOWN] and self.pressed_keys[UP]:
             self.speedy = 0
         else:
-            if self.pressed_up:
+            if self.pressed_keys[UP]:
                 self.speedy -= 0.1 * self.max_speed
-            if self.pressed_down:
+            if self.pressed_keys[DOWN]:
                 self.speedy += 0.1 * self.max_speed
-            if not self.pressed_up and not self.pressed_down:
+            if not self.pressed_keys[UP] and not self.pressed_keys[DOWN]:
                 self.speedy  = 0
-        if not self.right_arm.attacking and self.attacking:
+        if not self.right_arm.attacking and self.pressed_keys[ATTACK]:
             self.right_arm.do_attack()
 
     def do_flip(self):
