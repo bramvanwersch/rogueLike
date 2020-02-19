@@ -42,8 +42,10 @@ class MeleeWeapon(AbstractWeapon):
             damage = 1
         if reload_speed < 0:
             reload_speed = 0
-        if fire_rate < 1:
-            fire_rate = 1
+        if fire_rate < 5:
+            fire_rate = 0.5
+        else:
+            fire_rate /= 10
         return damage, reload_speed, fire_rate, weight
 
     def __create_weapon_image(self):

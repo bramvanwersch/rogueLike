@@ -208,6 +208,7 @@ class RightArm(GenericArm):
         self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
         #tracks the number of attacks and helps enemies track damage
         self.attack_cycle = 0
+        self.attack_cooldown = 0
 
     def move_arm(self, pos):
         """
@@ -218,11 +219,13 @@ class RightArm(GenericArm):
         """
         self.rect.center = pos
         if self.attacking:
-            self.angle -= self.__get_angle_reduction()
+            self.angle -= 10
             if self.angle < -30:
                 self.attacking = False
                 self.angle = 0
         self.rotate()
+        if self.attack_cooldown > 0:
+            self.attack_cooldown -= 1 / utilities.GAME_TIME.get_fps()
 
     def __get_angle_reduction(self):
         """
@@ -235,9 +238,12 @@ class RightArm(GenericArm):
         return to_move / fps
 
     def do_attack(self):
+        if self.attack_cooldown > 0:
+            return
         self.attacking = True
         self.angle = 150
         self.attack_cycle += 1
+        self.attack_cooldown = 1 / self.weapon.fire_rate
 
     def rotate(self):
         """
