@@ -42,6 +42,7 @@ class Player(LivingEntity):
              K_UNDERSCORE, K_UNKNOWN, K_UP, K_a, K_b, K_c, K_d, K_e, K_f, K_g, K_h, K_i, K_j, K_k, K_l, K_m, K_n, K_o,
              K_p, K_q, K_r, K_s, K_t, K_u, K_v, K_w, K_x, K_y, K_z]
         self.pressed_keys = {key : False for key in l}
+        self.dodge_cd = 0
 
     def _get_bounding_box(self):
         """
@@ -74,7 +75,11 @@ class Player(LivingEntity):
                 self.pressed_keys[event.key] = True
             elif event.type == KEYUP:
                 self.pressed_keys[event.key] = False
-
+#dodge
+        if self.pressed_keys[DODGE] and self.dodge_cd <= 0:
+            self.__dodge()
+        else:
+            self.dodge_cd -= 1
 #moving
         if self.pressed_keys[RIGHT] and self.pressed_keys[LEFT]:
             self.speedx = 0
@@ -105,6 +110,21 @@ class Player(LivingEntity):
                 self.flipped = not self.flipped
             if not self.right_arm.attacking:
                 self.right_arm.do_attack()
+
+    def __dodge(self):
+        dd = 250
+        m_r = self.rect
+        if self.pressed_keys[LEFT]:
+            m_r = m_r.move(-dd,0)
+        if self.pressed_keys[RIGHT]:
+            m_r = m_r.move(dd, 0)
+        if self.pressed_keys[UP]:
+            m_r = m_r.move(0, -dd)
+        if self.pressed_keys[DOWN]:
+            m_r = m_r.move(0, dd)
+        if not self.tiles.solid_collide(m_r):
+            self.rect = m_r
+        self.dodge_cd = 50
 
     def do_flip(self):
         if self.flipped:
@@ -226,16 +246,6 @@ class RightArm(GenericArm):
         self.rotate()
         if self.attack_cooldown > 0:
             self.attack_cooldown -= 1 / utilities.GAME_TIME.get_fps()
-
-    def __get_angle_reduction(self):
-        """
-        Calculate the amount of distance a sword needs to move based on fps and attack speed when a player is attacking
-        :return: a float representing the amount of degrees the arm has tot travel this frame
-        """
-        fps = utilities.GAME_TIME.get_fps()
-        #amount degrees to be moved this second
-        to_move = 180 * self.weapon.fire_rate
-        return to_move / fps
 
     def do_attack(self):
         if self.attack_cooldown > 0:
