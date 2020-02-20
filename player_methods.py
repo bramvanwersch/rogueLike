@@ -8,7 +8,7 @@ from entities import LivingEntity
 class Player(LivingEntity):
     def __init__(self, pos, start_weapon, *groups):
         idle_image = pygame.transform.scale(utilities.load_image("player.bmp", (255, 255, 255)), (60,120))
-        LivingEntity.__init__(self, idle_image, pos,damage=5)
+        LivingEntity.__init__(self, pos,damage=5, image = idle_image)
         self.walking_animation = utilities.Animation("player_walk0.bmp","player_walk1.bmp","player_walk2.bmp","player_walk1.bmp",
                                                      "player_walk0.bmp","player_walk3.bmp","player_walk4.bmp","player_walk3.bmp",
                                                      scale = (60,120))
@@ -176,7 +176,7 @@ class Player(LivingEntity):
 class GenericArm(entities.Entity):
     def __init__(self, pos):
         self.arm = pygame.transform.scale(utilities.load_image("player_arm.bmp"), (15,30))
-        entities.Entity.__init__(self, self.arm, pos)
+        entities.Entity.__init__(self, pos, image = self.arm)
         self._layer = utilities.PLAYER_LAYER2
         self.image.set_colorkey((255, 255, 255), RLEACCEL)
         self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)

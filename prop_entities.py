@@ -5,7 +5,7 @@ import entities, utilities
 class Chest(entities.InteractingEntity):
     def __init__(self, pos, player, loot, *groups):
         image = pygame.transform.scale(utilities.load_image("chest.bmp", (255,255,255)), (80,80))
-        entities.InteractingEntity.__init__(self, image, pos, player, *groups)
+        entities.InteractingEntity.__init__(self, pos, player, *groups, image = image)
         self.open_image = pygame.transform.scale(utilities.load_image("chest_open.bmp", (255,255,255)), (80,80))
         self._layer = utilities.MIDDLE_LAYER
         #list of loot in a chest
@@ -38,7 +38,7 @@ class Chest(entities.InteractingEntity):
 class LootableWeapon(entities.InteractingEntity):
     def __init__(self, pos, player, weapon, *groups):
         self.weapon = weapon
-        entities.InteractingEntity.__init__(self, self.weapon.image, pos, player, *groups)
+        entities.InteractingEntity.__init__(self, pos, player, *groups, image = self.weapon.image)
         self.rect = self.weapon.image.get_rect(center = pos)
         self.orig_rect = self.rect
         self.xchange = random.randint(-16,16) / 10

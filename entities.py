@@ -2,7 +2,7 @@ import pygame, random, math
 import utilities, constants
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self, image, pos, *groups):
+    def __init__(self, pos, *groups, size = (100,100), **kwargs):
         """
         Class for all entities, these are all images that need to move or change
         :param image: The image of the sprite
@@ -10,7 +10,11 @@ class Entity(pygame.sprite.Sprite):
         :param groups: a sprite group the sprite belongs to.
         """
         pygame.sprite.Sprite.__init__(self, *groups)
-        self.image = image
+        if not "image" in kwargs:
+            self.image = pygame.Surface(size)
+            self.image.fill((255, 0, 179))
+        else:
+            self.image = kwargs["image"]
         self.orig_image = self.image
         self.rect = self.image.get_rect(topleft = pos)
         # if the sprite should be visible at the current moment. and if it should be able to be unloaded
@@ -44,8 +48,8 @@ class InteractingEntity(Entity):
     """
     Changes collision field so entity becomes solid and the player or other entitities cannot move trought it
     """
-    def __init__(self, image, pos, player, *groups):
-        Entity.__init__(self, image, pos, *groups)
+    def __init__(self, pos, player, *groups, **kwargs):
+        Entity.__init__(self, pos, *groups, **kwargs)
         self.player = player
 
     def update(self, *args):
@@ -59,11 +63,11 @@ class InteractingEntity(Entity):
         pass
 
 class LivingEntity(Entity):
-    def __init__(self, image, pos, *groups, health = 100, damage = 10, health_regen = 1, speed = 10, tiles = []):
+    def __init__(self, pos, *groups, health = 100, damage = 10, health_regen = 1, speed = 10, tiles = [], **kwargs):
         """
         Collection of methods for enemies and player alike
         """
-        Entity.__init__(self, image, pos, *groups)
+        Entity.__init__(self, pos, *groups, **kwargs)
         self.max_speed = speed
         self.speedx, self.speedy = 0,0
         self.health = [health, health]
@@ -191,8 +195,8 @@ class LivingEntity(Entity):
         self.text_values.append(TextSprite(text, self.rect.midtop, super().groups()[0], **kwargs))
 
 class Enemy(LivingEntity):
-    def __init__(self,image, pos, player, *groups, **kwargs):
-        LivingEntity.__init__(self, image, pos, *groups, **kwargs)
+    def __init__(self, pos, player, *groups, **kwargs):
+        LivingEntity.__init__(self, pos, *groups, **kwargs)
         self.player = player
         self.damage_color = "blue"
         self.previous_acctack_cycle = 0
@@ -233,13 +237,13 @@ class Enemy(LivingEntity):
 
 class RedSquare(Enemy):
     def __init__(self, pos, player, tiles, *groups):
-        Enemy.__init__(self, utilities.load_image("red_square_enemy.bmp"), pos, player, *groups, speed = 5, tiles = tiles)
+        Enemy.__init__(self, pos, player, *groups, speed = 5, tiles = tiles, image = utilities.load_image("red_square_enemy.bmp"))
 
 class BadBat(Enemy):
     def __init__(self, pos, player,tiles, *groups):
         self.animation = utilities.Animation("bad_bat-1.bmp","bad_bat0.bmp","bad_bat1.bmp","bad_bat2.bmp","bad_bat3.bmp",
                                              "bad_bat4.bmp", scale = (100,50), start_frame="random")
-        Enemy.__init__(self, self.animation.image[0], pos, player, *groups, speed = 4,tiles = tiles)
+        Enemy.__init__(self, pos, player, *groups, speed = 4,tiles = tiles, image = self.animation.image[0])
 
     def update(self, *args):
         super().update(*args)
@@ -285,12 +289,21 @@ class BadBat(Enemy):
 class TestDummy(Enemy):
     def __init__(self, pos, player,tiles, *groups):
         image = pygame.transform.scale(utilities.load_image("dummy.bmp", (255,255,255)),(50,100))
-        Enemy.__init__(self,image , pos, player, *groups,health=2000,health_regen=1000, speed = 0,tiles = tiles)
+        Enemy.__init__(self, pos, player, *groups,health=2000,health_regen=1000, speed = 0,tiles = tiles, image = image)
+
+class Archer(Enemy):
+    def __init__(self, pos, player,tiles, *groups):
+        Enemy.__init__(self, pos, player, *groups, tiles = tiles)
+
+
+class Projectile(Entity):
+    pass
+
 
 class TextSprite(Entity):
     def __init__(self,text, pos, *groups, **kwargs):
         image = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 20).render(str(text), True, pygame.Color(kwargs["color"]))
-        Entity.__init__(self, image, pos, *groups)
+        Entity.__init__(self, pos, *groups, image = image)
         #current, maximum in ms
         self.lifespan = [0,1000]
         self.destroy = False

@@ -136,7 +136,7 @@ class Background(entities.Entity):
         elif type == "prop tiles":
             image = self.__create_props_and_tiles_image(props, tiles)
         self.background_group = pygame.sprite.Group()
-        entities.Entity.__init__(self, image, (0,0), self.background_group, *groups)
+        entities.Entity.__init__(self, (0,0), self.background_group, *groups, image = image)
 
     def __create_background_image(self, images):
         pygame.surfarray.use_arraytype("numpy")
@@ -224,12 +224,15 @@ class TileGroup:
     def solid_collide(self, rect):
         """
         Fast method for calculating collision by checking the 4 cornors and seeing with what tiles they overlap. This
-        makes it at most 4 checks for collision
+        makes it at most 4 checks for collision. Also checks for out of bounds
         :param rect: a rectangle that is checked for an overlap
         :return: a boolean indicating a collsion (True) or not (False)
         """
         xtl, ytl = [int(c/100) for c in rect.topleft]
-        tile = self.tiles[ytl][xtl]
+        try:
+            tile = self.tiles[ytl][xtl]
+        except IndexError:
+            return True
         if isinstance(tile, SolidTile):
             return True
         xtr, ytr = [int(c/100) for c in rect.topright]
@@ -272,7 +275,7 @@ class SolidTile(BasicTile):
 class FinishTile(entities.InteractingEntity):
     def __init__(self, pos, player, *groups):
         image = pygame.transform.scale(utilities.load_image("hatch.bmp", (255,255,255)), (80,80))
-        entities.InteractingEntity.__init__(self, image, pos, player, *groups)
+        entities.InteractingEntity.__init__(self, pos, player, *groups, image = image)
         self._layer = utilities.MIDDLE_LAYER
 
     def interact(self):
