@@ -293,8 +293,23 @@ class TestDummy(Enemy):
 
 class Archer(Enemy):
     def __init__(self, pos, player,tiles, *groups):
-        Enemy.__init__(self, pos, player, *groups, tiles = tiles)
+        image = "tbd"
+        Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,100])
+        self.max_player_distance = 300
 
+    def _use_brain(self):
+        if self.player.bounding_box.right < self.bounding_box.left - self.max_player_distance:
+            self.speedx -= 0.1 * self.max_speed
+        elif self.player.bounding_box.left > self.bounding_box.right + self.max_player_distance:
+            self.speedx += 0.1 * self.max_speed
+        else:
+            self.speedx *= 0.9
+        if self.player.bounding_box.bottom < self.bounding_box.top - self.max_player_distance:
+            self.speedy -= 0.1 * self.max_speed
+        elif self.player.bounding_box.top > self.bounding_box.bottom + self.max_player_distance:
+            self.speedy += 0.1 * self.max_speed
+        else:
+            self.speedy *= 0.9
 
 class Projectile(Entity):
     pass

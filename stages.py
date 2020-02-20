@@ -93,6 +93,8 @@ class BasicStage:
             entities.BadBat(pos, self.player, self.tiles, self.updater,self.enemy_sprites)
         elif name == "dummy":
             entities.TestDummy(pos, self.player, self.tiles, self.updater, self.enemy_sprites)
+        elif name == "archer":
+            entities.Archer(pos, self.player, self.tiles, self.updater, self.enemy_sprites)
         else:
             print("Warning unknown enemy: "+ name)
 
