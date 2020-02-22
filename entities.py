@@ -298,15 +298,17 @@ class Archer(Enemy):
         self.max_player_distance = 300
 
     def _use_brain(self):
-        if self.player.bounding_box.right < self.bounding_box.left - self.max_player_distance:
+        move_tile = self.tiles.pathfind(self.player.rect, self.rect)
+        if not move_tile: return
+        if move_tile.right < self.bounding_box.left:
             self.speedx -= 0.1 * self.max_speed
-        elif self.player.bounding_box.left > self.bounding_box.right + self.max_player_distance:
+        elif move_tile.left > self.bounding_box.right:
             self.speedx += 0.1 * self.max_speed
         else:
             self.speedx *= 0.9
-        if self.player.bounding_box.bottom < self.bounding_box.top - self.max_player_distance:
+        if move_tile.bottom < self.bounding_box.top:
             self.speedy -= 0.1 * self.max_speed
-        elif self.player.bounding_box.top > self.bounding_box.bottom + self.max_player_distance:
+        elif move_tile.top > self.bounding_box.bottom:
             self.speedy += 0.1 * self.max_speed
         else:
             self.speedy *= 0.9

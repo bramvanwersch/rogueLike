@@ -73,12 +73,15 @@ class BasicStage:
                     image = self.tile_images["top_bottom_right_corner_" + stage_names[number]]
                 if image:
                     self.tiles[y][x] = SolidTile(image, (x * 100, y * 100))
+                else:
+                    self.tiles[y][x] = BasicTile((x * 100, y * 100))
         finishtile = FinishTile((int((self.tiles.size[0] - 2) * 100), int(self.tiles.size[1] / 2 * 100)), self.player, self.updater)
         #temporary
         chest = prop_entities.Chest((int((self.tiles.size[0] - 2) * 100), int((self.tiles.size[1] / 2 -2)* 100)),\
                                     self.player,self.get_random_weapons(5), self.updater)
         self.tiles[int(self.tiles.size[1] / 2)][int(self.tiles.size[0] - 2)] = finishtile
         self.tiles.finish_tiles.append(finishtile)
+        self.tiles.calculate_truth_map()
 
     def get_random_weapons(self, amnt = 1):
         weapons = []
@@ -182,7 +185,7 @@ class Background(entities.Entity):
             if isinstance(coord, SolidTile):
                 px = pygame.surfarray.pixels3d(coord.image)
                 final_arr[coord.x :coord.x + coord.width, coord.y: coord.y + coord.height] = px
-            else:
+            elif not isinstance(coord, BasicTile):
                 final_arr[coord[0] :coord[0] + ps, coord[1]: coord[1] + ps] = random.choice(proppixels)
         image = pygame.surfarray.make_surface(final_arr)
         image.set_colorkey((255,255,255), RLEACCEL)
@@ -205,12 +208,20 @@ class TileGroup:
         #dont make fcking pointers
         self.tiles = [[0] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
         self.finish_tiles = []
+        self.__truth_map = [[True] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
 
     def __getitem__(self, i):
         return self.tiles[i]
 
     def get_non_zero_tiles(self):
         return [tile for row in self.tiles for tile in row if isinstance(tile, BasicTile)]
+
+    def calculate_truth_map(self):
+        for y, row in enumerate(self.tiles):
+            for x, val in enumerate(row):
+                if isinstance(val, SolidTile):
+                    self.__truth_map[y][x] = False
+        print(self.__truth_map)
 
     @property
     def size(self):
@@ -233,23 +244,61 @@ class TileGroup:
         xtl, ytl = [int(c/100) for c in rect.topleft]
         try:
             tile = self.tiles[ytl][xtl]
+            if isinstance(tile, SolidTile):
+                return True
+            xtr, ytr = [int(c/100) for c in rect.topright]
+            tile = self.tiles[ytr][xtr]
+            if isinstance(tile,SolidTile):
+                return True
+            xbl, ybl = [int(c/100) for c in rect.bottomleft]
+            tile = self.tiles[ybl][xbl]
+            if isinstance(tile,SolidTile):
+                return True
+            xbr, ybr = [int(c/100) for c in rect.bottomright]
+            tile = self.tiles[ybr][xbr]
+            if isinstance(tile,SolidTile):
+                return True
+        #if index error is raised then you are outside the board.
         except IndexError:
             return True
-        if isinstance(tile, SolidTile):
-            return True
-        xtr, ytr = [int(c/100) for c in rect.topright]
-        tile = self.tiles[ytr][xtr]
-        if isinstance(tile,SolidTile):
-            return True
-        xbl, ybl = [int(c/100) for c in rect.bottomleft]
-        tile = self.tiles[ybl][xbl]
-        if isinstance(tile,SolidTile):
-            return True
-        xbr, ybr = [int(c/100) for c in rect.bottomright]
-        tile = self.tiles[ybr][xbr]
-        if isinstance(tile,SolidTile):
-            return True
         return False
+
+    def pathfind(self, player_rect, dest_rect):
+        x,y = int(player_rect.centerx / 100), int(player_rect.centery / 100)
+        player_tile = self.tiles[y][x]
+        dest_tile = self.tiles[int(dest_rect.centery/100)][int(dest_rect.centerx/100)]
+        current_truth = self.__truth_map.copy()
+        path = {}
+        cur_dist = self.__tile_dist(player_tile, dest_tile)
+        while cur_dist > 1:
+            available_tiles = []
+            if not y - 1 < 0 and current_truth[y - 1][x] and str(self.tiles[y - 1][x]) not in path:
+                available_tiles.append(self.tiles[y - 1][x])
+            if not x + 1 >= len(self.tiles[0]) and current_truth[y][x + 1] and str(self.tiles[y][x + 1]) not in path:
+                available_tiles.append(self.tiles[y][x + 1])
+            if not y + 1 >= len(self.tiles) and current_truth[y + 1][x] and str(self.tiles[y + 1][x]) not in path:
+                available_tiles.append(self.tiles[y + 1][x])
+            if not x - 1 < 0 and current_truth[y][x - 1] and str(self.tiles[y][x - 1]) not in path:
+                available_tiles.append(self.tiles[y][x - 1])
+            if available_tiles:
+                tile = min(available_tiles, key = lambda x: self.__tile_dist(x, dest_tile))
+                x, y = tile.coord
+                cur_dist = self.__tile_dist(player_tile, dest_tile)
+                path[str(player_tile)] = str(tile)
+                player_tile = tile
+            else:
+                #temp
+                break
+            # print(path)
+        if path:
+            move_name = list(path.keys())[-1].split(",")
+            move_tile = self.tiles[int(move_name[1])][int(move_name[0])]
+            return move_tile
+        return None
+
+    def __tile_dist(self,t1, t2):
+        return abs(t1.coord[0] - t2.coord[0] + t1.coord[1] - t2.coord[1])
+
 
 class BasicTile:
     def __init__(self, pos):
@@ -262,6 +311,13 @@ class BasicTile:
 
     def __getattr__(self, name):
         return self.rect.__getattribute__(name)
+
+    @property
+    def coord(self):
+        return [int(self.x / 100), int(self.y / 100)]
+
+    def __str__(self):
+        return str(self.coord[0]) + "," + str(self.coord[1])
 
 class SolidTile(BasicTile):
     def __init__(self, image, pos):
@@ -283,4 +339,6 @@ class FinishTile(entities.InteractingEntity):
     def interact(self):
         print("interacting")
 
-
+    @property
+    def coord(self):
+        return [int(self.rect.x / 100), int(self.rect.y / 100)]
