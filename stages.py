@@ -264,10 +264,12 @@ class TileGroup:
 
     def pathfind(self, player_rect, dest_rect):
         x,y = int(player_rect.x / 100), int(player_rect.y / 100)
-        current_tile = self.tiles[y][x]
+        start_tile = self.tiles[y][x]
         dest_tile = self.tiles[int(dest_rect.y/100)][int(dest_rect.x/100)]
         current_truth = self.__truth_map.copy()
+        #add the current tile so it is included
         path = {}
+        current_tile = start_tile
         cur_dist = self.__tile_dist(current_tile, dest_tile)
         walked_tiles = []
         while cur_dist > 0:
@@ -294,12 +296,12 @@ class TileGroup:
                 print("break")
                 break
             # print(path)
-        print(list(path.keys()))
         if path:
-            move_name = list(path.keys())[-1].split(",")
-            move_tile = self.tiles[int(move_name[1])][int(move_name[0])]
-            return move_tile
-        return None
+            move_names = list(key.split(",") for key in path.keys())
+            move_tiles = [self.tiles[int(move_name[1])][int(move_name[0])] for move_name in move_names]
+            move_tiles.insert(0,start_tile)
+            return move_tiles
+        return [None]
     # def pathfind(self, player_rect, dest_rect):
     #     x,y = int(player_rect.x / 100), int(player_rect.y / 100)
     #     player_tile = self.tiles[y][x]

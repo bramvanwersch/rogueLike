@@ -297,28 +297,40 @@ class Archer(Enemy):
         Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = 4)
         self.max_player_distance = 300
         self.prev_player_tile = (int(self.player.rect.x / 100), int(self.player.rect.y / 100))
+        #make sure path is calculated at start of creation
+        self.passed_frames = 60
+        self.path = []
 
     def _use_brain(self):
-        # if self.prev_player_tile != (int(self.player.rect.x / 100), int(self.player.rect.y / 100)):
-        #     self.prev_player_tile = (int(self.player.rect.x / 100), int(self.player.rect.y / 100))
-        # else:
-        #     return
-        move_tile = self.tiles.pathfind(self.player.bounding_box, self.rect)
-        print(move_tile)
-        if not move_tile:
+        #update twice per second
+        if self.passed_frames < 60:
+            self.passed_frames += 1
+        else:
+            self.path = self.tiles.pathfind(self.player.bounding_box, self.rect)
+            self.passed_frames = 0
+            self.move_tile = self.path.pop(-1)
+        #if path is empty or there is no solution
+        if not self.move_tile or not self.path:
+            #make sure that the enemy moves onto the tile instead of stopping at the exact point
+            self.speedx *= 0.97
+            self.speedy *= 0.97
             return
-        if move_tile.centerx < self.bounding_box.centerx:
+        if self.move_tile.coord == [int(self.rect.x / 100), int(self.rect.y / 100)]:
+            self.move_tile = self.path.pop(-1)
+        if self.move_tile.centerx > self.bounding_box.centerx - self.max_speed and self.move_tile.centerx < self.bounding_box.centerx + self.max_speed :
+            self.speedx = 0
+        elif self.move_tile.centerx < self.bounding_box.centerx:
             self.speedx -= self.max_speed
-        elif move_tile.centerx > self.bounding_box.centerx:
+        elif self.move_tile.centerx > self.bounding_box.centerx:
             self.speedx += self.max_speed
         else:
             self.speedx = 0
-        if move_tile.centery < self.bounding_box.centery:
-            self.speedy -= self.max_speed
-        elif move_tile.centery > self.bounding_box.centery:
-            self.speedy += self.max_speed
-        else:
+        if self.move_tile.centery < self.bounding_box.centery + self.max_speed and self.move_tile.centery > self.bounding_box.centery - self.max_speed:
             self.speedy = 0
+        elif self.move_tile.centery < self.bounding_box.centery:
+            self.speedy -= self.max_speed
+        elif self.move_tile.centery > self.bounding_box.centery:
+            self.speedy += self.max_speed
 
     # def _check_collision(self):
     #     """

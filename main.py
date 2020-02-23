@@ -161,7 +161,7 @@ def setup_board():
     # stage.add_enemy("red square", (600, 500))
     stage.add_enemy("archer", (100,100))
     # for i in range(5):
-    #     stage.add_enemy("bad bat", (400 + i * 20, 500 + i * 20))
+    #     stage.add_enemy("archer", (400 + i * 20, 500 + i * 20))
 
     #pause menu
     pause_sprites = pygame.sprite.LayeredUpdates()
@@ -302,7 +302,7 @@ def run():
 
     while utilities.going:
         scene = scenes[utilities.scene_name]
-        utilities.GAME_TIME.tick(60)
+        utilities.GAME_TIME.tick(200)
         scene.handle_events(pygame.event.get())
         scene.update()
         scene.draw()
