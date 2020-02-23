@@ -294,24 +294,61 @@ class TestDummy(Enemy):
 class Archer(Enemy):
     def __init__(self, pos, player,tiles, *groups):
         image = "tbd"
-        Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,100])
+        Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = 4)
         self.max_player_distance = 300
+        self.prev_player_tile = (int(self.player.rect.x / 100), int(self.player.rect.y / 100))
 
     def _use_brain(self):
-        move_tile = self.tiles.pathfind(self.player.rect, self.rect)
-        if not move_tile: return
-        if move_tile.right < self.bounding_box.left:
-            self.speedx -= 0.1 * self.max_speed
-        elif move_tile.left > self.bounding_box.right:
-            self.speedx += 0.1 * self.max_speed
+        # if self.prev_player_tile != (int(self.player.rect.x / 100), int(self.player.rect.y / 100)):
+        #     self.prev_player_tile = (int(self.player.rect.x / 100), int(self.player.rect.y / 100))
+        # else:
+        #     return
+        move_tile = self.tiles.pathfind(self.player.bounding_box, self.rect)
+        print(move_tile)
+        if not move_tile:
+            return
+        if move_tile.centerx < self.bounding_box.centerx:
+            self.speedx -= self.max_speed
+        elif move_tile.centerx > self.bounding_box.centerx:
+            self.speedx += self.max_speed
         else:
-            self.speedx *= 0.9
-        if move_tile.bottom < self.bounding_box.top:
-            self.speedy -= 0.1 * self.max_speed
-        elif move_tile.top > self.bounding_box.bottom:
-            self.speedy += 0.1 * self.max_speed
+            self.speedx = 0
+        if move_tile.centery < self.bounding_box.centery:
+            self.speedy -= self.max_speed
+        elif move_tile.centery > self.bounding_box.centery:
+            self.speedy += self.max_speed
         else:
-            self.speedy *= 0.9
+            self.speedy = 0
+
+    # def _check_collision(self):
+    #     """
+    #     Check the collision of x and y simoultaniously and return if x and y have collision
+    #     :return:
+    #     """
+    #     xcol, ycol = False, False
+    #     # check for x and y collison as long as any of the two are false.
+    #     while (not xcol or not ycol):
+    #         if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
+    #             xcol = True
+    #         if (
+    #                 self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
+    #             ycol = True
+    #         if self.speedx > 0:
+    #             x_rect = self.bounding_box.move((self.speedx + 1, 0))
+    #         else:
+    #             x_rect = self.bounding_box.move((self.speedx - 1, 0))
+    #         if self.speedy > 0:
+    #             y_rect = self.bounding_box.move((0, self.speedy + 1))
+    #         else:
+    #             y_rect = self.bounding_box.move((0, self.speedy - 1))
+    #         for sprite in super().groups()[1]:
+    #             if sprite.bounding_box.colliderect(x_rect) and self != sprite:
+    #                 xcol = True
+    #             if sprite.bounding_box.colliderect(y_rect) and self != sprite:
+    #                 ycol = True
+    #         break;
+    #     return [xcol, ycol]
+
 
 class Projectile(Entity):
     pass

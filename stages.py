@@ -1,4 +1,4 @@
-import pygame
+import pygame, sys
 from pygame.locals import *
 import utilities, entities, game_map, prop_entities
 import random
@@ -79,8 +79,8 @@ class BasicStage:
         #temporary
         chest = prop_entities.Chest((int((self.tiles.size[0] - 2) * 100), int((self.tiles.size[1] / 2 -2)* 100)),\
                                     self.player,self.get_random_weapons(5), self.updater)
-        self.tiles[int(self.tiles.size[1] / 2)][int(self.tiles.size[0] - 2)] = finishtile
-        self.tiles.finish_tiles.append(finishtile)
+        # self.tiles[int(self.tiles.size[1] / 2)][int(self.tiles.size[0] - 2)] = finishtile
+        # self.tiles.finish_tiles.append(finishtile)
         self.tiles.calculate_truth_map()
 
     def get_random_weapons(self, amnt = 1):
@@ -221,7 +221,6 @@ class TileGroup:
             for x, val in enumerate(row):
                 if isinstance(val, SolidTile):
                     self.__truth_map[y][x] = False
-        print(self.__truth_map)
 
     @property
     def size(self):
@@ -264,40 +263,98 @@ class TileGroup:
         return False
 
     def pathfind(self, player_rect, dest_rect):
-        x,y = int(player_rect.centerx / 100), int(player_rect.centery / 100)
-        player_tile = self.tiles[y][x]
-        dest_tile = self.tiles[int(dest_rect.centery/100)][int(dest_rect.centerx/100)]
+        x,y = int(player_rect.x / 100), int(player_rect.y / 100)
+        current_tile = self.tiles[y][x]
+        dest_tile = self.tiles[int(dest_rect.y/100)][int(dest_rect.x/100)]
         current_truth = self.__truth_map.copy()
         path = {}
-        cur_dist = self.__tile_dist(player_tile, dest_tile)
-        while cur_dist > 1:
+        cur_dist = self.__tile_dist(current_tile, dest_tile)
+        walked_tiles = []
+        while cur_dist > 0:
             available_tiles = []
-            if not y - 1 < 0 and current_truth[y - 1][x] and str(self.tiles[y - 1][x]) not in path:
-                available_tiles.append(self.tiles[y - 1][x])
-            if not x + 1 >= len(self.tiles[0]) and current_truth[y][x + 1] and str(self.tiles[y][x + 1]) not in path:
+            if not x + 1 >= len(self.tiles[0]) and current_truth[y][x + 1] and self.tiles[y][x + 1] not in walked_tiles:
                 available_tiles.append(self.tiles[y][x + 1])
-            if not y + 1 >= len(self.tiles) and current_truth[y + 1][x] and str(self.tiles[y + 1][x]) not in path:
-                available_tiles.append(self.tiles[y + 1][x])
-            if not x - 1 < 0 and current_truth[y][x - 1] and str(self.tiles[y][x - 1]) not in path:
+            if not x - 1 < 0 and current_truth[y][x - 1] and self.tiles[y][x - 1] not in walked_tiles:
                 available_tiles.append(self.tiles[y][x - 1])
+            if not y + 1 >= len(self.tiles) and current_truth[y + 1][x] and self.tiles[y + 1][x] not in walked_tiles:
+                available_tiles.append(self.tiles[y + 1][x])
+            if not y - 1 < 0 and current_truth[y - 1][x] and self.tiles[y - 1][x] not in walked_tiles:
+                available_tiles.append(self.tiles[y - 1][x])
             if available_tiles:
+                for t in available_tiles:
+                    assert not isinstance(t, SolidTile)
                 tile = min(available_tiles, key = lambda x: self.__tile_dist(x, dest_tile))
+                walked_tiles.append(tile)
                 x, y = tile.coord
-                cur_dist = self.__tile_dist(player_tile, dest_tile)
-                path[str(player_tile)] = str(tile)
-                player_tile = tile
+                path[str(current_tile)] = str(tile)
+                current_tile = tile
+                cur_dist = self.__tile_dist(current_tile, dest_tile)
             else:
                 #temp
+                print("break")
                 break
             # print(path)
+        print(list(path.keys()))
         if path:
             move_name = list(path.keys())[-1].split(",")
             move_tile = self.tiles[int(move_name[1])][int(move_name[0])]
             return move_tile
         return None
+    # def pathfind(self, player_rect, dest_rect):
+    #     x,y = int(player_rect.x / 100), int(player_rect.y / 100)
+    #     player_tile = self.tiles[y][x]
+    #     dest_tile = self.tiles[int(dest_rect.y/100)][int(dest_rect.x/100)]
+    #     current_truth = [row[:] for row in self.__truth_map]
+    #     current_truth[y][x] = 0
+    #     unwalked_tiles = {}
+    #     while True:
+    #         available_tiles = []
+    #         #calculate ditance for all tiles not calculated adjacent to this.
+    #         if not y - 1 < 0 and current_truth[y - 1][x] != "solid":
+    #             tile = self.tiles[y - 1][x]
+    #             d = self.__tile_dist(tile, player_tile)
+    #             if d < current_truth[y - 1][x]:
+    #                 current_truth[y - 1][x] = d
+    #                 unwalked_tiles[str(tile)] = tile
+    #         if not x - 1 < 0 and current_truth[y][x - 1] != "solid":
+    #             tile = self.tiles[y][x - 1]
+    #             d = self.__tile_dist(tile, player_tile)
+    #             if d < current_truth[y][x - 1]:
+    #                 current_truth[y][x - 1] = d
+    #                 unwalked_tiles[str(tile)] = tile
+    #         if not x + 1 >= len(self.tiles[0]) and current_truth[y][x + 1] != "solid":
+    #             tile = self.tiles[y][x + 1]
+    #             d = self.__tile_dist(tile, player_tile)
+    #             if d < current_truth[y][x + 1]:
+    #                 current_truth[y][x + 1] = d
+    #                 unwalked_tiles[str(tile)] = tile
+    #         if not y + 1 >= len(self.tiles) and current_truth[y + 1][x] != "solid":
+    #             tile = self.tiles[y + 1][x]
+    #             d = self.__tile_dist(tile, player_tile)
+    #             if d < current_truth[y + 1][x]:
+    #                 current_truth[y + 1][x] = d
+    #                 unwalked_tiles[str(tile)] = tile
+    #         min_tile = min(list(unwalked_tiles.values()), key = lambda x: self.__tile_dist(x, player_tile))
+    #         del unwalked_tiles[str(min_tile)]
+    #         x,y = min_tile.coord
+    #         if self.__tile_dist(min_tile, dest_tile) <= 1:
+    #             return self.tiles[y][x]
+    #
+
 
     def __tile_dist(self,t1, t2):
-        return abs(t1.coord[0] - t2.coord[0] + t1.coord[1] - t2.coord[1])
+        return abs(t1.coord[0] - t2.coord[0]) + abs(t1.coord[1] - t2.coord[1])
+
+    def __all_min_tiles(self,dest_tile, tiles):
+        if len(tiles) == 1:
+            return tiles
+        min_tiles = [tiles[0]]
+        for tile in tiles:
+            if self.__tile_dist(dest_tile, tile) < self.__tile_dist(dest_tile, min_tiles[0]):
+                min_tiles = [tile]
+            elif self.__tile_dist(dest_tile, tile) == self.__tile_dist(dest_tile, min_tiles[0]):
+                min_tiles.append(tile)
+        return min_tiles
 
 
 class BasicTile:
