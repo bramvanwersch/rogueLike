@@ -302,7 +302,7 @@ def run():
 
     while utilities.going:
         scene = scenes[utilities.scene_name]
-        utilities.GAME_TIME.tick(200)
+        utilities.GAME_TIME.tick(60)
         scene.handle_events(pygame.event.get())
         scene.update()
         scene.draw()

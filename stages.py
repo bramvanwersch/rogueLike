@@ -266,42 +266,39 @@ class TileGroup:
         x,y = int(player_rect.x / 100), int(player_rect.y / 100)
         start_tile = self.tiles[y][x]
         dest_tile = self.tiles[int(dest_rect.y/100)][int(dest_rect.x/100)]
-        current_truth = self.__truth_map.copy()
-        #add the current tile so it is included
-        path = {}
-        current_tile = start_tile
-        cur_dist = self.__tile_dist(current_tile, dest_tile)
-        walked_tiles = []
-        while cur_dist > 0:
-            available_tiles = []
-            if not x + 1 >= len(self.tiles[0]) and current_truth[y][x + 1] and self.tiles[y][x + 1] not in walked_tiles:
-                available_tiles.append(self.tiles[y][x + 1])
-            if not x - 1 < 0 and current_truth[y][x - 1] and self.tiles[y][x - 1] not in walked_tiles:
-                available_tiles.append(self.tiles[y][x - 1])
-            if not y + 1 >= len(self.tiles) and current_truth[y + 1][x] and self.tiles[y + 1][x] not in walked_tiles:
-                available_tiles.append(self.tiles[y + 1][x])
-            if not y - 1 < 0 and current_truth[y - 1][x] and self.tiles[y - 1][x] not in walked_tiles:
-                available_tiles.append(self.tiles[y - 1][x])
-            if available_tiles:
-                for t in available_tiles:
-                    assert not isinstance(t, SolidTile)
-                tile = min(available_tiles, key = lambda x: self.__tile_dist(x, dest_tile))
-                walked_tiles.append(tile)
-                x, y = tile.coord
-                path[str(current_tile)] = str(tile)
-                current_tile = tile
-                cur_dist = self.__tile_dist(current_tile, dest_tile)
-            else:
-                #temp
-                print("break")
-                break
-            # print(path)
-        if path:
-            move_names = list(key.split(",") for key in path.keys())
-            move_tiles = [self.tiles[int(move_name[1])][int(move_name[0])] for move_name in move_names]
-            move_tiles.insert(0,start_tile)
-            return move_tiles
-        return [None]
+        if not self.__truth_map[y][x]:
+            return [None]
+        #add starting tile to values to make it available for x,y coordinates
+        paths = [[start_tile],[start_tile],[start_tile],[start_tile]]
+        cur_dist = self.__tile_dist(start_tile, dest_tile)
+        walked_tiles = [[],[],[],[]]
+        final_path = [None]
+        while cur_dist > 0 and len(paths) > 0:
+            for i, path in enumerate(paths):
+                available_tiles = []
+                x,y = path[-1].coord
+                if not x + 1 >= len(self.tiles[0]) and self.__truth_map[y][x + 1] and self.tiles[y][x + 1] not in walked_tiles[i]:
+                    available_tiles.append(self.tiles[y][x + 1])
+                if not x - 1 < 0 and self.__truth_map[y][x - 1] and self.tiles[y][x - 1] not in walked_tiles[i]:
+                    available_tiles.append(self.tiles[y][x - 1])
+                if not y + 1 >= len(self.tiles) and self.__truth_map[y + 1][x] and self.tiles[y + 1][x] not in walked_tiles[i]:
+                    available_tiles.append(self.tiles[y + 1][x])
+                if not y - 1 < 0 and self.__truth_map[y - 1][x] and self.tiles[y - 1][x] not in walked_tiles[i]:
+                    available_tiles.append(self.tiles[y - 1][x])
+                if available_tiles:
+                    #swap tile order to make an if statement check be before the others
+                    available_tiles = available_tiles[i:] + available_tiles[:i]
+                    tile = min(available_tiles, key = lambda x: self.__tile_dist(x, dest_tile))
+                    walked_tiles[i].append(tile)
+                    path.append(tile)
+                    cur_dist = self.__tile_dist(tile, dest_tile)
+                    final_path = path
+                else:
+                    #TODO look into these cases and see if it is worth fixing them.
+                    # print("break")
+                    paths.remove(path)
+                    final_path = path
+        return final_path
     # def pathfind(self, player_rect, dest_rect):
     #     x,y = int(player_rect.x / 100), int(player_rect.y / 100)
     #     player_tile = self.tiles[y][x]
