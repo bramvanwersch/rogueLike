@@ -2,7 +2,7 @@ import pygame, random, math
 import utilities, constants
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self, pos, *groups, size = (100,100), **kwargs):
+    def __init__(self, pos, *groups, **kwargs):
         """
         Class for all entities, these are all images that need to move or change
         :param image: The image of the sprite
@@ -10,8 +10,11 @@ class Entity(pygame.sprite.Sprite):
         :param groups: a sprite group the sprite belongs to.
         """
         pygame.sprite.Sprite.__init__(self, *groups)
-        if not "image" in kwargs:
-            self.image = pygame.Surface(size)
+        if not "image" in kwargs and not "size" in kwargs:
+            self.image = pygame.Surface((100,100))
+            self.image.fill((255, 0, 179))
+        elif "size" in kwargs:
+            self.image = pygame.Surface(kwargs["size"])
             self.image.fill((255, 0, 179))
         else:
             self.image = kwargs["image"]
@@ -238,6 +241,36 @@ class Enemy(LivingEntity):
 class RedSquare(Enemy):
     def __init__(self, pos, player, tiles, *groups):
         Enemy.__init__(self, pos, player, *groups, speed = 5, tiles = tiles, image = utilities.load_image("red_square_enemy.bmp"))
+        #make sure path is calculated at start of creation
+        self.passed_frames = random.randint(0,60)
+        self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
+        self.move_tile = self.path.pop(-1)
+
+    def _use_brain(self):
+        #update twice per second
+        if self.passed_frames < 60 and self.path:
+            self.passed_frames += 1
+        else:
+            self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
+            self.passed_frames = 0
+            self.move_tile = self.path.pop(-1)
+        #if path is empty or there is no solution
+        if not self.move_tile:
+            return
+        if self.move_tile.coord == [int(self.bounding_box.x / 100), int(self.bounding_box.y / 100)]:
+            self.move_tile = self.path.pop(-1)
+        if self.move_tile.centerx > self.bounding_box.centerx - self.max_speed and self.move_tile.centerx < self.bounding_box.centerx + self.max_speed :
+            self.speedx = 0
+        elif self.move_tile.centerx < self.bounding_box.centerx:
+            self.speedx -= self.max_speed
+        elif self.move_tile.centerx > self.bounding_box.centerx:
+            self.speedx += self.max_speed
+        if self.move_tile.centery < self.bounding_box.centery + self.max_speed and self.move_tile.centery > self.bounding_box.centery - self.max_speed:
+            self.speedy = 0
+        elif self.move_tile.centery < self.bounding_box.centery:
+            self.speedy -= self.max_speed
+        elif self.move_tile.centery > self.bounding_box.centery:
+            self.speedy += self.max_speed
 
 class BadBat(Enemy):
     def __init__(self, pos, player,tiles, *groups):
@@ -295,19 +328,37 @@ class Archer(Enemy):
     def __init__(self, pos, player,tiles, *groups):
         image = "tbd"
         Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = 4)
-        self.max_player_distance = 300
-        self.prev_player_tile = (int(self.player.rect.x / 100), int(self.player.rect.y / 100))
+        self.shot_player_distance = 600
         #make sure path is calculated at start of creation
         self.passed_frames = random.randint(0,60)
-        self.path = self.tiles.pathfind(self.player.bounding_box, self.rect)
+        # self.shooting_animation = utilities.Animation()
+        self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
         self.move_tile = self.path.pop(-1)
+        self.shooting = False
+        self.shooting_cooldown = 50
+
+    def update(self, *args):
+        super().update(*args)
+        if self.shooting and self.shooting_cooldown <= 0:
+            #update animation
+            # self.shooting_animation.update()
+            # if self.shooting_animation.cycles > 0:
+            self.shooting = False
+            Projectile(self.rect.center, self.player.rect.center, super().groups()[0])
+            self.shooting_cooldown = 50
+        elif self.shooting_cooldown > 0:
+            self.shooting_cooldown -= 1
 
     def _use_brain(self):
-        #update twice per second
+        #manhaten distance lower then 600 stand still and shoot
+        if abs(self.rect.x - self.player.rect.x) + abs(self.rect.y - self.player.rect.y) < self.shot_player_distance:
+            self.speedy, self.speedx = 0,0
+            self.shooting = True
+            return
         if self.passed_frames < 60 and self.path:
             self.passed_frames += 1
         else:
-            self.path = self.tiles.pathfind(self.player.bounding_box, self.rect)
+            self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
             self.passed_frames = 0
             self.move_tile = self.path.pop(-1)
         #if path is empty or there is no solution
@@ -328,39 +379,47 @@ class Archer(Enemy):
         elif self.move_tile.centery > self.bounding_box.centery:
             self.speedy += self.max_speed
 
-    # def _check_collision(self):
-    #     """
-    #     Check the collision of x and y simoultaniously and return if x and y have collision
-    #     :return:
-    #     """
-    #     xcol, ycol = False, False
-    #     # check for x and y collison as long as any of the two are false.
-    #     while (not xcol or not ycol):
-    #         if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
-    #             xcol = True
-    #         if (
-    #                 self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
-    #             ycol = True
-    #         if self.speedx > 0:
-    #             x_rect = self.bounding_box.move((self.speedx + 1, 0))
-    #         else:
-    #             x_rect = self.bounding_box.move((self.speedx - 1, 0))
-    #         if self.speedy > 0:
-    #             y_rect = self.bounding_box.move((0, self.speedy + 1))
-    #         else:
-    #             y_rect = self.bounding_box.move((0, self.speedy - 1))
-    #         for sprite in super().groups()[1]:
-    #             if sprite.bounding_box.colliderect(x_rect) and self != sprite:
-    #                 xcol = True
-    #             if sprite.bounding_box.colliderect(y_rect) and self != sprite:
-    #                 ycol = True
-    #         break;
-    #     return [xcol, ycol]
-
-
 class Projectile(Entity):
-    pass
+    def __init__(self, start_pos, dest_coord, *groups, p_type = "arrow", speed = 30, size = [50,10], function = "linear"):
+        Entity.__init__(self, start_pos, *groups, size = size)
+        self.dest = dest_coord
+        self.rect.topleft = start_pos
+        self.function_type = function
+        self.trajectory = self.__get_function()
+        if self.dest < self.rect.topleft:
+            speed = -speed
+        self.speed = speed
+        #make implementation of this
+        # self.image = self.__get_image()
 
+    def update(self, *args):
+        super().update(*args)
+        self.move()
+
+    def __get_function(self):
+        """
+        Configure the a b and c value for the function that describes the trajectory of the projectile
+        :param preference:
+        :return:
+        """
+        a, b, c = 0, 0, 0
+        if self.function_type == "linear":
+            #delta y / delta x
+            b = (self.dest[1] - self.rect.y) / (self.dest[0] - self.rect.x)
+            #b = y - ax
+            c = self.rect.y - b * self.rect.x
+        elif self.function_type == "quadratic":
+            pass
+        else:
+            print("unknown function preference")
+        return a, b, c
+
+    def move(self):
+        #https://math.stackexchange.com/questions/656500/given-a-point-slope-and-a-distance-along-that-slope-easily-find-a-second-p
+        if self.function_type == "linear":
+            x1 = self.speed * 1 / math.sqrt(1 + self.trajectory[1]**2) + self.rect.x
+            y1 = self.speed * self.trajectory[1] / math.sqrt(1 + self.trajectory[1]**2) + self.rect.y
+            self.rect.topleft = (x1,y1)
 
 class TextSprite(Entity):
     def __init__(self,text, pos, *groups, **kwargs):
