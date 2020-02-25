@@ -10,14 +10,14 @@ class Entity(pygame.sprite.Sprite):
         :param groups: a sprite group the sprite belongs to.
         """
         pygame.sprite.Sprite.__init__(self, *groups)
-        if not "image" in kwargs and not "size" in kwargs:
-            self.image = pygame.Surface((100,100))
-            self.image.fill((255, 0, 179))
+        if "image" in kwargs and isinstance(kwargs["image"], pygame.Surface):
+            self.image = kwargs["image"]
         elif "size" in kwargs:
             self.image = pygame.Surface(kwargs["size"])
             self.image.fill((255, 0, 179))
         else:
-            self.image = kwargs["image"]
+            self.image = pygame.Surface((100,100))
+            self.image.fill((255, 0, 179))
         self.orig_image = self.image
         self.rect = self.image.get_rect(topleft = pos)
         # if the sprite should be visible at the current moment. and if it should be able to be unloaded
@@ -88,14 +88,8 @@ class LivingEntity(Entity):
 
     def update(self, *args):
         super().update(*args)
-        if self.dead and hasattr(self,"dead_animation"):
-            if self.dead_animation.cycles == 0:
-                self.die()
-            else:
-                self.kill()
-            return
-        elif self.dead:
-            self.kill()
+        if self.dead:
+            self._dead_sequence()
             return
         self.move()
         self.do_flip()
@@ -107,6 +101,19 @@ class LivingEntity(Entity):
             self.immune[0] = False
         if self.immune[0]:
             self.immune[1] -= 1
+
+    def _dead_sequence(self):
+        if self.dead and hasattr(self,"dead_animation"):
+            if self.dead_animation.cycles == 0:
+                self.die()
+            else:
+                self.kill()
+        elif self.dead and hasattr(self, "dead_timer"):
+            self.dead_timer -= 1
+            if self.dead_timer <= 0:
+                self.kill()
+        else:
+            self.kill()
 
     def set_immune(self, time = 10):
         """
@@ -209,9 +216,10 @@ class Enemy(LivingEntity):
         Basic movement towards the player.
         """
         super().update(*args)
-        self._use_brain()
-        self._check_player_hit()
-        self._check_self_hit()
+        if not self.dead:
+            self._use_brain()
+            self._check_player_hit()
+            self._check_self_hit()
 
     def _use_brain(self):
         if self.player.bounding_box.right < self.bounding_box.left:
@@ -344,7 +352,7 @@ class Archer(Enemy):
             # self.shooting_animation.update()
             # if self.shooting_animation.cycles > 0:
             self.shooting = False
-            Projectile(self.rect.center, self.player, super().groups()[0], size = [50,10], tiles = self.tiles, speed = 20)
+            LinearProjectile(self.rect.center, self.player, super().groups()[0], size = [50, 10], tiles = self.tiles, speed = 5)
             self.shooting_cooldown = 50
         elif self.shooting_cooldown > 0:
             self.shooting_cooldown -= 1
@@ -379,45 +387,50 @@ class Archer(Enemy):
         elif self.move_tile.centery > self.bounding_box.centery:
             self.speedy += self.max_speed
 
-class Projectile(Enemy):
+class LinearProjectile(Enemy):
     def __init__(self, start_pos, player, *groups, p_type = "arrow", function = "linear", **kwargs):
-        Enemy.__init__(self, start_pos, player, *groups, **kwargs)
+        Enemy.__init__(self, start_pos, player, *groups, image = utilities.load_image("arrow.bmp", (255,255,255)), **kwargs)
         self.dest = self.player.bounding_box.center
         self.rect.topleft = start_pos
         self.function_type = function
-        self.trajectory = self.__get_function()
         if self.dest < self.rect.topleft:
-            self.speed = - self.speed
+            self.max_speed = - self.max_speed
+        self.__configure_trajectory()
+        self.dead_timer = 60
         #make implementation of this
-        # self.image = self.__get_image()
 
-    def __get_function(self):
-        """
-        Configure the a b and c value for the function that describes the trajectory of the projectile
-        :param preference:
-        :return:
-        """
-        a, b, c = 0, 0, 0
-        if self.function_type == "linear":
-            #delta y / delta x
-            b = (self.dest[1] - self.rect.y) / (self.dest[0] - self.rect.x)
-            #b = y - ax
-            c = self.rect.y - b * self.rect.x
-        elif self.function_type == "quadratic":
-            pass
-        else:
-            print("unknown function preference")
-        return a, b, c
-
-    def _use_brain(self):
+    def __configure_trajectory(self):
         # in the case of a linear relationship. is always the same but for now leave like this.
         #https://math.stackexchange.com/questions/656500/given-a-point-slope-and-a-distance-along-that-slope-easily-find-a-second-p
-        self.speedx = self.max_speed * 1 / math.sqrt(1 + self.trajectory[1]**2)
-        self.speedy = self.max_speed * self.trajectory[1] / math.sqrt(1 + self.trajectory[1]**2)
+        # delta y / delta x
+        a = (self.dest[1] - self.rect.y) / (self.dest[0] - self.rect.x)
+        self.speedx = self.max_speed * 1 / math.sqrt(1 + a**2)
+        self.speedy = self.max_speed * a / math.sqrt(1 + a**2)
+        if self.max_speed < 0:
+            self.image = self.flipped_image
+        #orient the arrow the rigth way
+        if self.speedx != 0 and self.speedy != 0:
+            rad = math.atan(self.speedy / self.speedx)
+            degree = rad * 180 / math.pi
+            self.image = pygame.transform.rotate(self.image, - degree)
+            self.rect = self.image.get_rect(topleft = self.rect.topleft)
+
+    def _use_brain(self):
+        """
+        ensure no unnecesairy calculations
+        TODO also make sure this is not neccesairy. Probably needs a layer of abstraction inbetween or just hijack methods
+        """
+        pass
+
+    def do_flip(self):
+        """
+        make sure the image does not flip
+        TODO make a better sytem for this. This is kind of dumb.
+        """
+        pass
 
     def move(self):
-        xcol, ycol = self._check_collision()
-        if xcol or ycol:
+        if any(self._check_collision()):
             self.dead = True
         else:
             self.rect.topleft += pygame.Vector2(self.speedx,self.speedy)
