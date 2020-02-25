@@ -98,15 +98,15 @@ class Spritesheet:
         self.sheet = load_image(filename)
         self.image_size = size
 
-    def image_at(self, coord, colorkey = None, scale = None):
+    def image_at(self, coord, color_key = None, scale = None):
         "Loads image from x,y,x+offset,y+offset"
         rect = pygame.Rect(*coord, *self.image_size)
         image = pygame.Surface(rect.size).convert()
         image.blit(self.sheet, (0, 0), rect)
-        if colorkey is not None:
-            if colorkey == -1:
-                colorkey = image.get_at((0,0))
-            image.set_colorkey(colorkey, pygame.RLEACCEL)
+        if color_key is not None:
+            if color_key == -1:
+                color_key = image.get_at((0, 0))
+            image.set_colorkey(color_key, pygame.RLEACCEL)
             image = image.convert_alpha()
         if scale is not None:
             image = pygame.transform.scale(image, scale)

@@ -7,9 +7,9 @@ from entities import LivingEntity
 
 class Player(LivingEntity):
     def __init__(self, pos, start_weapon, *groups):
-        idle_image = pygame.transform.scale(utilities.load_image("player.bmp", (255, 255, 255)), (60,120))
-        LivingEntity.__init__(self, pos,damage=5, image = idle_image)
         self.player_sheet = utilities.Spritesheet("player_sprite_sheet.bmp",(16,32))
+        idle_image = self.player_sheet.image_at((0,0), color_key = (255,255,255), scale = (60,120))
+        LivingEntity.__init__(self, pos,damage=5, image = idle_image)
         walking_images = self.player_sheet.images_at((0,0),(224,0),(240,0),(0,32),(16,32),
                                                      color_key = (255,255,255), scale = (60,120))
         idle_images = self.player_sheet.images_at((0,0),(176,0),(192,0),(208,0),
@@ -27,9 +27,10 @@ class Player(LivingEntity):
         self.inventory = Inventory()
         self._layer = utilities.PLAYER_LAYER2
         self.inventory.add(start_weapon)
-        self.right_arm = RightArm((self.rect.centerx - 8, self.rect.centery - 8))
+        arm = self.player_sheet.image_at((32,32) ,scale = (15,30))
+        self.right_arm = RightArm((self.rect.centerx - 8, self.rect.centery - 8), image = arm)
         self.equip(start_weapon)
-        self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8))
+        self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8), image = arm)
         l = [KEYDOWN, KEYUP, KMOD_ALT, KMOD_CAPS, KMOD_CTRL, KMOD_LALT, KMOD_LCTRL, KMOD_LMETA, KMOD_LSHIFT, KMOD_META,
              KMOD_MODE, KMOD_NONE, KMOD_NUM, KMOD_RALT, KMOD_RCTRL, KMOD_RMETA, KMOD_RSHIFT, KMOD_SHIFT, K_0, K_1, K_2,
              K_3, K_4, K_5, K_6, K_7, K_8, K_9, K_AMPERSAND, K_ASTERISK, K_AT, K_BACKQUOTE, K_BACKSLASH, K_BACKSPACE,
@@ -176,11 +177,11 @@ class Player(LivingEntity):
         self.inventory.equiped = weapon
 
 class GenericArm(entities.Entity):
-    def __init__(self, pos):
-        self.arm = pygame.transform.scale(utilities.load_image("player_arm.bmp"), (15,30))
-        entities.Entity.__init__(self, pos, image = self.arm)
-        self._layer = utilities.PLAYER_LAYER2
+    def __init__(self, pos, **kwargs):
+        self.arm = kwargs["image"]
+        entities.Entity.__init__(self, pos, **kwargs)
         self.image.set_colorkey((255, 255, 255), RLEACCEL)
+        self._layer = utilities.PLAYER_LAYER2
         self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
         self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
 
@@ -197,8 +198,8 @@ class GenericArm(entities.Entity):
             super().groups()[0].change_layer(self,utilities.PLAYER_LAYER2)
 
 class LeftArm(GenericArm):
-    def __init__(self, pos):
-        GenericArm.__init__(self, pos)
+    def __init__(self, pos, **kwargs):
+        GenericArm.__init__(self, pos, **kwargs)
         self._layer = utilities.PLAYER_LAYER2
         self.visible = [False, False]
 
@@ -219,8 +220,8 @@ class LeftArm(GenericArm):
         self.rect.center = pos
 
 class RightArm(GenericArm):
-    def __init__(self, pos):
-        GenericArm.__init__(self, pos)
+    def __init__(self, pos, **kwargs):
+        GenericArm.__init__(self, pos, **kwargs)
         self.attacking = False
         #for tracking the original image when rotating
         self.orig_image = self.image

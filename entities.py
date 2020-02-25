@@ -352,7 +352,7 @@ class Archer(Enemy):
             # self.shooting_animation.update()
             # if self.shooting_animation.cycles > 0:
             self.shooting = False
-            LinearProjectile(self.rect.center, self.player, super().groups()[0], size = [50, 10], tiles = self.tiles, speed = 5)
+            LinearProjectile(self.rect.center, self.player, super().groups()[0], size = [50, 10], tiles = self.tiles, speed = 20)
             self.shooting_cooldown = 50
         elif self.shooting_cooldown > 0:
             self.shooting_cooldown -= 1
