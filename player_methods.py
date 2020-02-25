@@ -9,18 +9,20 @@ class Player(LivingEntity):
     def __init__(self, pos, start_weapon, *groups):
         idle_image = pygame.transform.scale(utilities.load_image("player.bmp", (255, 255, 255)), (60,120))
         LivingEntity.__init__(self, pos,damage=5, image = idle_image)
-        self.walking_animation = utilities.Animation("player_walk0.bmp","player_walk1.bmp","player_walk2.bmp","player_walk1.bmp",
-                                                     "player_walk0.bmp","player_walk3.bmp","player_walk4.bmp","player_walk3.bmp",
-                                                     scale = (60,120))
-        self.idle_animation = utilities.MarkedAnimation("player_idle1.bmp","player_idle2.bmp","player_idle3.bmp","player_idle4.bmp",
-                                                        "player_idle4.bmp","player_idle3.bmp","player_idle2.bmp","player_idle1.bmp",
-                                                        scale = (60,120), speed = 40, marked_frames=[2,3,4,5])
-        self.dead_animation = utilities.MarkedAnimation("player_idle1.bmp","player_dead2.bmp","player_dead3.bmp",
-                                                        "player_dead4.bmp","player_dead5.bmp","player_dead6.bmp",
-                                                        "player_dead7.bmp","player_dead8.bmp","player_dead9.bmp",
-                                                        "player_dead10.bmp","player_dead11.bmp",
-                                                        scale = (60,120), speed = [15,15,15,15,15,15,15,15,15,15,100],
-                                                        marked_frames=[3,4,5,6,7,8,9,10])
+        self.player_sheet = utilities.Spritesheet("player_sprite_sheet.bmp",(16,32))
+        walking_images = self.player_sheet.images_at((0,0),(224,0),(240,0),(0,32),(16,32),
+                                                     color_key = (255,255,255), scale = (60,120))
+        idle_images = self.player_sheet.images_at((0,0),(176,0),(192,0),(208,0),
+                                                  color_key = (255,255,255), scale = (60,120))
+        dead_images = self.player_sheet.images_at((16,0),(176,0),(32,0),(48,0),(64,0),(80,0),(96,0),(112,0),(128,0),
+                                                  (144,0),(160,0),(48,32),(64,32),color_key = (255,255,255), scale = (60,120))
+        self.walking_animation = utilities.Animation(walking_images[0],walking_images[1],walking_images[2],
+                                                     walking_images[1],walking_images[0],walking_images[3],
+                                                     walking_images[4],walking_images[3])
+        self.idle_animation = utilities.MarkedAnimation(idle_images[0],idle_images[1],idle_images[2],idle_images[3],
+                                                        idle_images[3],idle_images[2],idle_images[1],idle_images[0],
+                                                        speed = 40, marked_frames=[2,3,4,5])
+        self.dead_animation = utilities.MarkedAnimation(*dead_images, marked_frames=[3,4,5,6,7,8,9,10])
         self.events = []
         self.inventory = Inventory()
         self._layer = utilities.PLAYER_LAYER2
