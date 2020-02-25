@@ -344,7 +344,7 @@ class Archer(Enemy):
             # self.shooting_animation.update()
             # if self.shooting_animation.cycles > 0:
             self.shooting = False
-            Projectile(self.rect.center, self.player.rect.center, super().groups()[0])
+            Projectile(self.rect.center, self.player, super().groups()[0], size = [50,10], tiles = self.tiles, speed = 20)
             self.shooting_cooldown = 50
         elif self.shooting_cooldown > 0:
             self.shooting_cooldown -= 1
@@ -379,22 +379,17 @@ class Archer(Enemy):
         elif self.move_tile.centery > self.bounding_box.centery:
             self.speedy += self.max_speed
 
-class Projectile(Entity):
-    def __init__(self, start_pos, dest_coord, *groups, p_type = "arrow", speed = 30, size = [50,10], function = "linear"):
-        Entity.__init__(self, start_pos, *groups, size = size)
-        self.dest = dest_coord
+class Projectile(Enemy):
+    def __init__(self, start_pos, player, *groups, p_type = "arrow", function = "linear", **kwargs):
+        Enemy.__init__(self, start_pos, player, *groups, **kwargs)
+        self.dest = self.player.bounding_box.center
         self.rect.topleft = start_pos
         self.function_type = function
         self.trajectory = self.__get_function()
         if self.dest < self.rect.topleft:
-            speed = -speed
-        self.speed = speed
+            self.speed = - self.speed
         #make implementation of this
         # self.image = self.__get_image()
-
-    def update(self, *args):
-        super().update(*args)
-        self.move()
 
     def __get_function(self):
         """
@@ -414,12 +409,24 @@ class Projectile(Entity):
             print("unknown function preference")
         return a, b, c
 
-    def move(self):
+    def _use_brain(self):
+        # in the case of a linear relationship. is always the same but for now leave like this.
         #https://math.stackexchange.com/questions/656500/given-a-point-slope-and-a-distance-along-that-slope-easily-find-a-second-p
-        if self.function_type == "linear":
-            x1 = self.speed * 1 / math.sqrt(1 + self.trajectory[1]**2) + self.rect.x
-            y1 = self.speed * self.trajectory[1] / math.sqrt(1 + self.trajectory[1]**2) + self.rect.y
-            self.rect.topleft = (x1,y1)
+        self.speedx = self.max_speed * 1 / math.sqrt(1 + self.trajectory[1]**2)
+        self.speedy = self.max_speed * self.trajectory[1] / math.sqrt(1 + self.trajectory[1]**2)
+
+    def move(self):
+        xcol, ycol = self._check_collision()
+        if xcol or ycol:
+            self.dead = True
+        else:
+            self.rect.topleft += pygame.Vector2(self.speedx,self.speedy)
+
+    def _check_player_hit(self):
+        if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
+            self.player.set_immune()
+            self.player._change_health(- self.damage)
+            self.dead = True
 
 class TextSprite(Entity):
     def __init__(self,text, pos, *groups, **kwargs):
