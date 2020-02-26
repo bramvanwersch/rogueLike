@@ -1,6 +1,7 @@
 import pygame, sys
 from pygame.locals import *
 import utilities, entities, game_map, prop_entities
+from game_images import sheets
 import random
 import numpy as np
 
@@ -108,9 +109,15 @@ class ForestStage(BasicStage):
     def __init__(self, updater, player, **kwargs):
         BasicStage.__init__(self, updater, player, **kwargs)
         self.stage_map = game_map.build_map(wheights = [8,2])
-        self.background_images = [pygame.transform.scale(self.load_image(x), (100, 100)) for x in utilities.FOREST_TILES]
-        self.tile_images = {name[:-4]: pygame.transform.scale(self.load_image(name), (100, 100)) for name in utilities.TREE_IMAGES}
-        self.props = [pygame.transform.scale(self.load_image(name), (100,100)) for name in utilities.FOREST_PROPS]
+        self.background_images = sheets["forest"].images_at((208,16),(224,16),(240,16), (0,32), scale = (100,100))
+
+        #create a dictionary with named tile variant to make an easy way of creating the map.
+        forest_images = sheets["forest"].images_at_rectangle((0,0,256,16), (0,16,208,16), scale = (100,100))
+        lake_images = sheets["forest"].images_at_rectangle((0,48,256,16), (0,64,208,16), scale = (100,100))
+        fd = {name + "_forest": forest_images[i] for i, name in enumerate(utilities.TILE_NAMES)}
+        ld = {name + "_lake": lake_images[i] for i, name in enumerate(utilities.TILE_NAMES)}
+        self.tile_images = {**fd, **ld}
+        self.props = sheets["forest"].images_at_rectangle((16,32,160,16), scale = (100,100))
 
         self._create_tiles(["forest","lake"])
 

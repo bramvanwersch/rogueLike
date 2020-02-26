@@ -12,6 +12,7 @@ def load():
     """
     global sheets
     sheets["player"] = Spritesheet("player_sprite_sheet.bmp",(16,32))
+    sheets["forest"] = Spritesheet("forest_stage_sprite_sheet.bmp", (16,16))
 
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)
@@ -46,6 +47,22 @@ class Spritesheet:
             image = pygame.transform.scale(image, scale)
         return image
 
-    def images_at(self, *coords, color_key = None, scale = None):
+    def images_at(self, *coords, **kwargs):
         "Loads multiple images, supply a list of coordinates"
-        return [self.image_at(rect, color_key, scale) for rect in coords]
+        return [self.image_at(coord, **kwargs) for coord in coords]
+
+    def images_at_rectangle(self, *rects, **kwargs):
+        """
+        specify rectangles from where images need to be extracted. The rectangles need to be multiples of the size
+        dimensions
+        :param rects:
+        :param kwargs:
+        :return: a list of images in the rectanges in the order of the specified rectangles aswell as
+        """
+        images = []
+        for rect in rects:
+            assert rect[2] % self.image_size[0] == 0 and rect[3] % self.image_size[1] == 0
+            for y in range(int(rect[3] / 16)):
+                for x in range(int(rect[2] / 16)):
+                    images.append(self.image_at((rect[0] + x * self.image_size[0],rect[1] + y * self.image_size[1]), **kwargs))
+        return images

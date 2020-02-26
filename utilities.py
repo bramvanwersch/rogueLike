@@ -11,39 +11,38 @@ MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 DATA_DIR = os.path.join(MAIN_DIR, "data")
 BACKGROUND_COLOR = (165,103,10)
 
-FOREST_TILES = ["forest_tile1.bmp","forest_tile2.bmp","forest_tile3.bmp","forest_tile4.bmp",]
 FOREST_PROPS = ["bush1.bmp","bush2.bmp","fern1.bmp","fern2.bmp","fern3.bmp","fern4.bmp",
                 "stone1.bmp","stone2.bmp","stone3.bmp","stone4.bmp"]
 
-TREE_IMAGES = ["bottom_left_corner_forest.bmp","bottom_left_icorner_forest.bmp",
-               "bottom_right_corner_forest.bmp","bottom_right_icorner_forest.bmp",
-               "top_right_corner_forest.bmp", "top_right_icorner_forest.bmp",
-               "top_left_corner_forest.bmp","top_left_icorner_forest.bmp",
-               "right_straight1_forest.bmp","right_straight2_forest.bmp","right_straight3_forest.bmp",
-               "left_straight1_forest.bmp","left_straight2_forest.bmp","left_straight3_forest.bmp",
-               "top_straight1_forest.bmp","top_straight2_forest.bmp","top_straight3_forest.bmp",
-               "bottom_straight1_forest.bmp","bottom_straight2_forest.bmp","bottom_straight3_forest.bmp",
-               "middle1_forest.bmp","middle2_forest.bmp","middle3_forest.bmp",
-               "diagonal_top_bottom_forest.bmp","diagonal_bottom_top_forest.bmp",
-               "bottom_top_left_corner_forest.bmp","bottom_top_right_corner_forest.bmp",
-               "right_top_left_corner_forest.bmp","right_bottom_left_corner_forest.bmp",
-               "left_top_right_corner_forest.bmp","left_bottom_right_corner_forest.bmp",
-               "top_bottom_left_corner_forest.bmp","top_bottom_right_corner_forest.bmp",
+TILE_NAMES = ["bottom_left_corner","bottom_left_icorner",
+               "bottom_right_corner","bottom_right_icorner",
+               "top_right_corner", "top_right_icorner",
+               "top_left_corner","top_left_icorner",
+               "right_straight1","right_straight2",
+               "left_straight1","left_straight2",
+               "top_straight1","top_straight2",
+               "bottom_straight1","bottom_straight2",
+               "middle1","middle2","middle3",
+               "diagonal_top_bottom","diagonal_bottom_top",
+               "bottom_top_left_corner","bottom_top_right_corner",
+               "right_top_left_corner","right_bottom_left_corner",
+               "left_top_right_corner","left_bottom_right_corner",
+               "top_bottom_left_corner","top_bottom_right_corner"]
 
-               "bottom_left_corner_lake.bmp","bottom_left_icorner_lake.bmp",
-               "bottom_right_corner_lake.bmp","bottom_right_icorner_lake.bmp",
-               "top_right_corner_lake.bmp", "top_right_icorner_lake.bmp",
-               "top_left_corner_lake.bmp","top_left_icorner_lake.bmp",
-               "right_straight1_lake.bmp","right_straight2_lake.bmp",
-               "left_straight1_lake.bmp","left_straight2_lake.bmp",
-               "top_straight1_lake.bmp","top_straight2_lake.bmp",
-               "bottom_straight1_lake.bmp","bottom_straight2_lake.bmp",
-               "middle1_lake.bmp","middle2_lake.bmp","middle3_lake.bmp","middle4_lake.bmp",
-               "diagonal_top_bottom_lake.bmp","diagonal_bottom_top_lake.bmp",
-               "bottom_top_left_corner_lake.bmp","bottom_top_right_corner_lake.bmp",
-               "right_top_left_corner_lake.bmp","right_bottom_left_corner_lake.bmp",
-               "left_top_right_corner_lake.bmp","left_bottom_right_corner_lake.bmp",
-               "top_bottom_left_corner_lake.bmp","top_bottom_right_corner_lake.bmp"]
+               # ["bottom_left_corner_lake.bmp","bottom_left_icorner_lake.bmp",
+               # "bottom_right_corner_lake.bmp","bottom_right_icorner_lake.bmp",
+               # "top_right_corner_lake.bmp", "top_right_icorner_lake.bmp",
+               # "top_left_corner_lake.bmp","top_left_icorner_lake.bmp",
+               # "right_straight1_lake.bmp","right_straight2_lake.bmp",
+               # "left_straight1_lake.bmp","left_straight2_lake.bmp",
+               # "top_straight1_lake.bmp","top_straight2_lake.bmp",
+               # "bottom_straight1_lake.bmp","bottom_straight2_lake.bmp",
+               # "middle1_lake.bmp","middle2_lake.bmp","middle3_lake.bmp",
+               # "diagonal_top_bottom_lake.bmp","diagonal_bottom_top_lake.bmp",
+               # "bottom_top_left_corner_lake.bmp","bottom_top_right_corner_lake.bmp",
+               # "right_top_left_corner_lake.bmp","right_bottom_left_corner_lake.bmp",
+               # "left_top_right_corner_lake.bmp","left_bottom_right_corner_lake.bmp",
+               # "top_bottom_left_corner_lake.bmp","top_bottom_right_corner_lake.bmp"]
 
 height = 1000
 GAME_TIME = pygame.time.Clock()
@@ -91,28 +90,6 @@ def load_sound(name):
         print("Cannot load sound: %s" % fullname)
         raise SystemExit(str(geterror()))
     return sound
-
-class Spritesheet:
-    def __init__(self, filename, size):
-        self.sheet = load_image(filename)
-        self.image_size = size
-
-    def image_at(self, coord, color_key = None, scale = None):
-        rect = pygame.Rect(*coord, *self.image_size)
-        image = pygame.Surface(rect.size).convert()
-        image.blit(self.sheet, (0, 0), rect)
-        if color_key is not None:
-            if color_key == -1:
-                color_key = image.get_at((0, 0))
-            image.set_colorkey(color_key, pygame.RLEACCEL)
-            image = image.convert_alpha()
-        if scale is not None:
-            image = pygame.transform.scale(image, scale)
-        return image
-
-    def images_at(self, *coords, color_key = None, scale = None):
-        "Loads multiple images, supply a list of coordinates"
-        return [self.image_at(rect, color_key, scale) for rect in coords]
 
 class Animation:
     def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0), start_frame = 0):
