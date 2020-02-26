@@ -13,6 +13,7 @@ def load():
     global sheets
     sheets["player"] = Spritesheet("player_sprite_sheet.bmp",(16,32))
     sheets["forest"] = Spritesheet("forest_stage_sprite_sheet.bmp", (16,16))
+    sheets["enemies"] = Spritesheet("enemy_sprite_sheet.bmp", (16,16))
 
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)
@@ -34,8 +35,19 @@ class Spritesheet:
         self.sheet = load_image(filename)
         self.image_size = size
 
-    def image_at(self, coord, color_key = None, scale = None):
-        rect = pygame.Rect(*coord, *self.image_size)
+    def image_at(self, coord, color_key = None, scale = None, size = None):
+        """
+        Return an a rectangle from the sprite sheet at a given location
+        :param coord: the topleft coordinate of the rectangle
+        :param color_key: color to be transparant
+        :param scale: the scale of the image in pixels
+        :param size: overwrites the self.image_size
+        :return: a pygame surface object.
+        """
+        if size is not None:
+            rect = pygame.Rect(*coord, *size)
+        else:
+            rect = pygame.Rect(*coord, *self.image_size)
         image = pygame.Surface(rect.size).convert()
         image.blit(self.sheet, (0, 0), rect)
         if color_key is not None:
@@ -60,9 +72,13 @@ class Spritesheet:
         :return: a list of images in the rectanges in the order of the specified rectangles aswell as
         """
         images = []
+        if "size" in kwargs:
+            size = kwargs["size"]
+        else:
+            size = self.image_size
         for rect in rects:
-            assert rect[2] % self.image_size[0] == 0 and rect[3] % self.image_size[1] == 0
-            for y in range(int(rect[3] / 16)):
-                for x in range(int(rect[2] / 16)):
-                    images.append(self.image_at((rect[0] + x * self.image_size[0],rect[1] + y * self.image_size[1]), **kwargs))
+            assert rect[2] % size[0] == 0 and rect[3] % size[1] == 0
+            for y in range(int(rect[3] / size[1])):
+                for x in range(int(rect[2] / size[0])):
+                    images.append(self.image_at((rect[0] + x * size[0],rect[1] + y * size[1]), **kwargs))
         return images

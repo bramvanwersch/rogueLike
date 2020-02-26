@@ -1,5 +1,6 @@
 import pygame, random, math
 import utilities, constants
+from game_images import sheets
 
 class Entity(pygame.sprite.Sprite):
     def __init__(self, pos, *groups, **kwargs):
@@ -282,8 +283,10 @@ class RedSquare(Enemy):
 
 class BadBat(Enemy):
     def __init__(self, pos, player,tiles, *groups):
-        self.animation = utilities.Animation("bad_bat-1.bmp","bad_bat0.bmp","bad_bat1.bmp","bad_bat2.bmp","bad_bat3.bmp",
-                                             "bad_bat4.bmp", scale = (100,50), start_frame="random")
+        animation_images = sheets["enemies"].images_at_rectangle((16,0,224,16), scale = (100,50), size = (32,16),
+                                                                 color_key = (255,255,255))
+        animation_sequence = animation_images + animation_images[::-1]
+        self.animation = utilities.Animation(*animation_sequence, start_frame="random")
         Enemy.__init__(self, pos, player, *groups, speed = 4,tiles = tiles, image = self.animation.image[0])
 
     def update(self, *args):
@@ -389,7 +392,8 @@ class Archer(Enemy):
 
 class LinearProjectile(Enemy):
     def __init__(self, start_pos, player, *groups, p_type = "arrow", function = "linear", **kwargs):
-        Enemy.__init__(self, start_pos, player, *groups, image = utilities.load_image("arrow.bmp", (255,255,255)), **kwargs)
+        arrow = sheets["enemies"].image_at((0,0), scale =(50,25), color_key = (255,255,255))
+        Enemy.__init__(self, start_pos, player, *groups, image = arrow, **kwargs)
         self.dest = self.player.bounding_box.center
         self.rect.topleft = start_pos
         self.function_type = function

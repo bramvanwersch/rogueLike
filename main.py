@@ -161,8 +161,9 @@ def setup_board():
     # TODO needs to be moved to different place
     # stage.add_enemy("red square", (600, 500))
     stage.add_enemy("archer", (100,100))
+    stage.add_enemy("bad bat", (100,300))
     # for i in range(5):
-    #     stage.add_enemy("archer", (400 + i * 20, 500 + i * 20))
+    #     stage.add_enemy("bad bat", (400 + i * 20, 500 + i * 20))
 
     #pause menu
     pause_sprites = pygame.sprite.LayeredUpdates()

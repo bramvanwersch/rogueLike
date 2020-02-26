@@ -11,9 +11,6 @@ MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 DATA_DIR = os.path.join(MAIN_DIR, "data")
 BACKGROUND_COLOR = (165,103,10)
 
-FOREST_PROPS = ["bush1.bmp","bush2.bmp","fern1.bmp","fern2.bmp","fern3.bmp","fern4.bmp",
-                "stone1.bmp","stone2.bmp","stone3.bmp","stone4.bmp"]
-
 TILE_NAMES = ["bottom_left_corner","bottom_left_icorner",
                "bottom_right_corner","bottom_right_icorner",
                "top_right_corner", "top_right_icorner",
@@ -28,22 +25,6 @@ TILE_NAMES = ["bottom_left_corner","bottom_left_icorner",
                "right_top_left_corner","right_bottom_left_corner",
                "left_top_right_corner","left_bottom_right_corner",
                "top_bottom_left_corner","top_bottom_right_corner"]
-
-               # ["bottom_left_corner_lake.bmp","bottom_left_icorner_lake.bmp",
-               # "bottom_right_corner_lake.bmp","bottom_right_icorner_lake.bmp",
-               # "top_right_corner_lake.bmp", "top_right_icorner_lake.bmp",
-               # "top_left_corner_lake.bmp","top_left_icorner_lake.bmp",
-               # "right_straight1_lake.bmp","right_straight2_lake.bmp",
-               # "left_straight1_lake.bmp","left_straight2_lake.bmp",
-               # "top_straight1_lake.bmp","top_straight2_lake.bmp",
-               # "bottom_straight1_lake.bmp","bottom_straight2_lake.bmp",
-               # "middle1_lake.bmp","middle2_lake.bmp","middle3_lake.bmp",
-               # "diagonal_top_bottom_lake.bmp","diagonal_bottom_top_lake.bmp",
-               # "bottom_top_left_corner_lake.bmp","bottom_top_right_corner_lake.bmp",
-               # "right_top_left_corner_lake.bmp","right_bottom_left_corner_lake.bmp",
-               # "left_top_right_corner_lake.bmp","left_bottom_right_corner_lake.bmp",
-               # "top_bottom_left_corner_lake.bmp","top_bottom_right_corner_lake.bmp"]
-
 height = 1000
 GAME_TIME = pygame.time.Clock()
 
