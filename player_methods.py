@@ -2,19 +2,19 @@ import pygame, random, math
 import numpy as np
 from pygame.locals import *
 import entities, utilities, weapon, constants
+from game_images import sheets
 from constants import *
 from entities import LivingEntity
 
 class Player(LivingEntity):
     def __init__(self, pos, start_weapon, *groups):
-        self.player_sheet = utilities.Spritesheet("player_sprite_sheet.bmp",(16,32))
-        idle_image = self.player_sheet.image_at((0,0), color_key = (255,255,255), scale = (60,120))
+        idle_image = sheets["player"].image_at((0,0), color_key = (255,255,255), scale = (60,120))
         LivingEntity.__init__(self, pos,damage=5, image = idle_image)
-        walking_images = self.player_sheet.images_at((0,0),(224,0),(240,0),(0,32),(16,32),
+        walking_images = sheets["player"].images_at((0,0),(224,0),(240,0),(0,32),(16,32),
                                                      color_key = (255,255,255), scale = (60,120))
-        idle_images = self.player_sheet.images_at((0,0),(176,0),(192,0),(208,0),
+        idle_images = sheets["player"].images_at((0,0),(176,0),(192,0),(208,0),
                                                   color_key = (255,255,255), scale = (60,120))
-        dead_images = self.player_sheet.images_at((16,0),(176,0),(32,0),(48,0),(64,0),(80,0),(96,0),(112,0),(128,0),
+        dead_images = sheets["player"].images_at((16,0),(176,0),(32,0),(48,0),(64,0),(80,0),(96,0),(112,0),(128,0),
                                                   (144,0),(160,0),(48,32),(64,32),color_key = (255,255,255), scale = (60,120))
         self.walking_animation = utilities.Animation(walking_images[0],walking_images[1],walking_images[2],
                                                      walking_images[1],walking_images[0],walking_images[3],
@@ -27,7 +27,7 @@ class Player(LivingEntity):
         self.inventory = Inventory()
         self._layer = utilities.PLAYER_LAYER2
         self.inventory.add(start_weapon)
-        arm = self.player_sheet.image_at((32,32) ,scale = (15,30))
+        arm = sheets["player"].image_at((32,32) ,scale = (15,30))
         self.right_arm = RightArm((self.rect.centerx - 8, self.rect.centery - 8), image = arm)
         self.equip(start_weapon)
         self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8), image = arm)

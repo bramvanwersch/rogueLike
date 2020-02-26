@@ -92,14 +92,12 @@ def load_sound(name):
         raise SystemExit(str(geterror()))
     return sound
 
-
 class Spritesheet:
     def __init__(self, filename, size):
         self.sheet = load_image(filename)
         self.image_size = size
 
     def image_at(self, coord, color_key = None, scale = None):
-        "Loads image from x,y,x+offset,y+offset"
         rect = pygame.Rect(*coord, *self.image_size)
         image = pygame.Surface(rect.size).convert()
         image.blit(self.sheet, (0, 0), rect)
@@ -115,12 +113,6 @@ class Spritesheet:
     def images_at(self, *coords, color_key = None, scale = None):
         "Loads multiple images, supply a list of coordinates"
         return [self.image_at(rect, color_key, scale) for rect in coords]
-
-    def load_strip(self, rect, image_count, colorkey = None):
-        "Loads a strip of images and returns them as a list"
-        tups = [(rect[0]+rect[2]*x, rect[1], rect[2], rect[3])
-                for x in range(image_count)]
-        return self.images_at(tups, colorkey)
 
 class Animation:
     def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0), start_frame = 0):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os, pygame, random
-import weapon, utilities, entities, stages, camera, player_methods, menu_methods
+import weapon, utilities, entities, stages, camera, player_methods, menu_methods, game_images
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -136,6 +136,7 @@ screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_
                                  DOUBLEBUF)  # | FULLSCREEN)
 screen.set_alpha(None)
 sr = screen.get_rect()
+game_images.load()
 
 pygame.display.set_caption("Welcome to the forest")
 pygame.mouse.set_visible(True)
