@@ -443,8 +443,7 @@ class LinearProjectile(Enemy):
     def move(self):
         if any(self._check_collision()):
             self.dead = True
-        else:
-            self.rect.topleft += pygame.Vector2(self.speedx,self.speedy)
+        self.rect.topleft += pygame.Vector2(self.speedx,self.speedy)
 
     def _check_player_hit(self):
         if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
