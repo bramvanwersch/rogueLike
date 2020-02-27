@@ -249,7 +249,8 @@ class Enemy(LivingEntity):
 
 class RedSquare(Enemy):
     def __init__(self, pos, player, tiles, *groups):
-        Enemy.__init__(self, pos, player, *groups, speed = 5, tiles = tiles, image = utilities.load_image("red_square_enemy.bmp"))
+        image = sheets["enemies"].image_at((240,0), scale = (50,50))
+        Enemy.__init__(self, pos, player, *groups, speed = 5, tiles = tiles, image = image)
         #make sure path is calculated at start of creation
         self.passed_frames = random.randint(0,60)
         self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
@@ -332,13 +333,13 @@ class BadBat(Enemy):
 
 class TestDummy(Enemy):
     def __init__(self, pos, player,tiles, *groups):
-        image = pygame.transform.scale(utilities.load_image("dummy.bmp", (255,255,255)),(50,100))
-        Enemy.__init__(self, pos, player, *groups,health=2000,health_regen=1000, speed = 0,tiles = tiles, image = image)
+        image = sheets["enemies"].image_at((0,48), scale = (50,100), size = (16,32), color_key = (255,255,255))
+        Enemy.__init__(self, pos, player, *groups, health = 2000, health_regen = 1000, speed = 0, tiles = tiles, image = image)
 
 class Archer(Enemy):
     def __init__(self, pos, player,tiles, *groups):
-        image = "tbd"
-        Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = 4)
+        image = sheets["enemies"].image_at((0,16), scale = (60,120), size = (16,32), color_key = (255,255,255))
+        Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = 4, image = image)
         self.shot_player_distance = 600
         #make sure path is calculated at start of creation
         self.passed_frames = random.randint(0,60)
@@ -389,6 +390,16 @@ class Archer(Enemy):
             self.speedy -= self.max_speed
         elif self.move_tile.centery > self.bounding_box.centery:
             self.speedy += self.max_speed
+
+    def _get_bounding_box(self):
+        """
+        Create a bounding box smaller then the player for collission checking with objects in the surroundings
+        :return: a pygame.Rect object that is smaller then the self.rect object with the same bottom value and a
+        new centered x value.
+        """
+        bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.4))
+        bb.center = (bb.centerx, bb.centery + bb.top - self.rect.top)
+        return bb
 
 class LinearProjectile(Enemy):
     def __init__(self, start_pos, player, *groups, p_type = "arrow", function = "linear", **kwargs):

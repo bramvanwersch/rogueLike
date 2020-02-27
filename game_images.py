@@ -3,6 +3,7 @@ from constants import *
 from pygame.locals import *
 from pygame.compat import geterror
 
+#variable containing all Spritesheets
 sheets = {}
 
 def load():
@@ -67,8 +68,8 @@ class Spritesheet:
         """
         specify rectangles from where images need to be extracted. The rectangles need to be multiples of the size
         dimensions
-        :param rects:
-        :param kwargs:
+        :param rects: tuple of lenght 4 or pygame.Rect objects
+        :param kwargs: the optional variables that can be supplied to the images_at function.
         :return: a list of images in the rectanges in the order of the specified rectangles aswell as
         """
         images = []

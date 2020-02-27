@@ -3,7 +3,7 @@ from pygame.constants import *
 
 #global constants
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
-DATA_DIR = os.path.join(MAIN_DIR, "data")
+DATA_DIR = os.path.join(MAIN_DIR, "data//sprite_sheets")
 
 #key constants
 UP = K_w

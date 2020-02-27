@@ -306,49 +306,11 @@ class TileGroup:
                     paths.remove(path)
                     final_path = path
         return final_path
-    # def pathfind(self, player_rect, dest_rect):
-    #     x,y = int(player_rect.x / 100), int(player_rect.y / 100)
-    #     player_tile = self.tiles[y][x]
-    #     dest_tile = self.tiles[int(dest_rect.y/100)][int(dest_rect.x/100)]
-    #     current_truth = [row[:] for row in self.__truth_map]
-    #     current_truth[y][x] = 0
-    #     unwalked_tiles = {}
-    #     while True:
-    #         available_tiles = []
-    #         #calculate ditance for all tiles not calculated adjacent to this.
-    #         if not y - 1 < 0 and current_truth[y - 1][x] != "solid":
-    #             tile = self.tiles[y - 1][x]
-    #             d = self.__tile_dist(tile, player_tile)
-    #             if d < current_truth[y - 1][x]:
-    #                 current_truth[y - 1][x] = d
-    #                 unwalked_tiles[str(tile)] = tile
-    #         if not x - 1 < 0 and current_truth[y][x - 1] != "solid":
-    #             tile = self.tiles[y][x - 1]
-    #             d = self.__tile_dist(tile, player_tile)
-    #             if d < current_truth[y][x - 1]:
-    #                 current_truth[y][x - 1] = d
-    #                 unwalked_tiles[str(tile)] = tile
-    #         if not x + 1 >= len(self.tiles[0]) and current_truth[y][x + 1] != "solid":
-    #             tile = self.tiles[y][x + 1]
-    #             d = self.__tile_dist(tile, player_tile)
-    #             if d < current_truth[y][x + 1]:
-    #                 current_truth[y][x + 1] = d
-    #                 unwalked_tiles[str(tile)] = tile
-    #         if not y + 1 >= len(self.tiles) and current_truth[y + 1][x] != "solid":
-    #             tile = self.tiles[y + 1][x]
-    #             d = self.__tile_dist(tile, player_tile)
-    #             if d < current_truth[y + 1][x]:
-    #                 current_truth[y + 1][x] = d
-    #                 unwalked_tiles[str(tile)] = tile
-    #         min_tile = min(list(unwalked_tiles.values()), key = lambda x: self.__tile_dist(x, player_tile))
-    #         del unwalked_tiles[str(min_tile)]
-    #         x,y = min_tile.coord
-    #         if self.__tile_dist(min_tile, dest_tile) <= 1:
-    #             return self.tiles[y][x]
-    #
-
 
     def __tile_dist(self,t1, t2):
+        """
+        Manhatten distance between two tiles, t1 and t2
+        """
         return abs(t1.coord[0] - t2.coord[0]) + abs(t1.coord[1] - t2.coord[1])
 
     def __all_min_tiles(self,dest_tile, tiles):
@@ -388,6 +350,9 @@ class SolidTile(BasicTile):
         self.bounding_box = self._get_bounding_box()
         self.image = image
 
+    # def __getattr__(self, name):
+    #     return self.bounding_box.__getattribute__(name)
+
     def _get_bounding_box(self):
         bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.2))
         bb.center = (bb.centerx, bb.centery + self.rect.top - bb.top)
@@ -395,7 +360,7 @@ class SolidTile(BasicTile):
 
 class FinishTile(entities.InteractingEntity):
     def __init__(self, pos, player, *groups):
-        image = pygame.transform.scale(utilities.load_image("hatch.bmp", (255,255,255)), (80,80))
+        image = sheets["forest"].image_at((240,32), scale = (80,80), color_key = (255,255,255))
         entities.InteractingEntity.__init__(self, pos, player, *groups, image = image)
         self._layer = utilities.MIDDLE_LAYER
 
