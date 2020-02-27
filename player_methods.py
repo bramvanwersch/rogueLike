@@ -73,6 +73,10 @@ class Player(LivingEntity):
         self.animations()
 
     def handle_user_input(self):
+        """
+        Go past all the events not processed by the main programe and do actions accordingly
+        :return: None
+        """
         for event in self.events:
             if event.type == KEYDOWN:
                 self.pressed_keys[event.key] = True
@@ -115,6 +119,7 @@ class Player(LivingEntity):
                 self.right_arm.do_attack()
 
     def __dodge(self):
+        #TODO not finished yet
         dd = 250
         m_r = self.rect
         if self.pressed_keys[LEFT]:
@@ -130,6 +135,10 @@ class Player(LivingEntity):
         self.dodge_cd = 50
 
     def do_flip(self):
+        """
+        Flips an image based on the direction the player is attacking in. Also flips the arms accordingly.
+        :return: None
+        """
         if self.flipped:
             self.image = self.flipped_image
         else:
@@ -139,6 +148,10 @@ class Player(LivingEntity):
             self.left_arm.flip()
 
     def die(self):
+        """
+        Function repeaditly called when the player is dead.
+        :return: None
+        """
         self.dead_animation.update()
         if self.dead_animation.marked:
             self.right_arm.visible = [False, False]
@@ -146,6 +159,10 @@ class Player(LivingEntity):
         self._change_image(self.dead_animation.image)
 
     def animations(self):
+        """
+        Runs an animation based on the current actions of the player.
+        :return: None
+        """
         if self.right_arm.attacking:
             self.idle_animation.cycles += 1
         if int(self.speedx) != 0 or int(self.speedy) != 0:
@@ -170,7 +187,6 @@ class Player(LivingEntity):
         """
         Things to do when the player equips a new weapon
         :param weapon:
-        :return:
         """
         self.right_arm.equip(weapon)
         self.speed = 10 *(1- self.right_arm.weapon.weight / 250)
@@ -206,7 +222,6 @@ class LeftArm(GenericArm):
     def flip(self):
         """
         When the right side is shown the left arm is invisible otherwise it will be visible
-        :return:
         """
         self.flipped = not self.flipped
         if self.flipped:
@@ -238,7 +253,6 @@ class RightArm(GenericArm):
         They player class tells where to put the arm relative to the player. Then the arm is rotated based on the
         current angle. This method is called every update from the player class.
         :param pos: position to move the arm to.
-        :return:
         """
         self.rect.center = pos
         if self.attacking:
@@ -251,6 +265,10 @@ class RightArm(GenericArm):
             self.attack_cooldown -= 1 / utilities.GAME_TIME.get_fps()
 
     def do_attack(self):
+        """
+        Pre defined angles for attacking
+        :return: None
+        """
         if self.attack_cooldown > 0:
             return
         self.attacking = True
@@ -292,36 +310,20 @@ class RightArm(GenericArm):
         weapon_image = self.weapon.image
         weapon_image = pygame.transform.rotate(weapon_image, 90)
         weapon_image = pygame.transform.flip(weapon_image, True, False)
-        self.image = self.__create_weapon_arm(weapon_image)
+        image = pygame.Surface((weapon_image.get_rect().width + 5, self.arm.get_rect().height + 9))
+        image.fill((255,255,255))
+
+        image.blit(weapon_image, (0, image.get_rect().height - weapon_image.get_rect().height), weapon_image.get_rect())
+        image.blit(self.arm ,(5,0), self.arm.get_rect())
+
+        image.set_colorkey((255,255,255), pygame.RLEACCEL)
+        image = image.convert_alpha()
+        self.image = image#self.__create_weapon_arm(weapon_image)
         self.orig_image = self.image
         self.rect = self.image.get_rect(center = self.rect.center)
         self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
         self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
         self.damage = weapon.damage
-
-    def __create_weapon_arm(self, weapon_image):
-        """
-        Combines the arm picture together with the weapon that is being equiped.
-        :param weapon_image: image of the weapon that has to be equiped
-        :return: a pygame surface containing the combination of an arm and the weapon
-        """
-        pygame.surfarray.use_arraytype("numpy")
-        # the weapon parts as an array numpy matrixes containing pixels
-        partspixels = [pygame.surfarray.pixels3d(image) for image in (weapon_image, self.arm)]
-        # widest component is the guard
-        width = partspixels[0].shape[0] + 5
-        lenght = partspixels[1].shape[1] + 9
-        # make final pixel array consisting of width lenght and 3 for rgb values
-        final_arr = np.full((width, lenght, 3), [255,255,255])
-        trl = 0
-        final_arr[:-5,lenght - 28: lenght] = partspixels[0]
-        final_arr[5:partspixels[1].shape[0] +5,: -9] = partspixels[1]
-        image = pygame.surfarray.make_surface(final_arr)
-
-        image.set_colorkey((255, 255, 255), RLEACCEL)
-        image = image.convert_alpha()
-        if self.flipped: image = pygame.transform.flip(image, True, False)
-        return image
 
 class Inventory:
     def __init__(self):

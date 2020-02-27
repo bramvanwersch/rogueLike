@@ -14,10 +14,10 @@ class Entity(pygame.sprite.Sprite):
         if "image" in kwargs and isinstance(kwargs["image"], pygame.Surface):
             self.image = kwargs["image"]
         elif "size" in kwargs:
-            self.image = pygame.Surface(kwargs["size"])
+            self.image = pygame.Surface(kwargs["size"]).convert()
             self.image.fill((255, 0, 179))
         else:
-            self.image = pygame.Surface((100,100))
+            self.image = pygame.Surface((100,100)).convert()
             self.image.fill((255, 0, 179))
         self.orig_image = self.image
         self.rect = self.image.get_rect(topleft = pos)
