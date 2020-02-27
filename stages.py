@@ -73,7 +73,10 @@ class BasicStage:
                 elif letter == "tbrc":
                     image = self.tile_images["top_bottom_right_corner_" + stage_names[number]]
                 if image:
-                    self.tiles[y][x] = SolidTile(image, (x * 100, y * 100))
+                    if number == 0:
+                        self.tiles[y][x] = SolidTile(image, (x * 100, y * 100), high = True)
+                    else:
+                        self.tiles[y][x] = SolidTile(image, (x * 100, y * 100))
                 else:
                     self.tiles[y][x] = BasicTile((x * 100, y * 100))
         finishtile = FinishTile((int((self.tiles.size[0] - 2) * 100), int(self.tiles.size[1] / 2 * 100)), self.player, self.updater)
@@ -124,7 +127,6 @@ class ForestStage(BasicStage):
 
         self.background = Background(self.background_images,self.props, self.tiles,"background", self.updater)
         self.tile_props = Background(self.background_images,self.props, self.tiles,"prop tiles", self.updater)
-
 
     def load_image(self, imagename, colorkey=None):
         """
@@ -237,34 +239,47 @@ class TileGroup:
                 return True
         return False
 
-    def solid_collide(self, rect):
+    def solid_collide(self, rect, height = True):
         """
         Fast method for calculating collision by checking the 4 cornors and seeing with what tiles they overlap. This
         makes it at most 4 checks for collision. Also checks for out of bounds
         :param rect: a rectangle that is checked for an overlap
+        :param height tells if there should be checked for height when checking collision
         :return: a boolean indicating a collsion (True) or not (False)
         """
         xtl, ytl = [int(c/100) for c in rect.topleft]
         try:
             tile = self.tiles[ytl][xtl]
-            if isinstance(tile, SolidTile):
-                if tile.colliderect(rect):
+            if isinstance(tile, SolidTile) and tile.colliderect(rect):
+                if height and tile.high:
                     return True
+                elif height:
+                    return False
+                return True
             xtr, ytr = [int(c/100) for c in rect.topright]
             tile = self.tiles[ytr][xtr]
-            if isinstance(tile,SolidTile):
-                if tile.colliderect(rect):
+            if isinstance(tile, SolidTile) and tile.colliderect(rect):
+                if height and tile.high:
                     return True
+                else:
+                    return False
+                return True
             xbl, ybl = [int(c/100) for c in rect.bottomleft]
             tile = self.tiles[ybl][xbl]
-            if isinstance(tile,SolidTile):
-                if tile.colliderect(rect):
+            if isinstance(tile, SolidTile) and tile.colliderect(rect):
+                if height and tile.high:
                     return True
+                else:
+                    return False
+                return True
             xbr, ybr = [int(c/100) for c in rect.bottomright]
             tile = self.tiles[ybr][xbr]
-            if isinstance(tile,SolidTile):
-                if tile.colliderect(rect):
+            if isinstance(tile, SolidTile) and tile.colliderect(rect):
+                if height and tile.high:
                     return True
+                else:
+                    return False
+                return True
         #if index error is raised then you are outside the board.
         except IndexError:
             return True
@@ -340,6 +355,8 @@ class TileGroup:
                 if isinstance(tile, SolidTile):
                     sur_tiles = [True,True,True,True]
                     x,y = tile.coord
+                    if y - 1 > 0 and not isinstance(self.tiles[y - 1][x], SolidTile):
+                        sur_tiles[0] = False
                     if x + 1 < len(self.tiles[0]) and not isinstance(self.tiles[y][x + 1], SolidTile):
                         sur_tiles[1] = False
                     if y + 1 < len(self.tiles) and not isinstance(self.tiles[y + 1][x], SolidTile):
@@ -368,11 +385,12 @@ class BasicTile:
         return str(self.coord[0]) + "," + str(self.coord[1])
 
 class SolidTile(BasicTile):
-    def __init__(self, image, pos):
+    def __init__(self, image, pos, high = False):
         BasicTile.__init__(self, pos)
         #is chamged after all the tiles are added
         self.bounding_box = self.rect
         self.image = image
+        self.high = high
 
     def __getattr__(self, name):
         return self.bounding_box.__getattribute__(name)

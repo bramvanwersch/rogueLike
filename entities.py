@@ -146,10 +146,6 @@ class LivingEntity(Entity):
             self.dead = True
 
     def move(self):
-        """
-        moves the character at walking speed (normal speed) when the new location is not outside the defined bounds. Also
-        checks if the current speed is an acceptable one and if to high resets it to the max_speed.
-        """
         if self.speedx > self.max_speed:
             self.speedx = self.max_speed
         elif self.speedx < - self.max_speed:
@@ -158,14 +154,14 @@ class LivingEntity(Entity):
             self.speedy = self.max_speed
         elif self.speedy < - self.max_speed:
             self.speedy = -self.max_speed
-        xcol, ycol = self._check_collision()
+        xcol, ycol = self._check_collision(height = False)
 
         if not xcol:
             self.rect.x += self.speedx
         if not ycol:
             self.rect.y += self.speedy
 
-    def _check_collision(self):
+    def _check_collision(self, height = True):
         """
         Check the collision of x and y simoultaniously and return if x or y have collision
         :return: a list of 2 booleans for [xcol, ycol]
@@ -185,9 +181,9 @@ class LivingEntity(Entity):
                 y_rect = self.bounding_box.move((0, self.speedy + 1))
             else:
                 y_rect = self.bounding_box.move((0, self.speedy - 1))
-            if self.tiles.solid_collide(x_rect):
+            if self.tiles.solid_collide(x_rect, height):
                 xcol = True
-            if self.tiles.solid_collide(y_rect):
+            if self.tiles.solid_collide(y_rect, height):
                 ycol = True
             for sprite in super().groups()[0]:
                 if sprite.bounding_box.colliderect(x_rect) and sprite.collision:
