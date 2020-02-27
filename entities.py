@@ -332,7 +332,7 @@ class BadBat(Enemy):
         return [xcol, ycol]
 
 class TestDummy(Enemy):
-    def __init__(self, pos, player,tiles, *groups):
+    def __init__(self, pos, player, tiles, *groups):
         image = sheets["enemies"].image_at((0,48), scale = (50,100), size = (16,32), color_key = (255,255,255))
         Enemy.__init__(self, pos, player, *groups, health = 2000, health_regen = 1000, speed = 0, tiles = tiles, image = image)
 

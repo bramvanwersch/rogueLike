@@ -82,7 +82,8 @@ class BasicStage:
                                     self.player,self.get_random_weapons(5), self.updater)
         # self.tiles[int(self.tiles.size[1] / 2)][int(self.tiles.size[0] - 2)] = finishtile
         # self.tiles.finish_tiles.append(finishtile)
-        self.tiles.calculate_truth_map()
+        #do some calculatuions after all tiles are added to speed up calculations
+        self.tiles.setup()
 
     def get_random_weapons(self, amnt = 1):
         weapons = []
@@ -169,10 +170,8 @@ class Background(entities.Entity):
         return image
 
     def __create_props_and_tiles_image(self, props, tiles):
-        pygame.surfarray.use_arraytype("numpy")
         ps = props[0].get_rect().width
 
-        proppixels = [pygame.surfarray.pixels3d(image) for image in props]
         max_props = min(int(utilities.DEFAULT_LEVEL_SIZE.width / ps),int(utilities.DEFAULT_LEVEL_SIZE.height / ps))
         xcoords = [random.randint(0,int(utilities.DEFAULT_LEVEL_SIZE.width / ps)-1) for _ in range(self.propnmbr * 2)]
         ycoords = [random.randint(0,int(utilities.DEFAULT_LEVEL_SIZE.height / ps)-1) for _ in range(self.propnmbr * 2)]
@@ -187,14 +186,14 @@ class Background(entities.Entity):
         non_zero_tiles = tiles.get_non_zero_tiles()
         all_coords = prop_coords + non_zero_tiles
         all_coords.sort(key = lambda x: self.__sort_on_y_coord(x))
+        image = pygame.Surface((utilities.DEFAULT_LEVEL_SIZE.width, utilities.DEFAULT_LEVEL_SIZE.height))
+        image.fill((255,255,255))
         final_arr = np.full((utilities.DEFAULT_LEVEL_SIZE.width, utilities.DEFAULT_LEVEL_SIZE.height, 3), 255)
         for coord in all_coords:
             if isinstance(coord, SolidTile):
-                px = pygame.surfarray.pixels3d(coord.image)
-                final_arr[coord.x :coord.x + coord.width, coord.y: coord.y + coord.height] = px
+                image.blit(coord.image, (coord.rect.topleft))
             elif not isinstance(coord, BasicTile):
-                final_arr[coord[0] :coord[0] + ps, coord[1]: coord[1] + ps] = random.choice(proppixels)
-        image = pygame.surfarray.make_surface(final_arr)
+                image.blit(random.choice(props), (coord[0],coord[1]))
         image.set_colorkey((255,255,255), RLEACCEL)
         image = image.convert()
         return image
@@ -220,14 +219,12 @@ class TileGroup:
     def __getitem__(self, i):
         return self.tiles[i]
 
+    def setup(self):
+        self.__calculate_truth_map()
+        self.__configure_bounding_boxes()
+
     def get_non_zero_tiles(self):
         return [tile for row in self.tiles for tile in row if isinstance(tile, BasicTile)]
-
-    def calculate_truth_map(self):
-        for y, row in enumerate(self.tiles):
-            for x, val in enumerate(row):
-                if isinstance(val, SolidTile):
-                    self.__truth_map[y][x] = False
 
     @property
     def size(self):
@@ -251,19 +248,23 @@ class TileGroup:
         try:
             tile = self.tiles[ytl][xtl]
             if isinstance(tile, SolidTile):
-                return True
+                if tile.colliderect(rect):
+                    return True
             xtr, ytr = [int(c/100) for c in rect.topright]
             tile = self.tiles[ytr][xtr]
             if isinstance(tile,SolidTile):
-                return True
+                if tile.colliderect(rect):
+                    return True
             xbl, ybl = [int(c/100) for c in rect.bottomleft]
             tile = self.tiles[ybl][xbl]
             if isinstance(tile,SolidTile):
-                return True
+                if tile.colliderect(rect):
+                    return True
             xbr, ybr = [int(c/100) for c in rect.bottomright]
             tile = self.tiles[ybr][xbr]
             if isinstance(tile,SolidTile):
-                return True
+                if tile.colliderect(rect):
+                    return True
         #if index error is raised then you are outside the board.
         except IndexError:
             return True
@@ -324,6 +325,28 @@ class TileGroup:
                 min_tiles.append(tile)
         return min_tiles
 
+    def __calculate_truth_map(self):
+        """
+        Function for making a matrix that tells if a tile is solid or not.
+        """
+        for y, row in enumerate(self.tiles):
+            for x, val in enumerate(row):
+                if isinstance(val, SolidTile):
+                    self.__truth_map[y][x] = False
+
+    def __configure_bounding_boxes(self):
+        for row in self.tiles:
+            for tile in row:
+                if isinstance(tile, SolidTile):
+                    sur_tiles = [True,True,True,True]
+                    x,y = tile.coord
+                    if x + 1 < len(self.tiles[0]) and not isinstance(self.tiles[y][x + 1], SolidTile):
+                        sur_tiles[1] = False
+                    if y + 1 < len(self.tiles) and not isinstance(self.tiles[y + 1][x], SolidTile):
+                        sur_tiles[2] = False
+                    if x - 1 > 0 and not isinstance(self.tiles[y][x - 1], SolidTile):
+                        sur_tiles[3] = False
+                    tile.set_bounding_box(sur_tiles)
 
 class BasicTile:
     def __init__(self, pos):
@@ -347,16 +370,29 @@ class BasicTile:
 class SolidTile(BasicTile):
     def __init__(self, image, pos):
         BasicTile.__init__(self, pos)
-        self.bounding_box = self._get_bounding_box()
+        #is chamged after all the tiles are added
+        self.bounding_box = self.rect
         self.image = image
 
-    # def __getattr__(self, name):
-    #     return self.bounding_box.__getattribute__(name)
+    def __getattr__(self, name):
+        return self.bounding_box.__getattribute__(name)
 
-    def _get_bounding_box(self):
-        bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.2))
-        bb.center = (bb.centerx, bb.centery + self.rect.top - bb.top)
-        return bb
+    def set_bounding_box(self, surrounding_tiles):
+        bb = pygame.Rect(self.rect)
+        # print(bb)
+        if not surrounding_tiles[0]:
+            bb = bb.inflate((0, - int(self.rect.height * 0.2)))
+            bb.bottom = self.rect.bottom
+        elif not surrounding_tiles[2]:
+            bb = bb.inflate((0, - int(self.rect.height * 0.2)))
+            bb.top = self.rect.top
+        if not surrounding_tiles[1]:
+            bb = bb.inflate((-int(self.rect.width * 0.2), 0))
+            bb.left = self.rect.left
+        elif not surrounding_tiles[3]:
+            bb = bb.inflate((-int(self.rect.width * 0.2), 0))
+            bb.right = self.rect.right
+        self.bounding_box = bb
 
 class FinishTile(entities.InteractingEntity):
     def __init__(self, pos, player, *groups):
