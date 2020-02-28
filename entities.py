@@ -374,13 +374,15 @@ class Archer(Enemy):
             return
         if self.move_tile.coord == [int(self.bounding_box.x / 100), int(self.bounding_box.y / 100)]:
             self.move_tile = self.path.pop(-1)
-        if self.move_tile.centerx > self.bounding_box.centerx - self.max_speed and self.move_tile.centerx < self.bounding_box.centerx + self.max_speed :
+        if self.move_tile.centerx > self.bounding_box.centerx - self.max_speed * 2\
+                and self.move_tile.centerx < self.bounding_box.centerx + self.max_speed * 2:
             self.speedx = 0
         elif self.move_tile.centerx < self.bounding_box.centerx:
             self.speedx -= self.max_speed
         elif self.move_tile.centerx > self.bounding_box.centerx:
             self.speedx += self.max_speed
-        if self.move_tile.centery < self.bounding_box.centery + self.max_speed and self.move_tile.centery > self.bounding_box.centery - self.max_speed:
+        if self.move_tile.centery < self.bounding_box.centery + self.max_speed * 2\
+                and self.move_tile.centery > self.bounding_box.centery - self.max_speed * 2:
             self.speedy = 0
         elif self.move_tile.centery < self.bounding_box.centery:
             self.speedy -= self.max_speed
@@ -419,11 +421,11 @@ class LinearProjectile(Enemy):
         # delta y / delta x
         inacuracy = 100 - self.accuracy
         if random.randint(1,2) == 1:
-            self.dest[0] += random.randint(0, inacuracy * 2)
-            self.dest[1] += random.randint(0, inacuracy * 2)
+            self.dest[0] += random.randint(0, inacuracy)
+            self.dest[1] += random.randint(0, inacuracy)
         else:
-            self.dest[0] -= random.randint(0, inacuracy * 2)
-            self.dest[1] -= random.randint(0, inacuracy * 2)
+            self.dest[0] -= random.randint(0, inacuracy)
+            self.dest[1] -= random.randint(0, inacuracy)
         try:
             a = (self.dest[1] - self.rect.y) / (self.dest[0] - self.rect.x)
         except ZeroDivisionError:
