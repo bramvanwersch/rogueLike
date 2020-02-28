@@ -400,6 +400,7 @@ class Archer(Enemy):
 class LinearProjectile(Enemy):
     def __init__(self, start_pos, player, *groups, p_type = "arrow", function = "linear", **kwargs):
         arrow = sheets["enemies"].image_at((0,0), scale =(50,25), color_key = (255,255,255))
+        self.projectile_offset = pygame.Vector2(0,0)
         Enemy.__init__(self, start_pos, player, *groups, image = arrow, **kwargs)
         self.dest = self.player.bounding_box.center
         self.rect.topleft = start_pos
@@ -417,14 +418,18 @@ class LinearProjectile(Enemy):
         a = (self.dest[1] - self.rect.y) / (self.dest[0] - self.rect.x)
         self.speedx = self.max_speed * 1 / math.sqrt(1 + a**2)
         self.speedy = self.max_speed * a / math.sqrt(1 + a**2)
+        self.projectile_offset = pygame.Vector2(- int(self.rect.width * 0.5), int(self.rect.height * 0.25))
         if self.max_speed < 0:
             self.image = self.flipped_image
+            self.projectile_offset = pygame.Vector2(int(self.rect.width * 0.5), int(self.rect.height * 0.25))
         #orient the arrow the rigth way
         if self.speedx != 0 and self.speedy != 0:
             rad = math.atan(self.speedy / self.speedx)
             degree = rad * 180 / math.pi
+            old_center = self.rect.center
             self.image = pygame.transform.rotate(self.image, - degree)
-            self.rect = self.image.get_rect(topleft = self.rect.topleft)
+            self.projectile_offset = self.projectile_offset.rotate(degree)
+            self.rect = self.image.get_rect(center = old_center)
 
     def _use_brain(self):
         """
@@ -439,6 +444,13 @@ class LinearProjectile(Enemy):
         TODO make a better sytem for this. This is kind of dumb.
         """
         pass
+
+    def _get_bounding_box(self):
+        """
+        Return a rectangle at the tip of the arrow to make sure the arrow does not collide with unexpected places
+        :return: a pygame.Rect object
+        """
+        return pygame.Rect(*(self.rect.center - self.projectile_offset), 10, 10)
 
     def move(self):
         if any(self._check_collision()):

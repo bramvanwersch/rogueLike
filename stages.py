@@ -261,7 +261,7 @@ class TileGroup:
             if isinstance(tile, SolidTile) and tile.colliderect(rect):
                 if height and tile.high:
                     return True
-                else:
+                elif height:
                     return False
                 return True
             xbl, ybl = [int(c/100) for c in rect.bottomleft]
@@ -269,7 +269,7 @@ class TileGroup:
             if isinstance(tile, SolidTile) and tile.colliderect(rect):
                 if height and tile.high:
                     return True
-                else:
+                elif height:
                     return False
                 return True
             xbr, ybr = [int(c/100) for c in rect.bottomright]
@@ -277,7 +277,7 @@ class TileGroup:
             if isinstance(tile, SolidTile) and tile.colliderect(rect):
                 if height and tile.high:
                     return True
-                else:
+                elif height:
                     return False
                 return True
         #if index error is raised then you are outside the board.
