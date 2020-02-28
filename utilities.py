@@ -2,9 +2,12 @@ import os,pygame, random
 from pygame.locals import *
 from pygame.compat import geterror
 
+
 #test constant
-TEST = False
+BOUNDING_BOXES = True
+NR_ENTITIES = True
 FPS = True
+ENTITY_PATHS = True
 
 #some global constants
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]

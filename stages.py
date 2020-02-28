@@ -185,7 +185,7 @@ class Background(entities.Entity):
         if len(prop_coords) > self.propnmbr:
             prop_coords = prop_coords[0:self.propnmbr]
         prop_coords = [(coord[0] * ps, coord[1] * ps) for coord in prop_coords]
-        non_zero_tiles = tiles.get_non_zero_tiles()
+        non_zero_tiles = tiles.non_zero_tiles
         all_coords = prop_coords + non_zero_tiles
         all_coords.sort(key = lambda x: self.__sort_on_y_coord(x))
         image = pygame.Surface((utilities.DEFAULT_LEVEL_SIZE.width, utilities.DEFAULT_LEVEL_SIZE.height))
@@ -216,6 +216,8 @@ class TileGroup:
         #dont make fcking pointers
         self.tiles = [[0] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
         self.finish_tiles = []
+        self.non_zero_tiles = []
+        self.solid_tiles = []
         self.__truth_map = [[True] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
 
     def __getitem__(self, i):
@@ -224,9 +226,11 @@ class TileGroup:
     def setup(self):
         self.__calculate_truth_map()
         self.__configure_bounding_boxes()
+        self.__save_tile_groups()
 
-    def get_non_zero_tiles(self):
-        return [tile for row in self.tiles for tile in row if isinstance(tile, BasicTile)]
+    def __save_tile_groups(self):
+        self.non_zero_tiles = [tile for row in self.tiles for tile in row if isinstance(tile, BasicTile)]
+        self.solid_tiles = [tile for row in self.tiles for tile in row if isinstance(tile, SolidTile)]
 
     @property
     def size(self):
@@ -285,11 +289,18 @@ class TileGroup:
             return True
         return False
 
-    def pathfind(self, player_rect, dest_rect):
-        x,y = int(player_rect.x / 100), int(player_rect.y / 100)
+    def pathfind(self, player_rect, enemy_rect):
+        """
+        Pathfind a path from the player towards the enemy. This has certain benefits regarding certain configurations
+        :param player_rect: the rectangle of the player
+        :param enemy_rect: the rectange of the enemy
+        :return: a list of tile coordinates that constitute the path enemy should move
+        """
+        x,y = int(player_rect.centerx / 100), int(player_rect.centery / 100)
         start_tile = self.tiles[y][x]
-        dest_tile = self.tiles[int(dest_rect.y/100)][int(dest_rect.x/100)]
-        if not self.__truth_map[y][x]:
+        dest_tile = self.tiles[int(enemy_rect.centery / 100)][int(enemy_rect.centerx / 100)]
+        #check if the enemy is on a solid tile this makes it so the enemy should not move
+        if not self.__truth_map[int(enemy_rect.y / 100)][int(enemy_rect.x / 100)]:
             return [None]
         #add starting tile to values to make it available for x,y coordinates
         paths = [[start_tile],[start_tile],[start_tile],[start_tile]]

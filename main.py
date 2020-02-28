@@ -58,7 +58,6 @@ def load_unload_sprites(player,screen):
     Method for loading only sprites in an area around the player to reduce potential lag and other problems.
     """
     sprites = player.groups()[0].sprites()
-    sprites = player.groups()[0].sprites()
     c = player.rect.center
     sr = screen.get_rect()
     if c[0] + sr.width / 2 - utilities.DEFAULT_LEVEL_SIZE.width > 0:
@@ -111,7 +110,7 @@ def draw_bounding_boxes(screen, player):
             else:
                 y = bb.y
             pygame.draw.rect(screen, (0,0,0), (int(x), int(y), bb.width, bb.height), 5)
-    for tile in player.tiles.get_non_zero_tiles():
+    for tile in player.tiles.solid_tiles:
         bb = tile
         if utilities.DEFAULT_LEVEL_SIZE.width - c[0] - sr.width / 2 < 0:
             x = sr.width - (utilities.DEFAULT_LEVEL_SIZE.width - bb.x)
@@ -127,6 +126,34 @@ def draw_bounding_boxes(screen, player):
         else:
             y = bb.y
         pygame.draw.rect(screen, (0,0,0), (int(x), int(y), bb.width, bb.height), 5)
+
+def draw_path(screen, player):
+    sprites = player.groups()[0].sprites()
+    path_sprites = [sprite for sprite in sprites if hasattr(sprite, "path")]
+    c = player.rect.center
+    sr = screen.get_rect()
+    for sprite in path_sprites:
+        if len(sprite.path) > 0:
+            center_points = []
+            player_tile = player.tiles[int(player.rect.centery / 100)][int(player.rect.centerx / 100)]
+            enemy_tile = sprite.tiles[int(sprite.rect.centery / 100)][int(sprite.rect.centerx / 100)]
+            for tile in [player_tile] + sprite.path + [enemy_tile]:
+                bb = tile
+                if utilities.DEFAULT_LEVEL_SIZE.width - c[0] - sr.width / 2 < 0:
+                    x = sr.width - (utilities.DEFAULT_LEVEL_SIZE.width - bb.centerx)
+                elif c[0] - sr.width / 2 > 0:
+                    x = bb.centerx - (c[0] - sr.width / 2)
+                else:
+                    x = bb.centerx
+                if utilities.DEFAULT_LEVEL_SIZE.height - c[1] - sr.height / 2 < 0:
+                    y = sr.height - (utilities.DEFAULT_LEVEL_SIZE.height - bb.centery)
+                elif c[1] - sr.height / 2 > 0:
+                    y = bb.centery - (c[1] - sr.height / 2)
+                else:
+                    y = bb.centery
+                center_points.append((int(x),int(y)))
+            pygame.draw.lines(screen, (0,0,0), False, center_points, 4)
+
 
 random.seed(utilities.seed)
 pygame.init()
@@ -159,8 +186,8 @@ def setup_board():
 
     stage.add_enemy("dummy", (600, 500))
     # TODO needs to be moved to different place
-    # stage.add_enemy("red square", (600, 500))
-    stage.add_enemy("archer", (100,100))
+    stage.add_enemy("red square", (600, 500))
+    # stage.add_enemy("archer", (100,100))
     # stage.add_enemy("bad bat", (100,300))
     # for i in range(5):
     #     stage.add_enemy("bad bat", (400 + i * 20, 500 + i * 20))
@@ -263,10 +290,13 @@ class MainScene(Scene):
         if utilities.FPS:
             fps = FONT.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
             screen.blit(fps, (10, 10))
-        if utilities.TEST and not self.event_sprite.dead:
+        if utilities.BOUNDING_BOXES and not self.event_sprite.dead:
+            draw_bounding_boxes(screen, self.event_sprite)
+        if utilities.NR_ENTITIES:
             ve =  FONT.render(str(self.nr_loaded_sprites), True,pygame.Color('black'))
             screen.blit(ve,(10,25))
-            draw_bounding_boxes(screen, self.event_sprite)
+        if utilities.ENTITY_PATHS and not self.event_sprite.dead:
+            draw_path(screen, self.event_sprite)
 
 class PauseScene(Scene):
     def __init__(self, sprites, event_sprite):
