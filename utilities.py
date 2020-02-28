@@ -3,7 +3,7 @@ from pygame.locals import *
 from pygame.compat import geterror
 
 #test constant
-TEST = True
+TEST = False
 FPS = True
 
 #some global constants

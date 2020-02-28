@@ -398,14 +398,16 @@ class Archer(Enemy):
         return bb
 
 class LinearProjectile(Enemy):
-    def __init__(self, start_pos, player, *groups, p_type = "arrow", function = "linear", **kwargs):
+    def __init__(self, start_pos, player, *groups, p_type = "arrow", function = "linear", accuracy = 80, **kwargs):
         arrow = sheets["enemies"].image_at((0,0), scale =(50,25), color_key = (255,255,255))
         self.projectile_offset = pygame.Vector2(0,0)
         Enemy.__init__(self, start_pos, player, *groups, image = arrow, **kwargs)
-        self.dest = self.player.bounding_box.center
+        self.accuracy = accuracy
+        self.dest = list(self.player.bounding_box.center)
+
         self.rect.topleft = start_pos
         self.function_type = function
-        if self.dest < self.rect.topleft:
+        if self.dest < list(self.rect.topleft):
             self.max_speed = - self.max_speed
         self.__configure_trajectory()
         self.dead_timer = 60
@@ -415,7 +417,17 @@ class LinearProjectile(Enemy):
         # in the case of a linear relationship. is always the same but for now leave like this.
         #https://math.stackexchange.com/questions/656500/given-a-point-slope-and-a-distance-along-that-slope-easily-find-a-second-p
         # delta y / delta x
-        a = (self.dest[1] - self.rect.y) / (self.dest[0] - self.rect.x)
+        inacuracy = 100 - self.accuracy
+        if random.randint(1,2) == 1:
+            self.dest[0] += random.randint(0, inacuracy * 2)
+            self.dest[1] += random.randint(0, inacuracy * 2)
+        else:
+            self.dest[0] -= random.randint(0, inacuracy * 2)
+            self.dest[1] -= random.randint(0, inacuracy * 2)
+        try:
+            a = (self.dest[1] - self.rect.y) / (self.dest[0] - self.rect.x)
+        except ZeroDivisionError:
+            a = 0
         self.speedx = self.max_speed * 1 / math.sqrt(1 + a**2)
         self.speedy = self.max_speed * a / math.sqrt(1 + a**2)
         self.projectile_offset = pygame.Vector2(- int(self.rect.width * 0.5), int(self.rect.height * 0.25))
