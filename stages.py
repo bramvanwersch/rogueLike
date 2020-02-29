@@ -307,7 +307,7 @@ class TileGroup:
         cur_dist = self.__tile_dist(start_tile, dest_tile)
         walked_tiles = [[],[],[],[]]
         final_path = [None]
-        while cur_dist > 0 and len(paths) > 0:
+        while cur_dist > 1 and len(paths) > 0:
             for i, path in enumerate(paths):
                 available_tiles = []
                 x,y = path[-1].coord

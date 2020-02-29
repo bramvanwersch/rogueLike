@@ -161,9 +161,11 @@ class LivingEntity(Entity):
         if not ycol:
             self.rect.y += self.speedy
 
-    def _check_collision(self, height = True):
+    def _check_collision(self, height = True, sprites = True):
         """
         Check the collision of x and y simoultaniously and return if x or y have collision
+        :param height boolean telling if the height of tiles should be taken into account.
+        :param sprites boolean telling if sprites should be checked for collision
         :return: a list of 2 booleans for [xcol, ycol]
         """
         xcol, ycol = False, False
@@ -185,11 +187,12 @@ class LivingEntity(Entity):
                 xcol = True
             if self.tiles.solid_collide(y_rect, height):
                 ycol = True
-            for sprite in super().groups()[0]:
-                if sprite.bounding_box.colliderect(x_rect) and sprite.collision:
-                    xcol = True
-                if sprite.bounding_box.colliderect(y_rect) and sprite.collision:
-                    ycol = True
+            if sprites:
+                for sprite in super().groups()[0]:
+                    if sprite.collision and sprite != self and sprite.bounding_box.colliderect(x_rect):
+                        xcol = True
+                    if sprite.collision and sprite != self and sprite.bounding_box.colliderect(y_rect):
+                        ycol = True
             break;
         return [xcol, ycol]
 
@@ -344,6 +347,7 @@ class Archer(Enemy):
         self.move_tile = self.path.pop(-1)
         self.shooting = False
         self.shooting_cooldown = 50
+        self.collision = True
 
     def update(self, *args):
         super().update(*args)
@@ -396,19 +400,16 @@ class Archer(Enemy):
         new centered x value.
         """
         bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.4))
-        bb.center = (bb.centerx, bb.centery + bb.top - self.rect.top)
         return bb
 
 class LinearProjectile(Enemy):
-    def __init__(self, start_pos, player, *groups, p_type = "arrow", function = "linear", accuracy = 80, **kwargs):
+    def __init__(self, start_pos, player, *groups, p_type = "arrow", accuracy = 80, **kwargs):
         arrow = sheets["enemies"].image_at((0,0), scale =(50,25), color_key = (255,255,255))
         self.projectile_offset = pygame.Vector2(0,0)
         Enemy.__init__(self, start_pos, player, *groups, image = arrow, **kwargs)
         self.accuracy = accuracy
         self.dest = list(self.player.bounding_box.center)
-
-        self.rect.topleft = start_pos
-        self.function_type = function
+        self.rect.center = start_pos
         if self.dest < list(self.rect.topleft):
             self.max_speed = - self.max_speed
         self.__configure_trajectory()
@@ -467,7 +468,7 @@ class LinearProjectile(Enemy):
         return pygame.Rect(*(self.rect.center - self.projectile_offset), 10, 10)
 
     def move(self):
-        if any(self._check_collision()):
+        if any(self._check_collision(sprites = False)):
             self.dead = True
         self.rect.topleft += pygame.Vector2(self.speedx,self.speedy)
 

@@ -54,7 +54,6 @@ class Player(LivingEntity):
         new centered x value.
         """
         bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.4))
-        bb.center = (bb.centerx, bb.centery + bb.top - self.rect.top)
         return bb
 
     def update(self, *args):
