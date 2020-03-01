@@ -256,11 +256,12 @@ class RedSquare(Enemy):
         self.move_tile = self.path.pop(-1)
 
     def _use_brain(self):
-        #update twice per second
+        #update every per second
         if self.passed_frames < 60 and self.path:
             self.passed_frames += 1
         else:
-            self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
+            solid_sprite_coords = [sprite.rect.center for sprite in super().groups()[0].sprites() if sprite.collision]
+            self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box, solid_sprite_coords = solid_sprite_coords)
             self.passed_frames = 0
             self.move_tile = self.path.pop(-1)
         #if path is empty or there is no solution
@@ -343,7 +344,7 @@ class Archer(Enemy):
         #make sure path is calculated at start of creation
         self.passed_frames = random.randint(0,60)
         # self.shooting_animation = utilities.Animation()
-        self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box, [])
+        self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
         self.move_tile = self.path.pop(-1)
         self.shooting = False
         self.shooting_cooldown = 50
@@ -375,7 +376,7 @@ class Archer(Enemy):
             self.passed_frames += 1
         else:
             solid_sprite_coords = [sprite.rect.center for sprite in super().groups()[0].sprites() if sprite.collision]
-            self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box, solid_sprite_coords)
+            self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box, solid_sprite_coords = solid_sprite_coords)
             self.passed_frames = 0
             self.move_tile = self.path.pop(-1)
         #if path is empty or there is no solution

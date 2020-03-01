@@ -355,7 +355,7 @@ class TileGroup:
         #             return False, points
         #         points.append((xs, ys))
 
-    def pathfind(self, player_rect, enemy_rect, solid_sprite_coords):
+    def pathfind(self, player_rect, enemy_rect, solid_sprite_coords = []):
         """
         Pathfind a path from the player towards the enemy. This has certain benefits regarding certain configurations
         :param player_rect: the rectangle of the player
@@ -371,9 +371,9 @@ class TileGroup:
             return [None]
         #add starting tile to values to make it available for x,y coordinates
         current_truth_map = [row.copy() for row in self.__truth_map]
+        #add solid enemies to the truth map to ensure they move around one another.
         for coord in solid_sprite_coords:
             current_truth_map[int(coord[1] / 100)][int(coord[0] / 100)] = False
-        print(current_truth_map)
         paths = [[start_tile],[start_tile],[start_tile],[start_tile]]
         cur_dist = self.__tile_dist(start_tile, dest_tile)
         walked_tiles = [[],[],[],[]]
