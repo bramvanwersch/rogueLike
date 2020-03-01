@@ -355,7 +355,7 @@ class TileGroup:
         #             return False, points
         #         points.append((xs, ys))
 
-    def pathfind(self, player_rect, enemy_rect):
+    def pathfind(self, player_rect, enemy_rect, solid_sprite_coords):
         """
         Pathfind a path from the player towards the enemy. This has certain benefits regarding certain configurations
         :param player_rect: the rectangle of the player
@@ -370,6 +370,10 @@ class TileGroup:
                 enemy_rect.colliderect(self.tiles[int(enemy_rect.y / 100)][int(enemy_rect.x / 100)].bounding_box):
             return [None]
         #add starting tile to values to make it available for x,y coordinates
+        current_truth_map = [row.copy() for row in self.__truth_map]
+        for coord in solid_sprite_coords:
+            current_truth_map[int(coord[1] / 100)][int(coord[0] / 100)] = False
+        print(current_truth_map)
         paths = [[start_tile],[start_tile],[start_tile],[start_tile]]
         cur_dist = self.__tile_dist(start_tile, dest_tile)
         walked_tiles = [[],[],[],[]]
@@ -378,13 +382,13 @@ class TileGroup:
             for i, path in enumerate(paths):
                 available_tiles = []
                 x,y = path[-1].coord
-                if not x + 1 >= len(self.tiles[0]) and self.__truth_map[y][x + 1] and self.tiles[y][x + 1] not in walked_tiles[i]:
+                if not x + 1 >= len(self.tiles[0]) and current_truth_map[y][x + 1] and self.tiles[y][x + 1] not in walked_tiles[i]:
                     available_tiles.append(self.tiles[y][x + 1])
-                if not x - 1 < 0 and self.__truth_map[y][x - 1] and self.tiles[y][x - 1] not in walked_tiles[i]:
+                if not x - 1 < 0 and current_truth_map[y][x - 1] and self.tiles[y][x - 1] not in walked_tiles[i]:
                     available_tiles.append(self.tiles[y][x - 1])
-                if not y + 1 >= len(self.tiles) and self.__truth_map[y + 1][x] and self.tiles[y + 1][x] not in walked_tiles[i]:
+                if not y + 1 >= len(self.tiles) and current_truth_map[y + 1][x] and self.tiles[y + 1][x] not in walked_tiles[i]:
                     available_tiles.append(self.tiles[y + 1][x])
-                if not y - 1 < 0 and self.__truth_map[y - 1][x] and self.tiles[y - 1][x] not in walked_tiles[i]:
+                if not y - 1 < 0 and current_truth_map[y - 1][x] and self.tiles[y - 1][x] not in walked_tiles[i]:
                     available_tiles.append(self.tiles[y - 1][x])
                 if available_tiles:
                     #swap tile order to make an if statement check be before the others
