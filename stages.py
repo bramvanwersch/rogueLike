@@ -366,7 +366,8 @@ class TileGroup:
         start_tile = self.tiles[y][x]
         dest_tile = self.tiles[int(enemy_rect.centery / 100)][int(enemy_rect.centerx / 100)]
         #check if the enemy is on a solid tile this makes it so the enemy should not move
-        if not self.__truth_map[int(enemy_rect.y / 100)][int(enemy_rect.x / 100)]:
+        if not self.__truth_map[int(enemy_rect.y / 100)][int(enemy_rect.x / 100)] and \
+                enemy_rect.colliderect(self.tiles[int(enemy_rect.y / 100)][int(enemy_rect.x / 100)].bounding_box):
             return [None]
         #add starting tile to values to make it available for x,y coordinates
         paths = [[start_tile],[start_tile],[start_tile],[start_tile]]
