@@ -154,6 +154,30 @@ def draw_path(screen, player):
                 center_points.append((int(x),int(y)))
             pygame.draw.lines(screen, (0,0,0), False, center_points, 4)
 
+def draw_vision_line(screen, player):
+    sprites = player.groups()[0].sprites()
+    path_sprites = [sprite for sprite in sprites if hasattr(sprite, "vision_line")]
+    c = player.rect.center
+    sr = screen.get_rect()
+    for sprite in path_sprites:
+        if len(sprite.vision_line) > 1:
+            center_points = []
+            for point in sprite.vision_line:
+                if utilities.DEFAULT_LEVEL_SIZE.width - c[0] - sr.width / 2 < 0:
+                    x = sr.width - (utilities.DEFAULT_LEVEL_SIZE.width - point[0])
+                elif c[0] - sr.width / 2 > 0:
+                    x = point[0] - (c[0] - sr.width / 2)
+                else:
+                    x = point[0]
+                if utilities.DEFAULT_LEVEL_SIZE.height - c[1] - sr.height / 2 < 0:
+                    y = sr.height - (utilities.DEFAULT_LEVEL_SIZE.height - point[1])
+                elif c[1] - sr.height / 2 > 0:
+                    y = point[1] - (c[1] - sr.height / 2)
+                else:
+                    y = point[1]
+                center_points.append((int(x), int(y)))
+            pygame.draw.lines(screen, (255,0,0), False, center_points, 4)
+
 
 random.seed(utilities.seed)
 pygame.init()
@@ -186,7 +210,7 @@ def setup_board():
 
     stage.add_enemy("dummy", (600, 500))
     # TODO needs to be moved to different place
-    stage.add_enemy("red square", (600, 500))
+    # stage.add_enemy("red square", (600, 500))
     # stage.add_enemy("archer", (100,100))
     # stage.add_enemy("bad bat", (100,300))
     for i in range(5):
@@ -290,13 +314,16 @@ class MainScene(Scene):
         if utilities.FPS:
             fps = FONT.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
             screen.blit(fps, (10, 10))
-        if utilities.BOUNDING_BOXES and not self.event_sprite.dead:
-            draw_bounding_boxes(screen, self.event_sprite)
         if utilities.NR_ENTITIES:
-            ve =  FONT.render(str(self.nr_loaded_sprites), True,pygame.Color('black'))
-            screen.blit(ve,(10,25))
-        if utilities.ENTITY_PATHS and not self.event_sprite.dead:
-            draw_path(screen, self.event_sprite)
+            ve = FONT.render(str(self.nr_loaded_sprites), True, pygame.Color('black'))
+            screen.blit(ve, (10, 25))
+        if not self.event_sprite.dead:
+            if utilities.BOUNDING_BOXES:
+                draw_bounding_boxes(screen, self.event_sprite)
+            if utilities.ENTITY_PATHS:
+                draw_path(screen, self.event_sprite)
+            if utilities.VISION_LINE:
+                draw_vision_line(screen, self.event_sprite)
 
 class PauseScene(Scene):
     def __init__(self, sprites, event_sprite):

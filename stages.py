@@ -289,6 +289,72 @@ class TileGroup:
             return True
         return False
 
+    def line_of_sight(self, start_point, end_point):
+        xs, ys = start_point
+        xe, ye = end_point
+        points = [(xs,ys)]
+        try:
+            a = (ye - ys) / (xe - xs)
+            b = - a * xs + ys
+        except ZeroDivisionError:
+            return False, []
+
+        xdirection = 1
+        if xs > xe:
+            xdirection = -1
+        for x in range(0, abs(xs - xe), 25):
+            newx =  xs + x * xdirection
+            resp = a * newx + b
+            points.append((newx, resp))
+            if self.tiles[int(resp/ 100)][int(newx / 100)].solid and self.tiles[int(resp/ 100)][int(newx / 100)].high:
+                return False, points
+        return True, points
+        # print(start_point, end_point)
+        # xs, ys = self.__board_to_tile_coordinates(start_point)[0]
+        # xe, ye = self.__board_to_tile_coordinates(end_point)[0]
+        # print(xs,ys,xe,ye)
+        # try:
+        #     a = (ye - ys) / (xe - xs)
+        #     b = - a * xs + ys
+        #     s = pygame.display.get_surface()
+        #     # set search direction for algorithm
+        #     points = [(xs,ys)]
+        #     ydirection = 1
+        #     if start_point[1] > end_point[1]:
+        #         ydirection = -1
+        #     print(a, b)
+        #     print(xs, ys)
+        #     while True:
+        #         y_calc_x = a * (xs + xdirection) + b
+        #         y_calc_y = a * xs + b
+        #         if y_calc_x == ys:
+        #             xs += xdirection
+        #         elif y_calc_y == ys + ydirection:
+        #             ys += ydirection
+        #         # rare edge case
+        #         else:
+        #             xs += xdirection
+        #             ys += ydirection
+        #         print(xs, ys)
+        #         points.append((xs, ys))
+        #         if self.tiles[ys][xs].solid:
+        #             return False, points
+        #         elif xs == xe and ys == ye:
+        #             return True, points
+        # #the case in which there is NAN a in this case increase y until the point is reached
+        # except ZeroDivisionError:
+        #     ydirection = 1
+        #     points = [(xs,ys)]
+        #     if ys > ye:
+        #         ydirection = -1
+        #     while True:
+        #         ys += ydirection
+        #         if ys == ye:
+        #             return True, points
+        #         elif self.tiles[ys][xs].solid:
+        #             return False, points
+        #         points.append((xs, ys))
+
     def pathfind(self, player_rect, enemy_rect):
         """
         Pathfind a path from the player towards the enemy. This has certain benefits regarding certain configurations
@@ -340,17 +406,6 @@ class TileGroup:
         """
         return abs(t1.coord[0] - t2.coord[0]) + abs(t1.coord[1] - t2.coord[1])
 
-    def __all_min_tiles(self,dest_tile, tiles):
-        if len(tiles) == 1:
-            return tiles
-        min_tiles = [tiles[0]]
-        for tile in tiles:
-            if self.__tile_dist(dest_tile, tile) < self.__tile_dist(dest_tile, min_tiles[0]):
-                min_tiles = [tile]
-            elif self.__tile_dist(dest_tile, tile) == self.__tile_dist(dest_tile, min_tiles[0]):
-                min_tiles.append(tile)
-        return min_tiles
-
     def __calculate_truth_map(self):
         """
         Function for making a matrix that tells if a tile is solid or not.
@@ -376,6 +431,12 @@ class TileGroup:
                         sur_tiles[3] = False
                     tile.set_bounding_box(sur_tiles)
 
+    def __board_to_tile_coordinates(self, *coords):
+        board_coords = []
+        for coord in coords:
+            board_coords.append([int(coord[0] / 100), int(coord[1] / 100)])
+        return board_coords
+
 class BasicTile:
     def __init__(self, pos):
         """
@@ -384,6 +445,7 @@ class BasicTile:
         :param y: the y coordinate of the top left corner
         """
         self.rect = pygame.Rect(*pos,100,100)
+        self.solid = False
 
     def __getattr__(self, name):
         return self.rect.__getattribute__(name)
@@ -402,6 +464,7 @@ class SolidTile(BasicTile):
         self.bounding_box = self.rect
         self.image = image
         self.high = high
+        self.solid = True
 
     def __getattr__(self, name):
         return self.bounding_box.__getattribute__(name)

@@ -348,6 +348,7 @@ class Archer(Enemy):
         self.shooting = False
         self.shooting_cooldown = 50
         self.collision = True
+        self.vision_line = []
 
     def update(self, *args):
         super().update(*args)
@@ -363,7 +364,10 @@ class Archer(Enemy):
 
     def _use_brain(self):
         #manhaten distance lower then 600 stand still and shoot
-        if abs(self.rect.x - self.player.rect.x) + abs(self.rect.y - self.player.rect.y) < self.shot_player_distance:
+        if utilities.VISION_LINE:
+            self.vision_line = self.tiles.line_of_sight(self.bounding_box.center, self.player.bounding_box.center)[1]
+        if abs(self.rect.x - self.player.rect.x) + abs(self.rect.y - self.player.rect.y) < self.shot_player_distance and\
+            self.tiles.line_of_sight(self.bounding_box.center, self.player.bounding_box.center)[0]:
             self.speedy, self.speedx = 0,0
             self.shooting = True
             return
