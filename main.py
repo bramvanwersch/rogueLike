@@ -96,36 +96,15 @@ def draw_bounding_boxes(screen, player):
     for sprite in sprites:
         if sprite.visible:
             bb = sprite.bounding_box
-            if utilities.DEFAULT_LEVEL_SIZE.width - c[0] - sr.width / 2 < 0:
-                x = sr.width - (utilities.DEFAULT_LEVEL_SIZE.width - bb.x)
-            elif c[0] - sr.width / 2 > 0:
-                x = bb.x - (c[0] - sr.width / 2)
+            x, y = get_player_relative_screen_coordinate(player, screen, bb.topleft)
+            if hasattr(sprite, "debug_color"):
+                pygame.draw.rect(screen, sprite.debug_color, (int(x), int(y), bb.width, bb.height), 5)
             else:
-                x = bb.x
-            if utilities.DEFAULT_LEVEL_SIZE.height - c[1] - sr.height / 2 < 0:
-                y = sr.height - (utilities.DEFAULT_LEVEL_SIZE.height - bb.y)
-            elif c[1] - sr.height / 2 > 0:
-                y = bb.y - (c[1] - sr.height / 2)
-
-            else:
-                y = bb.y
-            pygame.draw.rect(screen, (0,0,0), (int(x), int(y), bb.width, bb.height), 5)
+                pygame.draw.rect(screen, (0,0,0), (int(x), int(y), bb.width, bb.height), 5)
     for tile in player.tiles.solid_tiles:
         bb = tile
-        if utilities.DEFAULT_LEVEL_SIZE.width - c[0] - sr.width / 2 < 0:
-            x = sr.width - (utilities.DEFAULT_LEVEL_SIZE.width - bb.x)
-        elif c[0] - sr.width / 2 > 0:
-            x = bb.x - (c[0] - sr.width / 2)
-        else:
-            x = bb.x
-        if utilities.DEFAULT_LEVEL_SIZE.height - c[1] - sr.height / 2 < 0:
-            y = sr.height - (utilities.DEFAULT_LEVEL_SIZE.height - bb.y)
-        elif c[1] - sr.height / 2 > 0:
-            y = bb.y - (c[1] - sr.height / 2)
-
-        else:
-            y = bb.y
-        pygame.draw.rect(screen, (0,0,0), (int(x), int(y), bb.width, bb.height), 5)
+        x, y = get_player_relative_screen_coordinate(player, screen, tile.topleft)
+        pygame.draw.rect(screen, (0,0,0), (int(x), int(y), tile.width, tile.height), 5)
 
 def draw_path(screen, player):
     sprites = player.groups()[0].sprites()
@@ -138,21 +117,9 @@ def draw_path(screen, player):
             player_tile = player.tiles[int(player.rect.centery / 100)][int(player.rect.centerx / 100)]
             enemy_tile = sprite.tiles[int(sprite.rect.centery / 100)][int(sprite.rect.centerx / 100)]
             for tile in [player_tile] + sprite.path + [enemy_tile]:
-                bb = tile
-                if utilities.DEFAULT_LEVEL_SIZE.width - c[0] - sr.width / 2 < 0:
-                    x = sr.width - (utilities.DEFAULT_LEVEL_SIZE.width - bb.centerx)
-                elif c[0] - sr.width / 2 > 0:
-                    x = bb.centerx - (c[0] - sr.width / 2)
-                else:
-                    x = bb.centerx
-                if utilities.DEFAULT_LEVEL_SIZE.height - c[1] - sr.height / 2 < 0:
-                    y = sr.height - (utilities.DEFAULT_LEVEL_SIZE.height - bb.centery)
-                elif c[1] - sr.height / 2 > 0:
-                    y = bb.centery - (c[1] - sr.height / 2)
-                else:
-                    y = bb.centery
+                x, y = get_player_relative_screen_coordinate(player, screen, tile.center)
                 center_points.append((int(x),int(y)))
-            pygame.draw.lines(screen, (0,0,0), False, center_points, 4)
+            pygame.draw.lines(screen, sprite.debug_color, False, center_points, 4)
 
 def draw_vision_line(screen, player):
     sprites = player.groups()[0].sprites()
@@ -163,21 +130,32 @@ def draw_vision_line(screen, player):
         if len(sprite.vision_line) > 1:
             center_points = []
             for point in sprite.vision_line:
-                if utilities.DEFAULT_LEVEL_SIZE.width - c[0] - sr.width / 2 < 0:
-                    x = sr.width - (utilities.DEFAULT_LEVEL_SIZE.width - point[0])
-                elif c[0] - sr.width / 2 > 0:
-                    x = point[0] - (c[0] - sr.width / 2)
-                else:
-                    x = point[0]
-                if utilities.DEFAULT_LEVEL_SIZE.height - c[1] - sr.height / 2 < 0:
-                    y = sr.height - (utilities.DEFAULT_LEVEL_SIZE.height - point[1])
-                elif c[1] - sr.height / 2 > 0:
-                    y = point[1] - (c[1] - sr.height / 2)
-                else:
-                    y = point[1]
+                x, y = get_player_relative_screen_coordinate(player, screen, point)
                 center_points.append((int(x), int(y)))
-            pygame.draw.lines(screen, (255,0,0), False, center_points, 4)
+            pygame.draw.lines(screen, sprite.debug_color, False, center_points, 4)
 
+def get_player_relative_screen_coordinate(player, screen, coord):
+    sr = screen.get_rect()
+    c = player.rect.center
+    if utilities.DEFAULT_LEVEL_SIZE.width - c[0] - sr.width / 2 < 0:
+        x = sr.width - (utilities.DEFAULT_LEVEL_SIZE.width - coord[0])
+    elif c[0] - sr.width / 2 > 0:
+        x = coord[0] - (c[0] - sr.width / 2)
+    else:
+        x = coord[0]
+    if utilities.DEFAULT_LEVEL_SIZE.height - c[1] - sr.height / 2 + 150 < 0:
+        y = sr.height - (utilities.DEFAULT_LEVEL_SIZE.height - coord[1]) - 150
+    elif c[1] - sr.height / 2 > 0:
+        y = coord[1] - (c[1] - sr.height / 2)
+    else:
+        y = coord[1]
+    return (x,y)
+
+def draw_player_interface(screen, player):
+    fraction_health = player.health[0] / player.health[1]
+    sr = screen.get_rect()
+    pygame.draw.rect(screen, (255,0,0), (sr.x + 50, sr.height - 80, int(sr.width * fraction_health - 100), 50))
+    pygame.draw.rect(screen, (128,128,128), (sr.x + 50, sr.height - 80, sr.width - 100, 50), 5)
 
 random.seed(utilities.seed)
 pygame.init()
@@ -318,6 +296,7 @@ class MainScene(Scene):
             ve = FONT.render(str(self.nr_loaded_sprites), True, pygame.Color('black'))
             screen.blit(ve, (10, 25))
         if not self.event_sprite.dead:
+            draw_player_interface(screen, self.event_sprite)
             if utilities.BOUNDING_BOXES:
                 draw_bounding_boxes(screen, self.event_sprite)
             if utilities.ENTITY_PATHS:

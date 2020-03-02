@@ -86,6 +86,7 @@ class LivingEntity(Entity):
         self.damage_color = "red"
         self.healing_color = "green"
         self.tiles = tiles
+        self.debug_color = random.choice(constants.DISTINCT_COLORS)
 
     def update(self, *args):
         super().update(*args)
@@ -212,9 +213,6 @@ class Enemy(LivingEntity):
         self.previous_acctack_cycle = 0
 
     def update(self,*args):
-        """
-        Basic movement towards the player.
-        """
         super().update(*args)
         if not self.dead:
             self._use_brain()
@@ -364,7 +362,7 @@ class Archer(Enemy):
             self.shooting_cooldown -= 1
 
     def _use_brain(self):
-        #manhaten distance lower then 600 stand still and shoot
+        #manhaten distance lower then 600 stand still and shoot and also check if there is a direct line of sight
         if utilities.VISION_LINE:
             self.vision_line = self.tiles.line_of_sight(self.bounding_box.center, self.player.bounding_box.center)[1]
         if abs(self.rect.x - self.player.rect.x) + abs(self.rect.y - self.player.rect.y) < self.shot_player_distance and\

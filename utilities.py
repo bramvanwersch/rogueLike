@@ -8,7 +8,7 @@ BOUNDING_BOXES = True
 NR_ENTITIES = True
 FPS = True
 ENTITY_PATHS = True
-VISION_LINE = True
+VISION_LINE = False
 
 #some global constants
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
