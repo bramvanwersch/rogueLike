@@ -4,10 +4,10 @@ from pygame.compat import geterror
 
 
 #test constant
-BOUNDING_BOXES = True
+BOUNDING_BOXES = False
 NR_ENTITIES = True
 FPS = True
-ENTITY_PATHS = True
+ENTITY_PATHS = False
 VISION_LINE = False
 
 #some global constants

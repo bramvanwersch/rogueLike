@@ -148,7 +148,9 @@ def get_player_relative_screen_coordinate(player, coord):
 
 def draw_player_interface(player, interface_image):
     fraction_health = player.health[0] / player.health[1]
-    # pygame.draw.rect(screen, (255,0,0), (sr.x + 200, sr.height - 80, int(sr.width * fraction_health - 300), 50))
+    fraction_xp = player.xp[0] / player.xp[1]
+    pygame.draw.rect(screen, (255,0,0), (160, sr.height - 100, int((sr.width - 600 - 160) * fraction_health), 50))
+    pygame.draw.rect(screen, (55, 255, 0), (160, sr.height - 40, int((sr.width - 600 - 160) * fraction_xp), 25))
     screen.blit(interface_image,(0, sr.height  - 150))
 
 def get_inventory_frame():
@@ -359,7 +361,7 @@ def run():
 
     while utilities.going:
         scene = scenes[utilities.scene_name]
-        utilities.GAME_TIME.tick(60)
+        utilities.GAME_TIME.tick(200)
         scene.handle_events(pygame.event.get())
         scene.update()
         scene.draw()

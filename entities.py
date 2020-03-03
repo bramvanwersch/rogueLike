@@ -67,7 +67,7 @@ class InteractingEntity(Entity):
         pass
 
 class LivingEntity(Entity):
-    def __init__(self, pos, *groups, health = 100, damage = 10, health_regen = 1, speed = 10, tiles = [], **kwargs):
+    def __init__(self, pos, *groups, health = 100, damage = 10, health_regen = 1, speed = 10, tiles = [], xp = 100, **kwargs):
         """
         Collection of methods for enemies and player alike
         """
@@ -77,6 +77,7 @@ class LivingEntity(Entity):
         self.health = [health, health]
         self.damage = 10
         #second regen
+        self.xp = xp
         self.health_regen = health_regen
         self._layer = utilities.PLAYER_LAYER1
         self.text_values = []
@@ -144,7 +145,7 @@ class LivingEntity(Entity):
         if self.health[0] > self.health[1]:
             self.health[0] = self.health[1]
         if self.health[0] <= 0:
-            self.dead = True
+            self._die()
 
     def move(self):
         if self.speedx > self.max_speed:
@@ -205,6 +206,9 @@ class LivingEntity(Entity):
         """
         self.text_values.append(TextSprite(text, self.rect.midtop, super().groups()[0], **kwargs))
 
+    def _die(self):
+        self.dead = True
+
 class Enemy(LivingEntity):
     def __init__(self, pos, player, *groups, **kwargs):
         LivingEntity.__init__(self, pos, *groups, **kwargs)
@@ -218,6 +222,10 @@ class Enemy(LivingEntity):
             self._use_brain()
             self._check_player_hit()
             self._check_self_hit()
+
+    def _die(self):
+        super()._die()
+        self.player.xp[0] += self.xp
 
     def _use_brain(self):
         if self.player.bounding_box.right < self.bounding_box.left:
@@ -410,7 +418,7 @@ class LinearProjectile(Enemy):
     def __init__(self, start_pos, player, *groups, p_type = "arrow", accuracy = 80, **kwargs):
         arrow = sheets["enemies"].image_at((0,0), scale =(50,25), color_key = (255,255,255))
         self.projectile_offset = pygame.Vector2(0,0)
-        Enemy.__init__(self, start_pos, player, *groups, image = arrow, **kwargs)
+        Enemy.__init__(self, start_pos, player, *groups, image = arrow, xp = 0, health = 10,**kwargs)
         self.accuracy = accuracy
         self.dest = list(self.player.bounding_box.center)
         self.rect.center = start_pos
@@ -473,14 +481,14 @@ class LinearProjectile(Enemy):
 
     def move(self):
         if any(self._check_collision(sprites = False)):
-            self.dead = True
+            self._die()
         self.rect.topleft += pygame.Vector2(self.speedx,self.speedy)
 
     def _check_player_hit(self):
         if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
             self.player.set_immune()
             self.player._change_health(- self.damage)
-            self.dead = True
+            self._die()
 
 class TextSprite(Entity):
     def __init__(self,text, pos, *groups, **kwargs):

@@ -46,6 +46,8 @@ class Player(LivingEntity):
              K_p, K_q, K_r, K_s, K_t, K_u, K_v, K_w, K_x, K_y, K_z]
         self.pressed_keys = {key : False for key in l}
         self.dodge_cd = 0
+        self.xp = [0,1000]
+        self.level = 1
 
     def _get_bounding_box(self):
         """
@@ -63,6 +65,8 @@ class Player(LivingEntity):
         super().update(*args)
         if self.dead:
             return
+        if self.xp[0] >= self.xp[1]:
+            self.next_level()
         self.handle_user_input()
         if self.flipped:
             self.right_arm.move_arm((self.rect.centerx - 5, self.rect.centery))
@@ -70,6 +74,10 @@ class Player(LivingEntity):
         elif not self.flipped:
             self.right_arm.move_arm((self.rect.centerx + 2, self.rect.centery + 2))
         self.animations()
+
+    def next_level(self):
+        self.level += 1
+        self.xp = [self.xp[0] - self.xp[1], int(self.xp[1] * 1.25)]
 
     def handle_user_input(self):
         """
