@@ -53,13 +53,12 @@ def load_parts():
             weaponparts[data["name"]] = weapon.ProjectilePart(data)
     return (meleeweaponparts, projectileweaponparts)
 
-def load_unload_sprites(player,screen):
+def load_unload_sprites(player):
     """
     Method for loading only sprites in an area around the player to reduce potential lag and other problems.
     """
     sprites = player.groups()[0].sprites()
     c = player.rect.center
-    sr = screen.get_rect()
     if c[0] + sr.width / 2 - utilities.DEFAULT_LEVEL_SIZE.width > 0:
         x = 1+ (c[0] + sr.width / 2 - utilities.DEFAULT_LEVEL_SIZE.width) / (sr.width / 2)
     elif sr.width / 2 - c[0]  > 0:
@@ -84,7 +83,7 @@ def load_unload_sprites(player,screen):
             visible_ents += 1
     return visible_ents
 
-def draw_bounding_boxes(screen, player):
+def draw_bounding_boxes(player):
     """
     Draw boxes around all tiles and sprites for debugging purposes.
     :param screen: the screen the game is being displayed on
@@ -92,50 +91,46 @@ def draw_bounding_boxes(screen, player):
     """
     sprites = player.groups()[0].sprites()
     c = player.rect.center
-    sr = screen.get_rect()
     for sprite in sprites:
         if sprite.visible:
             bb = sprite.bounding_box
-            x, y = get_player_relative_screen_coordinate(player, screen, bb.topleft)
+            x, y = get_player_relative_screen_coordinate(player, bb.topleft)
             if hasattr(sprite, "debug_color"):
                 pygame.draw.rect(screen, sprite.debug_color, (int(x), int(y), bb.width, bb.height), 5)
             else:
                 pygame.draw.rect(screen, (0,0,0), (int(x), int(y), bb.width, bb.height), 5)
     for tile in player.tiles.solid_tiles:
         bb = tile
-        x, y = get_player_relative_screen_coordinate(player, screen, tile.topleft)
+        x, y = get_player_relative_screen_coordinate(player, tile.topleft)
         pygame.draw.rect(screen, (0,0,0), (int(x), int(y), tile.width, tile.height), 5)
 
-def draw_path(screen, player):
+def draw_path(player):
     sprites = player.groups()[0].sprites()
     path_sprites = [sprite for sprite in sprites if hasattr(sprite, "path")]
     c = player.rect.center
-    sr = screen.get_rect()
     for sprite in path_sprites:
         if len(sprite.path) > 0:
             center_points = []
             player_tile = player.tiles[int(player.rect.centery / 100)][int(player.rect.centerx / 100)]
             enemy_tile = sprite.tiles[int(sprite.rect.centery / 100)][int(sprite.rect.centerx / 100)]
             for tile in [player_tile] + sprite.path + [enemy_tile]:
-                x, y = get_player_relative_screen_coordinate(player, screen, tile.center)
+                x, y = get_player_relative_screen_coordinate(player, tile.center)
                 center_points.append((int(x),int(y)))
             pygame.draw.lines(screen, sprite.debug_color, False, center_points, 4)
 
-def draw_vision_line(screen, player):
+def draw_vision_line(player):
     sprites = player.groups()[0].sprites()
     path_sprites = [sprite for sprite in sprites if hasattr(sprite, "vision_line")]
     c = player.rect.center
-    sr = screen.get_rect()
     for sprite in path_sprites:
         if len(sprite.vision_line) > 1:
             center_points = []
             for point in sprite.vision_line:
-                x, y = get_player_relative_screen_coordinate(player, screen, point)
+                x, y = get_player_relative_screen_coordinate(player, point)
                 center_points.append((int(x), int(y)))
             pygame.draw.lines(screen, sprite.debug_color, False, center_points, 4)
 
-def get_player_relative_screen_coordinate(player, screen, coord):
-    sr = screen.get_rect()
+def get_player_relative_screen_coordinate(player, coord):
     c = player.rect.center
     if utilities.DEFAULT_LEVEL_SIZE.width - c[0] - sr.width / 2 < 0:
         x = sr.width - (utilities.DEFAULT_LEVEL_SIZE.width - coord[0])
@@ -151,18 +146,41 @@ def get_player_relative_screen_coordinate(player, screen, coord):
         y = coord[1]
     return (x,y)
 
-def draw_player_interface(screen, player):
+def draw_player_interface(player, interface_image):
     fraction_health = player.health[0] / player.health[1]
-    sr = screen.get_rect()
-    pygame.draw.rect(screen, (255,0,0), (sr.x + 50, sr.height - 80, int(sr.width * fraction_health - 100), 50))
-    pygame.draw.rect(screen, (128,128,128), (sr.x + 50, sr.height - 80, sr.width - 100, 50), 5)
+    # pygame.draw.rect(screen, (255,0,0), (sr.x + 200, sr.height - 80, int(sr.width * fraction_health - 300), 50))
+    screen.blit(interface_image,(0, sr.height  - 150))
+
+def get_inventory_frame():
+    surf = pygame.Surface((sr.width, 150))
+    surf.fill((255,255,255))
+    #character display
+    pygame.draw.rect(surf, (128,128,128), (5, 5, 135, 135), 5)
+    #heath bar
+    pygame.draw.rect(surf, (128,128,128), (160, 50, sr.width - 600 - 160, 50), 3)
+
+    #xp bar
+    width = round((sr.width - 600 - 160) / 10)
+    for x in range(160, sr.width - 610, width):
+        pygame.draw.rect(surf, (128, 128, 128), (x, 110, width, 25), 3)
+
+    #item display
+    x += width + 20
+    pygame.draw.rect(surf, (128, 128, 128), (x, 5, 135, 135), 5)
+    x += 145
+    pygame.draw.rect(surf, (128, 128, 128), (x, 5, 135, 135), 5)
+    x += 145
+    pygame.draw.rect(surf, (128, 128, 128), (x, 5, 135, 135), 5)
+    x += 145
+    pygame.draw.rect(surf, (128, 128, 128), (x, 5, 135, 135), 5)
+    surf.set_colorkey((255,255,255), pygame.RLEACCEL)
+    return surf.convert_alpha()
 
 random.seed(utilities.seed)
 pygame.init()
 FONT = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 20)
 
-screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height),
-                                 DOUBLEBUF)  # | FULLSCREEN)
+screen = pygame.display.set_mode((utilities.SCREEN_SIZE.width, utilities.SCREEN_SIZE.height),DOUBLEBUF)  # | FULLSCREEN)
 screen.set_alpha(None)
 sr = screen.get_rect()
 game_images.load()
@@ -269,6 +287,7 @@ class MainScene(Scene):
     def __init__(self, sprites, event_sprite):
         Scene.__init__(self, sprites, event_sprite)
         self.nr_loaded_sprites = 0
+        self.inventory_frame = get_inventory_frame()
 
     def handle_events(self, events):
         player_events = []
@@ -284,7 +303,7 @@ class MainScene(Scene):
                 player_events.append(event)
         self.event_sprite.events = player_events
         if not self.event_sprite.dead:
-            self.nr_loaded_sprites = load_unload_sprites(self.event_sprite, screen)
+            self.nr_loaded_sprites = load_unload_sprites(self.event_sprite)
 
     def draw(self):
         screen.fill([0, 0, 0])
@@ -296,13 +315,13 @@ class MainScene(Scene):
             ve = FONT.render(str(self.nr_loaded_sprites), True, pygame.Color('black'))
             screen.blit(ve, (10, 25))
         if not self.event_sprite.dead:
-            draw_player_interface(screen, self.event_sprite)
+            draw_player_interface(self.event_sprite, self.inventory_frame)
             if utilities.BOUNDING_BOXES:
-                draw_bounding_boxes(screen, self.event_sprite)
+                draw_bounding_boxes(self.event_sprite)
             if utilities.ENTITY_PATHS:
-                draw_path(screen, self.event_sprite)
+                draw_path(self.event_sprite)
             if utilities.VISION_LINE:
-                draw_vision_line(screen, self.event_sprite)
+                draw_vision_line(self.event_sprite)
 
 class PauseScene(Scene):
     def __init__(self, sprites, event_sprite):
