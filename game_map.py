@@ -7,7 +7,7 @@ MAX_LEAF_SIZE = 10
 #binary space partitioning
 def build_map(wheights = [1]):
     did_split = True
-    leafs = [Leaf((0,0),(int((utilities.DEFAULT_LEVEL_SIZE.width - 400) / 100), int((utilities.DEFAULT_LEVEL_SIZE.height - 400) / 100)))]
+    leafs = [Leaf((0,0),(int((utilities.DEFAULT_LEVEL_SIZE.width - 200) / 100), int((utilities.DEFAULT_LEVEL_SIZE.height - 200) / 100)))]
     while did_split:
         did_split = False
         for l in leafs:
@@ -23,24 +23,25 @@ def build_map(wheights = [1]):
     leafs[0].create_blob(wheighted_array)
     final_map = leafs[0].get_map()
     for i, row in enumerate(final_map):
-        final_map[i] = [1,0] + row + [0,1]
-    final_map = [[1]* len(final_map[0]),[1]+ [0]* (len(final_map[0]) -2) + [1]] + final_map + [[1]+ [0]* (len(final_map[0]) -2) + [1],[1]* len(final_map[0])]
+        final_map[i] = [1] + row + [1]
+    final_map = [[1]* len(final_map[0])] + final_map + [[1]* len(final_map[0])]
     return determine_pictures(final_map)
 
 def determine_pictures(game_map):
+    picture_map = [[0 for x in range(len(game_map[0]))] for y in range(len(game_map))]
     for y, row in enumerate(game_map):
         for x, number in enumerate(row):
             if number == 0:
                 continue
             else:
                 st = [0,0,0,0]
-                if y - 1 < 0 or game_map[y -1][x] != 0:
+                if y - 1 < 0 or game_map[y -1][x] == number:
                     st[0] = 1
-                if x + 1 >= len(row) or game_map[y][x+1] != 0:
+                if x + 1 >= len(row) or game_map[y][x+1] == number:
                     st[1] = 1
-                if y + 1 >= len(game_map) or game_map[y + 1][x] != 0:
+                if y + 1 >= len(game_map) or game_map[y + 1][x] == number:
                     st[2] = 1
-                if x - 1 < 0 or game_map[y][x - 1] != 0:
+                if x - 1 < 0 or game_map[y][x - 1] == number:
                     st[3] = 1
                 name = get_picture_code(st)
                 # check for corner cases
@@ -88,8 +89,8 @@ def determine_pictures(game_map):
                             and game_map[y + 1][x + 1] == 0 and game_map[y - 1][x] == 0:
                         name = "tbrc"
 
-                game_map[y][x] = name + str(number)
-    return game_map
+                picture_map[y][x] = name + str(number)
+    return picture_map
 
 def get_picture_code(st):
     if st == [1,1,0,0]:
