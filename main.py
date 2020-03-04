@@ -4,9 +4,6 @@ import weapon, utilities, entities, stages, camera, player_methods, menu_methods
 from pygame.locals import *
 from pygame.compat import geterror
 
-os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0,40)
-
-
 def get_random_weapon(parts, melee = True):
     """
     Gives a random weapon randoming from a pool of random parts. This is different for melee and projectile weapons
@@ -56,6 +53,7 @@ def load_parts():
 def load_unload_sprites(player):
     """
     Method for loading only sprites in an area around the player to reduce potential lag and other problems.
+    :param player: the player object
     """
     sprites = player.groups()[0].sprites()
     c = player.rect.center
@@ -87,7 +85,7 @@ def draw_bounding_boxes(player):
     """
     Draw boxes around all tiles and sprites for debugging purposes.
     :param screen: the screen the game is being displayed on
-    :param player: the player that is the center of the screen
+    :param player: the player object
     """
     sprites = player.groups()[0].sprites()
     c = player.rect.center
@@ -105,20 +103,27 @@ def draw_bounding_boxes(player):
         pygame.draw.rect(screen, (0,0,0), (int(x), int(y), tile.width, tile.height), 5)
 
 def draw_path(player):
+    """
+    Draw the pathfinding path the sprite has calculated at the current moment between itself and its destination
+    :param player: the player object
+    """
     sprites = player.groups()[0].sprites()
     path_sprites = [sprite for sprite in sprites if hasattr(sprite, "path")]
     c = player.rect.center
     for sprite in path_sprites:
         if len(sprite.path) > 0:
             center_points = []
-            player_tile = player.tiles[int(player.rect.centery / 100)][int(player.rect.centerx / 100)]
             enemy_tile = sprite.tiles[int(sprite.rect.centery / 100)][int(sprite.rect.centerx / 100)]
-            for tile in [player_tile] + sprite.path + [enemy_tile]:
+            for tile in sprite.path + [enemy_tile]:
                 x, y = get_player_relative_screen_coordinate(player, tile.center)
                 center_points.append((int(x),int(y)))
             pygame.draw.lines(screen, sprite.debug_color, False, center_points, 4)
 
 def draw_vision_line(player):
+    """
+    Draw a line that indicates the vision line of sprites that have a vision tracking attribute.
+    :param player: the player object
+    """
     sprites = player.groups()[0].sprites()
     path_sprites = [sprite for sprite in sprites if hasattr(sprite, "vision_line")]
     c = player.rect.center
@@ -131,6 +136,13 @@ def draw_vision_line(player):
             pygame.draw.lines(screen, sprite.debug_color, False, center_points, 4)
 
 def get_player_relative_screen_coordinate(player, coord):
+    """
+    Calculate a coordinate that is relative to the player position on the current dimensions of the screen. This helps
+    placing debugging boxes and lines at the correct coordinates relative to the coordinates of the player.
+    :param player: the player object
+    :param coord: the coordinate that has to be calculated relative to the player
+    :return: a coordinate relative to the player on the current screen.
+    """
     c = player.rect.center
     if utilities.DEFAULT_LEVEL_SIZE.width - c[0] - sr.width / 2 < 0:
         x = sr.width - (utilities.DEFAULT_LEVEL_SIZE.width - coord[0])
@@ -147,6 +159,11 @@ def get_player_relative_screen_coordinate(player, coord):
     return (x,y)
 
 def draw_player_interface(player, interface_image):
+    """
+    Draws the interface for the player that changes based on the players current stats.
+    :param player: the player object of the game
+    :param interface_image: the image that is the framework of the playe rinterface
+    """
     fraction_health = player.health[0] / player.health[1]
     fraction_xp = player.xp[0] / player.xp[1]
     pygame.draw.rect(screen, (255,0,0), (160, sr.height - 100, int((sr.width - 600 - 160) * fraction_health), 50))
@@ -154,6 +171,11 @@ def draw_player_interface(player, interface_image):
     screen.blit(interface_image,(0, sr.height  - 150))
 
 def get_inventory_frame():
+    """
+    Function for creating a surface that is the general frame of the player interface. This is created once to reduce
+    blit and draw calls.
+    :return: a pygame.Surface object.
+    """
     surf = pygame.Surface((sr.width, 150))
     surf.fill((255,255,255))
     #character display
@@ -177,6 +199,8 @@ def get_inventory_frame():
     pygame.draw.rect(surf, (128, 128, 128), (x, 5, 135, 135), 5)
     surf.set_colorkey((255,255,255), pygame.RLEACCEL)
     return surf.convert_alpha()
+
+os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0,40)
 
 random.seed(utilities.seed)
 pygame.init()
