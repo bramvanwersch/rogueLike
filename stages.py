@@ -112,7 +112,7 @@ class ForestStage(BasicStage):
     """
     def __init__(self, updater, player, **kwargs):
         BasicStage.__init__(self, updater, player, **kwargs)
-        self.stage_map = game_map.build_map(wheights = [8,2])
+        self.stage_map = game_map.build_room(wheights = [8, 2])
         self.background_images = sheets["forest"].images_at((208,16),(224,16),(240,16), (0,32), scale = (100,100))
 
         #create a dictionary with named tile variant to make an easy way of creating the map.

@@ -46,6 +46,14 @@ seed = random.randint(0,1000)
 scene_name = "Main"
 going = True
 
+def fancy_matrix_print(matrix):
+    s = ""
+    for row in matrix:
+        for value in row:
+          s += str(value) + " "
+        s += "\n"
+    print(s)
+
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)
     try:

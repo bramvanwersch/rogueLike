@@ -4,8 +4,29 @@ import utilities
 MIN_LEAF_SIZE = 4
 MAX_LEAF_SIZE = 10
 
+def build_map(size):
+    #TODO add things to make the randomisation more random, equal x y sides and chortest path direction
+    game_map = [[0 for _ in range(size[0])] for _ in range(size[1])]
+    scx, scy = random.randint(0, size[0] - 1), random.randint(0, int(size[1] * (1/3)))
+    ecx, ecy = random.randint(0, size[0] - 1), size[1] - 1 - random.randint(0, int(size[1] * (1/3)))
+    game_map[scy][scx] = "S"
+    game_map[ecy][ecx] = "E"
+    #generate simplest path
+    dx = ecx - scx
+    dy = ecy - scy
+    for i in range(1,abs(dx) + 1):
+        if dx < 0:
+            i *= -1
+        game_map[scy][scx + i] = 1
+    for i in range(1,abs(dy)):
+        if dy < 0:
+            i *= -1
+        game_map[scy + i][scx + dx] = 1
+    utilities.fancy_matrix_print(game_map)
+
+
 #binary space partitioning
-def build_map(wheights = [1]):
+def build_room(wheights = [1]):
     did_split = True
     leafs = [Leaf((0,0),(int((utilities.DEFAULT_LEVEL_SIZE.width - 200) / 100), int((utilities.DEFAULT_LEVEL_SIZE.height - 200) / 100)))]
     while did_split:
@@ -27,66 +48,76 @@ def build_map(wheights = [1]):
     final_map = [[1]* len(final_map[0])] + final_map + [[1]* len(final_map[0])]
     return determine_pictures(final_map)
 
-def determine_pictures(game_map):
-    picture_map = [[0 for x in range(len(game_map[0]))] for y in range(len(game_map))]
-    for y, row in enumerate(game_map):
+def add_path(room_map):
+    pass
+
+def determine_pictures(room_map):
+    """
+    Determine the pictures that should go in place for each generated tile. Add numbers that determine the texture of
+    the pictures
+    :param room_map: a matrix that represents the game map. 0 is no tile 1 and higher is a specific texture tile.
+    :return: a matrix of the same dimensions now filled  in with string where there were numbers other then zero for the
+    texture of each of these tiles.
+    """
+    picture_map = [[0 for x in range(len(room_map[0]))] for y in range(len(room_map))]
+    for y, row in enumerate(room_map):
         for x, number in enumerate(row):
             if number == 0:
                 continue
             else:
                 st = [0,0,0,0]
-                if y - 1 < 0 or game_map[y -1][x] == number:
+                if y - 1 < 0 or room_map[y - 1][x] == number:
                     st[0] = 1
-                if x + 1 >= len(row) or game_map[y][x+1] == number:
+                if x + 1 >= len(row) or room_map[y][x + 1] == number:
                     st[1] = 1
-                if y + 1 >= len(game_map) or game_map[y + 1][x] == number:
+                if y + 1 >= len(room_map) or room_map[y + 1][x] == number:
                     st[2] = 1
-                if x - 1 < 0 or game_map[y][x - 1] == number:
+                if x - 1 < 0 or room_map[y][x - 1] == number:
                     st[3] = 1
                 name = get_picture_code(st)
                 # check for corner cases
                 if name == "m":
-                    if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(game_map) and x + 1 < len(row)\
-                            and game_map[y-1][x-1] == 0 and game_map[y+1][x+1] == 0:
+                    if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_map) and x + 1 < len(row)\
+                            and room_map[y - 1][x - 1] == 0 and room_map[y + 1][x + 1] == 0:
                         name = "tbd"
-                    elif y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(game_map) and x + 1 < len(row) \
-                            and (game_map[y - 1][x + 1] == 0) and (game_map[y + 1][x - 1] == 0):
+                    elif y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_map) and x + 1 < len(row) \
+                            and (room_map[y - 1][x + 1] == 0) and (room_map[y + 1][x - 1] == 0):
                         name = "btd"
-                    elif y + 1 < len(game_map) and x - 1 >= 0 and (game_map[y+1][x-1] == 0):
+                    elif y + 1 < len(room_map) and x - 1 >= 0 and (room_map[y + 1][x - 1] == 0):
                         name = "blic"
-                    elif y + 1 < len(game_map) and x + 1 < len(row) and (game_map[y+1][x+1] == 0):
+                    elif y + 1 < len(room_map) and x + 1 < len(row) and (room_map[y + 1][x + 1] == 0):
                         name = "bric"
-                    elif y - 1 >= 0 and x + 1 < len(row) and (game_map[y - 1][x + 1] == 0):
+                    elif y - 1 >= 0 and x + 1 < len(row) and (room_map[y - 1][x + 1] == 0):
                         name = "tric"
-                    elif y - 1 >= 0 and x - 1 >= 0 and (game_map[y-1][x-1] == 0):
+                    elif y - 1 >= 0 and x - 1 >= 0 and (room_map[y - 1][x - 1] == 0):
                         name = "tlic"
                 elif name == "rs":
                     if y - 1 >= 0 and x - 1 >= 0 and x + 1 < len(row) \
-                         and game_map[y - 1][x - 1] == 0 and game_map[y][x + 1] == 0:
+                         and room_map[y - 1][x - 1] == 0 and room_map[y][x + 1] == 0:
                         name = "rtlc"
-                    elif y + 1 < len(game_map) and x - 1 >= 0 and x + 1 < len(row) \
-                        and game_map[y + 1][x - 1] == 0 and game_map[y][x + 1] == 0:
+                    elif y + 1 < len(room_map) and x - 1 >= 0 and x + 1 < len(row) \
+                        and room_map[y + 1][x - 1] == 0 and room_map[y][x + 1] == 0:
                         name = "rblc"
                 elif name == "bs":
-                    if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(game_map)\
-                        and game_map[y-1][x-1] == 0 and game_map[y -1][x] == 0:
+                    if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_map)\
+                        and room_map[y - 1][x - 1] == 0 and room_map[y - 1][x] == 0:
                         name = "btlc"
-                    elif y - 1 >= 0 and x + 1 < len(row) and y + 1 < len(game_map)\
-                        and game_map[y-1][x+1] == 0 and game_map[y -1][x] == 0:
+                    elif y - 1 >= 0 and x + 1 < len(row) and y + 1 < len(room_map)\
+                        and room_map[y - 1][x + 1] == 0 and room_map[y - 1][x] == 0:
                         name = "btrc"
                 elif name == "ls":
                     if y - 1 >= 0 and x - 1 >= 0 and x + 1 < len(row)\
-                        and game_map[y-1][x+1] == 0 and game_map[y][x - 1] == 0:
+                        and room_map[y - 1][x + 1] == 0 and room_map[y][x - 1] == 0:
                         name = "ltrc"
-                    elif y + 1 < len(game_map) and x - 1 >= 0 and x + 1 < len(row) \
-                            and game_map[y + 1][x + 1] == 0 and game_map[y][x - 1] == 0:
+                    elif y + 1 < len(room_map) and x - 1 >= 0 and x + 1 < len(row) \
+                            and room_map[y + 1][x + 1] == 0 and room_map[y][x - 1] == 0:
                         name = "lbrc"
                 elif name == "ts":
-                    if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(game_map)\
-                        and game_map[y+1][x-1] == 0 and game_map[y - 1][x] == 0:
+                    if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_map)\
+                        and room_map[y + 1][x - 1] == 0 and room_map[y - 1][x] == 0:
                         name = "tblc"
-                    elif y - 1 >= 0 and x - 1 < len(row) and y + 1 < len(game_map) \
-                            and game_map[y + 1][x + 1] == 0 and game_map[y - 1][x] == 0:
+                    elif y - 1 >= 0 and x - 1 < len(row) and y + 1 < len(room_map) \
+                            and room_map[y + 1][x + 1] == 0 and room_map[y - 1][x] == 0:
                         name = "tbrc"
 
                 picture_map[y][x] = name + str(number)
@@ -179,7 +210,4 @@ class Leaf:
         return self.leaf_map
 
 if __name__ == "__main__":
-    leafs = build_map()
-    print("final:")
-    print(len(leafs[0]), len(leafs))
-    print(leafs)
+    build_map((5,5))
