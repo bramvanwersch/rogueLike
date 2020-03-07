@@ -3,14 +3,15 @@ import utilities
 
 MIN_LEAF_SIZE = 4
 MAX_LEAF_SIZE = 10
+MAX_ROOMS = 12
 
 def build_map(size):
     #TODO add things to make the randomisation more random, equal x y sides and chortest path direction
     game_map = [[0 for _ in range(size[0])] for _ in range(size[1])]
     scx, scy = random.randint(0, size[0] - 1), random.randint(0, int(size[1] * (1/3)))
     ecx, ecy = random.randint(0, size[0] - 1), size[1] - 1 - random.randint(0, int(size[1] * (1/3)))
-    game_map[scy][scx] = "S"
-    game_map[ecy][ecx] = "E"
+    game_map[scy][scx] = 2
+    game_map[ecy][ecx] = -1
     #generate simplest path
     dx = ecx - scx
     dy = ecy - scy
@@ -22,6 +23,51 @@ def build_map(size):
         if dy < 0:
             i *= -1
         game_map[scy + i][scx + dx] = 1
+    total_rooms = 0
+    for row in game_map:
+        for value in row:
+            if value != 0:
+                total_rooms += 1
+    # draw random points on the map and connect to existing rooms while there are less then certain amount of rooms
+    assert MAX_ROOMS <= size[0] * size[1]
+    while total_rooms < MAX_ROOMS:
+        point = (random.randint(0, size[0] -1),random.randint(0, size[1] -1))
+        extra_rooms = 1
+        if game_map[point[1]][point[0]] == 0:
+            game_map[point[1]][point[0]] = -9
+            print(point)
+            #while not connected
+            while True:
+                surrounding_points = []
+                if point[1] - 1 >= 0:
+                    if game_map[point[1] -1][point[0]] > 0:
+                        break
+                    elif game_map[point[1] -1][point[0]] == 0:
+                        surrounding_points.append((point[0], point[1] - 1))
+                if point[0] + 1 < len(game_map[0]):
+                    if game_map[point[1]][point[0] + 1] > 0:
+                        break
+                    elif game_map[point[1]][point[0] + 1] == 0:
+                        surrounding_points.append((point[0] + 1, point[1]))
+                if point[1] + 1 < len(game_map):
+                    if game_map[point[1] + 1][point[0]] > 0:
+                        break
+                    elif game_map[point[1] +1][point[0]] == 0:
+                        surrounding_points.append((point[0], point[1] + 1))
+                if point[0] - 1 >= 0:
+                    if game_map[point[1]][point[0] - 1] > 0:
+                        break
+                    elif game_map[point[1]][point[0] - 1] == 0:
+                        surrounding_points.append((point[0] - 1, point[1]))
+                point = random.choice(surrounding_points)
+                game_map[point[1]][point[0]] = -9
+                extra_rooms += 1
+            #replace all -9 by 1s
+            for y, row in enumerate(game_map):
+                for x, value in enumerate(row):
+                    if value == -9:
+                        game_map[y][x] = 1
+        total_rooms += extra_rooms
     utilities.fancy_matrix_print(game_map)
 
 
