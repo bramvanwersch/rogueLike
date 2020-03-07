@@ -35,7 +35,6 @@ def build_map(size):
         extra_rooms = 1
         if game_map[point[1]][point[0]] == 0:
             game_map[point[1]][point[0]] = -9
-            print(point)
             #while not connected
             while True:
                 surrounding_points = []
@@ -59,6 +58,8 @@ def build_map(size):
                         break
                     elif game_map[point[1]][point[0] - 1] == 0:
                         surrounding_points.append((point[0] - 1, point[1]))
+                if not surrounding_points:
+                    break
                 point = random.choice(surrounding_points)
                 game_map[point[1]][point[0]] = -9
                 extra_rooms += 1

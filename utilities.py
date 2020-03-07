@@ -50,7 +50,7 @@ def fancy_matrix_print(matrix):
     s = ""
     for row in matrix:
         for value in row:
-          s += str(value) + " "
+          s += "{:>3}".format(value)
         s += "\n"
     print(s)
 
