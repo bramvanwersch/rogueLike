@@ -1,11 +1,14 @@
-import pygame, random, numpy
-import utilities
+import pygame, random
+from pygame.locals import *
+import utilities, entities, game_map, prop_entities
+from game_images import sheets
+import numpy as np
 
 MIN_LEAF_SIZE = 4
 MAX_LEAF_SIZE = 10
 MAX_ROOMS = 12
 
-def build_map(size):
+def build_map(size, **kwargs):
     #TODO add things to make the randomisation more random, equal x y sides and chortest path direction
     game_map = [[0 for _ in range(size[0])] for _ in range(size[1])]
     scx, scy = random.randint(0, size[0] - 1), random.randint(0, int(size[1] * (1/3)))
@@ -63,17 +66,38 @@ def build_map(size):
                 point = random.choice(surrounding_points)
                 game_map[point[1]][point[0]] = -9
                 extra_rooms += 1
-            #replace all -9 by 1s
+            #replace all -9s by 1s
             for y, row in enumerate(game_map):
                 for x, value in enumerate(row):
                     if value == -9:
                         game_map[y][x] = 1
         total_rooms += extra_rooms
-    utilities.fancy_matrix_print(game_map)
+    # create room layouts
+    map_dict = {}
+    for y, row in enumerate(game_map):
+        for x, value in enumerate(row):
+            if value == 1:
+                room_map = build_room_map(kwargs["wheights"])
+                room = Room(pygame.Rect(x,y, int(utilities.DEFAULT_LEVEL_SIZE.width / 100),
+                                        int(utilities.DEFAULT_LEVEL_SIZE.height)), value,
+                            get_connecting_rooms(game_map, (x,y)), room_map, **kwargs)
+                map_dict["{} {}".format(x,y)] = room
+    return map_dict
 
+def get_connecting_rooms(game_map, point):
+    surrounding_points = [False, False, False, False]
+    if point[1] - 1 >= 0:
+        surrounding_points[0] = (point[0], point[1] - 1)
+    if point[0] + 1 < len(game_map[0]):
+        surrounding_points[1] = (point[0] + 1, point[1])
+    if point[1] + 1 < len(game_map):
+        surrounding_points[2] = (point[0], point[1] + 1)
+    if point[0] - 1 >= 0:
+        surrounding_points[3] = (point[0] -1, point[1])
+    return surrounding_points
 
-#binary space partitioning
-def build_room(wheights = [1]):
+#split up a room using binary space partinioning and create a randomized room
+def build_room_map(wheights = [1]):
     did_split = True
     leafs = [Leaf((0,0),(int((utilities.DEFAULT_LEVEL_SIZE.width - 200) / 100), int((utilities.DEFAULT_LEVEL_SIZE.height - 200) / 100)))]
     while did_split:
@@ -90,107 +114,522 @@ def build_room(wheights = [1]):
     wheighted_array = [number for row in wheighted_array for number in row]
     leafs[0].create_blob(wheighted_array)
     final_map = leafs[0].get_map()
+    #create border around map.
     for i, row in enumerate(final_map):
         final_map[i] = [1] + row + [1]
     final_map = [[1]* len(final_map[0])] + final_map + [[1]* len(final_map[0])]
-    return determine_pictures(final_map)
+    return final_map
 
-def add_path(room_map):
-    pass
+class Room:
+    def __init__(self, rect, room_type, connections, room_layout, **kwargs):
+        self.rect = rect
+        self.room_type = room_type
+        #array of max lenght 4 containing false or a coordinate
+        self.connections = connections
+        #plan the room containing objects in the surrounding
+        self.room_layout = self.determine_pictures(room_layout)
+        self.add_path()
+        self.tiles = TileGroup()
+        self._create_tiles(kwargs["tile_images"],kwargs["solid_tile_names"])
+        self.propnmbr = 50
+        self.background_image = self.__create_background_image(kwargs["background_images"])
+        self.room_image = self.__create_props_and_tiles_image(kwargs["props"])
 
-def determine_pictures(room_map):
-    """
-    Determine the pictures that should go in place for each generated tile. Add numbers that determine the texture of
-    the pictures
-    :param room_map: a matrix that represents the game map. 0 is no tile 1 and higher is a specific texture tile.
-    :return: a matrix of the same dimensions now filled  in with string where there were numbers other then zero for the
-    texture of each of these tiles.
-    """
-    picture_map = [[0 for x in range(len(room_map[0]))] for y in range(len(room_map))]
-    for y, row in enumerate(room_map):
-        for x, number in enumerate(row):
-            if number == 0:
-                continue
-            else:
-                st = [0,0,0,0]
-                if y - 1 < 0 or room_map[y - 1][x] == number:
-                    st[0] = 1
-                if x + 1 >= len(row) or room_map[y][x + 1] == number:
-                    st[1] = 1
-                if y + 1 >= len(room_map) or room_map[y + 1][x] == number:
-                    st[2] = 1
-                if x - 1 < 0 or room_map[y][x - 1] == number:
-                    st[3] = 1
-                name = get_picture_code(st)
-                # check for corner cases
-                if name == "m":
-                    if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_map) and x + 1 < len(row)\
-                            and room_map[y - 1][x - 1] == 0 and room_map[y + 1][x + 1] == 0:
-                        name = "tbd"
-                    elif y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_map) and x + 1 < len(row) \
-                            and (room_map[y - 1][x + 1] == 0) and (room_map[y + 1][x - 1] == 0):
-                        name = "btd"
-                    elif y + 1 < len(room_map) and x - 1 >= 0 and (room_map[y + 1][x - 1] == 0):
-                        name = "blic"
-                    elif y + 1 < len(room_map) and x + 1 < len(row) and (room_map[y + 1][x + 1] == 0):
-                        name = "bric"
-                    elif y - 1 >= 0 and x + 1 < len(row) and (room_map[y - 1][x + 1] == 0):
-                        name = "tric"
-                    elif y - 1 >= 0 and x - 1 >= 0 and (room_map[y - 1][x - 1] == 0):
-                        name = "tlic"
-                elif name == "rs":
-                    if y - 1 >= 0 and x - 1 >= 0 and x + 1 < len(row) \
-                         and room_map[y - 1][x - 1] == 0 and room_map[y][x + 1] == 0:
-                        name = "rtlc"
-                    elif y + 1 < len(room_map) and x - 1 >= 0 and x + 1 < len(row) \
-                        and room_map[y + 1][x - 1] == 0 and room_map[y][x + 1] == 0:
-                        name = "rblc"
-                elif name == "bs":
-                    if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_map)\
-                        and room_map[y - 1][x - 1] == 0 and room_map[y - 1][x] == 0:
-                        name = "btlc"
-                    elif y - 1 >= 0 and x + 1 < len(row) and y + 1 < len(room_map)\
-                        and room_map[y - 1][x + 1] == 0 and room_map[y - 1][x] == 0:
-                        name = "btrc"
-                elif name == "ls":
-                    if y - 1 >= 0 and x - 1 >= 0 and x + 1 < len(row)\
-                        and room_map[y - 1][x + 1] == 0 and room_map[y][x - 1] == 0:
-                        name = "ltrc"
-                    elif y + 1 < len(room_map) and x - 1 >= 0 and x + 1 < len(row) \
-                            and room_map[y + 1][x + 1] == 0 and room_map[y][x - 1] == 0:
-                        name = "lbrc"
-                elif name == "ts":
-                    if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_map)\
-                        and room_map[y + 1][x - 1] == 0 and room_map[y - 1][x] == 0:
-                        name = "tblc"
-                    elif y - 1 >= 0 and x - 1 < len(row) and y + 1 < len(room_map) \
-                            and room_map[y + 1][x + 1] == 0 and room_map[y - 1][x] == 0:
-                        name = "tbrc"
+    def add_path(self):
+        #middle of room
+        xl, yl = round(self.rect.width / 2),round(self.rect.height / 2)
+        target = (xl, yl)
+        y0,x0 = 0,0
+        xdir = True
+        for num, coord in enumerate(self.connections):
+            if coord:
+                #setting the restrictions for choosing path
+                if num in [1,3]:
+                    yl = self.rect.height
+                    if num == 1:
+                        x0 = xl
+                elif num in [0,2]:
+                    xl = self.rect.width
+                    xdir = False
+                    if num == 2:
+                        y0 = yl
+                ncurves = random.choice([0,2,4,6])
+                point = (random.randint(x0, x0 + xl), random.randint(y0, y0 + yl))
 
-                picture_map[y][x] = name + str(number)
-    return picture_map
+    def determine_pictures(self, room_layout):
+        """
+        Determine the pictures that should go in place for each generated tile. Add numbers that determine the texture of
+        the pictures
+        :param room_map: a matrix that represents the game map. 0 is no tile 1 and higher is a specific texture tile.
+        :return: a matrix of the same dimensions now filled  in with string where there were numbers other then zero for the
+        texture of each of these tiles.
+        """
+        picture_map = [[0 for x in range(len(room_layout[0]))] for y in range(len(room_layout))]
+        for y, row in enumerate(room_layout):
+            for x, number in enumerate(row):
+                if number == 0:
+                    continue
+                else:
+                    st = [0, 0, 0, 0]
+                    if y - 1 < 0 or room_layout[y - 1][x] == number:
+                        st[0] = 1
+                    if x + 1 >= len(row) or room_layout[y][x + 1] == number:
+                        st[1] = 1
+                    if y + 1 >= len(room_layout) or room_layout[y + 1][x] == number:
+                        st[2] = 1
+                    if x - 1 < 0 or room_layout[y][x - 1] == number:
+                        st[3] = 1
+                    name = self.get_picture_code(st)
+                    # check for corner cases
+                    if name == "m":
+                        if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_layout) and x + 1 < len(row) \
+                                and room_layout[y - 1][x - 1] == 0 and room_layout[y + 1][x + 1] == 0:
+                            name = "tbd"
+                        elif y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_layout) and x + 1 < len(row) \
+                                and (room_layout[y - 1][x + 1] == 0) and (room_layout[y + 1][x - 1] == 0):
+                            name = "btd"
+                        elif y + 1 < len(room_layout) and x - 1 >= 0 and (room_layout[y + 1][x - 1] == 0):
+                            name = "blic"
+                        elif y + 1 < len(room_layout) and x + 1 < len(row) and (room_layout[y + 1][x + 1] == 0):
+                            name = "bric"
+                        elif y - 1 >= 0 and x + 1 < len(row) and (room_layout[y - 1][x + 1] == 0):
+                            name = "tric"
+                        elif y - 1 >= 0 and x - 1 >= 0 and (room_layout[y - 1][x - 1] == 0):
+                            name = "tlic"
+                    elif name == "rs":
+                        if y - 1 >= 0 and x - 1 >= 0 and x + 1 < len(row) \
+                                and room_layout[y - 1][x - 1] == 0 and room_layout[y][x + 1] == 0:
+                            name = "rtlc"
+                        elif y + 1 < len(room_layout) and x - 1 >= 0 and x + 1 < len(row) \
+                                and room_layout[y + 1][x - 1] == 0 and room_layout[y][x + 1] == 0:
+                            name = "rblc"
+                    elif name == "bs":
+                        if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_layout) \
+                                and room_layout[y - 1][x - 1] == 0 and room_layout[y - 1][x] == 0:
+                            name = "btlc"
+                        elif y - 1 >= 0 and x + 1 < len(row) and y + 1 < len(room_layout) \
+                                and room_layout[y - 1][x + 1] == 0 and room_layout[y - 1][x] == 0:
+                            name = "btrc"
+                    elif name == "ls":
+                        if y - 1 >= 0 and x - 1 >= 0 and x + 1 < len(row) \
+                                and room_layout[y - 1][x + 1] == 0 and room_layout[y][x - 1] == 0:
+                            name = "ltrc"
+                        elif y + 1 < len(room_layout) and x - 1 >= 0 and x + 1 < len(row) \
+                                and room_layout[y + 1][x + 1] == 0 and room_layout[y][x - 1] == 0:
+                            name = "lbrc"
+                    elif name == "ts":
+                        if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_layout) \
+                                and room_layout[y + 1][x - 1] == 0 and room_layout[y - 1][x] == 0:
+                            name = "tblc"
+                        elif y - 1 >= 0 and x - 1 < len(row) and y + 1 < len(room_layout) \
+                                and room_layout[y + 1][x + 1] == 0 and room_layout[y - 1][x] == 0:
+                            name = "tbrc"
 
-def get_picture_code(st):
-    if st == [1,1,0,0]:
-        return "blc"
-    if st == [0,1,1,0]:
-        return "tlc"
-    if st == [0,0,1,1]:
-        return "trc"
-    if st == [1,0,0,1]:
-        return "brc"
-    if st == [1,1,1,0]:
-        return "ls"
-    if st == [0,1,1,1]:
-        return "ts"
-    if st == [1,0,1,1]:
-        return "rs"
-    if st == [1,1,0,1]:
-        return "bs"
-    return "m"
+                    picture_map[y][x] = name + str(number)
+        return picture_map
+
+    def get_picture_code(self, st):
+        if st == [1, 1, 0, 0]:
+            return "blc"
+        if st == [0, 1, 1, 0]:
+            return "tlc"
+        if st == [0, 0, 1, 1]:
+            return "trc"
+        if st == [1, 0, 0, 1]:
+            return "brc"
+        if st == [1, 1, 1, 0]:
+            return "ls"
+        if st == [0, 1, 1, 1]:
+            return "ts"
+        if st == [1, 0, 1, 1]:
+            return "rs"
+        if st == [1, 1, 0, 1]:
+            return "bs"
+        return "m"
+
+    def _create_tiles(self,tile_images, stage_names):
+        for y, line in enumerate(self.room_layout):
+            for x, letter in enumerate(line):
+                image = None
+                if letter != 0:
+                    number = int(letter[-1]) -1
+                    letter = letter[:-1]
+                if letter == "blc":
+                    image = tile_images["bottom_left_corner_" + stage_names[number]]
+                elif letter == "tlc":
+                    image = tile_images["top_left_corner_" + stage_names[number]]
+                elif letter == "trc":
+                    image = tile_images["top_right_corner_" + stage_names[number]]
+                elif letter == "brc":
+                    image = tile_images["bottom_right_corner_" + stage_names[number]]
+                elif letter == "blic":
+                    image = tile_images["bottom_left_icorner_" + stage_names[number]]
+                elif letter == "tlic":
+                    image = tile_images["top_left_icorner_" + stage_names[number]]
+                elif letter == "tric":
+                    image = tile_images["top_right_icorner_" + stage_names[number]]
+                elif letter == "bric":
+                    image = tile_images["bottom_right_icorner_" + stage_names[number]]
+                elif letter == "ls":
+                    image = random.choice([tile_images[key] for key in tile_images if "left_straight" in \
+                                           key and stage_names[number] in key])
+                elif letter == "ts":
+                    image = random.choice([tile_images[key] for key in tile_images if "top_straight" in \
+                                           key and stage_names[number] in key])
+                elif letter == "rs":
+                    image = random.choice([tile_images[key] for key in tile_images if "right_straight" in \
+                                           key and stage_names[number] in key])
+                elif letter == "bs":
+                    image = random.choice([tile_images[key] for key in tile_images if "bottom_straight" in \
+                                           key and stage_names[number] in key])
+                elif letter == "m":
+                    image = random.choice([tile_images[key] for key in tile_images if "middle" in \
+                                           key and stage_names[number] in key])
+                elif letter == "tbd":
+                    image = tile_images["diagonal_top_bottom_" + stage_names[number]]
+                elif letter == "btd":
+                    image = tile_images["diagonal_bottom_top_" + stage_names[number]]
+                elif letter == "btrc":
+                    image = tile_images["bottom_top_right_corner_" + stage_names[number]]
+                elif letter == "btlc":
+                    image = tile_images["bottom_top_left_corner_" + stage_names[number]]
+                elif letter == "rtlc":
+                    image = tile_images["right_top_left_corner_" + stage_names[number]]
+                elif letter == "rblc":
+                    image = tile_images["right_bottom_left_corner_" + stage_names[number]]
+                elif letter == "ltrc":
+                    image = tile_images["left_top_right_corner_" + stage_names[number]]
+                elif letter == "lbrc":
+                    image = tile_images["left_bottom_right_corner_" + stage_names[number]]
+                elif letter == "tblc":
+                    image = tile_images["top_bottom_left_corner_" + stage_names[number]]
+                elif letter == "tbrc":
+                    image = tile_images["top_bottom_right_corner_" + stage_names[number]]
+                if image:
+                    if number == 0:
+                        self.tiles[y][x] = SolidTile(image, (x * 100, y * 100), high = True)
+                    else:
+                        self.tiles[y][x] = SolidTile(image, (x * 100, y * 100))
+                else:
+                    self.tiles[y][x] = BasicTile((x * 100, y * 100))
+        # finishtile = FinishTile((int((self.tiles.size[0] - 2) * 100), int(self.tiles.size[1] / 2 * 100)), self.player, self.updater)
+        #temporary
+        # chest = prop_entities.Chest((int((self.tiles.size[0] - 2) * 100), int((self.tiles.size[1] / 2 -2)* 100)),\
+        #                             self.player,self.get_random_weapons(5), self.updater)
+        # self.tiles[int(self.tiles.size[1] / 2)][int(self.tiles.size[0] - 2)] = finishtile
+        # self.tiles.finish_tiles.append(finishtile)
+        #do some calculatuions after all tiles are added to speed up calculations
+        self.tiles.setup()
+
+    def __create_background_image(self, images):
+        pygame.surfarray.use_arraytype("numpy")
+        c180onvertedimages = [pygame.transform.rotate(image, 180) for image in images]
+        pp0 = [pygame.surfarray.pixels3d(image) for image in images]
+        pp180 = [pygame.surfarray.pixels3d(image) for image in c180onvertedimages]
+        partspixels = pp0 + pp180
+        image_rows = []
+        for i in range(int(utilities.DEFAULT_LEVEL_SIZE.width / 100)):
+            image_row = []
+            for j in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100)):
+                image_row.append(random.choice(partspixels))
+            image_rows.append(np.concatenate(image_row, 1))
+        final_arr = np.concatenate(image_rows)
+
+        image = pygame.surfarray.make_surface(final_arr)
+        image = image.convert()
+        return image
+
+    def __create_props_and_tiles_image(self, props):
+        ps = props[0].get_rect().width
+
+        max_props = min(int(utilities.DEFAULT_LEVEL_SIZE.width / ps), int(utilities.DEFAULT_LEVEL_SIZE.height / ps))
+        xcoords = [random.randint(0, int(utilities.DEFAULT_LEVEL_SIZE.width / ps) - 1) for _ in
+                   range(self.propnmbr * 2)]
+        ycoords = [random.randint(0, int(utilities.DEFAULT_LEVEL_SIZE.height / ps) - 1) for _ in
+                   range(self.propnmbr * 2)]
+        prop_coords = []
+        combcoords = list(zip(xcoords, ycoords))
+        for coord in combcoords:
+            if coord not in prop_coords:
+                prop_coords.append(coord)
+        if len(prop_coords) > self.propnmbr:
+            prop_coords = prop_coords[0:self.propnmbr]
+        prop_coords = [(coord[0] * ps, coord[1] * ps) for coord in prop_coords]
+        all_coords = prop_coords + self.tiles.non_zero_tiles
+        all_coords.sort(key=lambda x: self.__sort_on_y_coord(x))
+        image = pygame.Surface((utilities.DEFAULT_LEVEL_SIZE.width, utilities.DEFAULT_LEVEL_SIZE.height))
+        image.fill((255, 255, 255))
+        final_arr = np.full((utilities.DEFAULT_LEVEL_SIZE.width, utilities.DEFAULT_LEVEL_SIZE.height, 3), 255)
+        for coord in all_coords:
+            if isinstance(coord, SolidTile):
+                image.blit(coord.image, (coord.rect.topleft))
+            elif not isinstance(coord, BasicTile):
+                image.blit(random.choice(props), (coord[0], coord[1]))
+        image.set_colorkey((255, 255, 255), RLEACCEL)
+        image = image.convert()
+        return image
+
+    def __sort_on_y_coord(self, val):
+        if isinstance(val, BasicTile):
+            return val.y
+        elif isinstance(val, FinishTile):
+            return val.rect.y
+        else:
+            return val[1]
+        
+class TileGroup:
+    def __init__(self):
+        """
+        Class for managing the tiles as a group and calculating fast collisions or other things
+        """
+        #dont make fcking pointers
+        self.tiles = [[0] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
+        self.finish_tiles = []
+        self.non_zero_tiles = []
+        self.solid_tiles = []
+        self.__truth_map = [[True] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
+
+    def __getitem__(self, i):
+        return self.tiles[i]
+
+    def setup(self):
+        self.__calculate_truth_map()
+        self.__configure_bounding_boxes()
+        self.__save_tile_groups()
+
+    def __save_tile_groups(self):
+        self.non_zero_tiles = [tile for row in self.tiles for tile in row if isinstance(tile, BasicTile)]
+        self.solid_tiles = [tile for row in self.tiles for tile in row if isinstance(tile, SolidTile)]
+
+    @property
+    def size(self):
+        return (len(self.tiles[0]),len(self.tiles))
+
+    def finish_collide(self, rect):
+        #propably one tile
+        for finish in self.finish_tiles:
+            if finish.colliderect(rect):
+                return True
+        return False
+
+    def solid_collide(self, rect, height = True):
+        """
+        Fast method for calculating collision by checking the 4 cornors and seeing with what tiles they overlap. This
+        makes it at most 4 checks for collision. Also checks for out of bounds
+        :param rect: a rectangle that is checked for an overlap
+        :param height tells if there should be checked for height when checking collision
+        :return: a boolean indicating a collsion (True) or not (False)
+        """
+        xtl, ytl = [int(c/100) for c in rect.topleft]
+        try:
+            tile = self.tiles[ytl][xtl]
+            if isinstance(tile, SolidTile) and tile.colliderect(rect):
+                if height and tile.high:
+                    return True
+                elif height:
+                    return False
+                return True
+            xtr, ytr = [int(c/100) for c in rect.topright]
+            tile = self.tiles[ytr][xtr]
+            if isinstance(tile, SolidTile) and tile.colliderect(rect):
+                if height and tile.high:
+                    return True
+                elif height:
+                    return False
+                return True
+            xbl, ybl = [int(c/100) for c in rect.bottomleft]
+            tile = self.tiles[ybl][xbl]
+            if isinstance(tile, SolidTile) and tile.colliderect(rect):
+                if height and tile.high:
+                    return True
+                elif height:
+                    return False
+                return True
+            xbr, ybr = [int(c/100) for c in rect.bottomright]
+            tile = self.tiles[ybr][xbr]
+            if isinstance(tile, SolidTile) and tile.colliderect(rect):
+                if height and tile.high:
+                    return True
+                elif height:
+                    return False
+                return True
+        #if index error is raised then you are outside the board.
+        except IndexError:
+            return True
+        return False
+
+    def line_of_sight(self, start_point, end_point):
+        xs, ys = start_point
+        xe, ye = end_point
+        points = [(xs,ys)]
+        try:
+            a = (ye - ys) / (xe - xs)
+            b = - a * xs + ys
+        except ZeroDivisionError:
+            return False, []
+
+        xdirection = 1
+        if xs > xe:
+            xdirection = -1
+        for x in range(0, abs(xs - xe), 25):
+            newx =  xs + x * xdirection
+            resp = a * newx + b
+            points.append((newx, resp))
+            if self.tiles[int(resp/ 100)][int(newx / 100)].solid and self.tiles[int(resp/ 100)][int(newx / 100)].high:
+                return False, points
+        return True, points
+
+    def pathfind(self, player_rect, enemy_rect, solid_sprite_coords = []):
+        """
+        Pathfind a path from the player towards the enemy. This has certain benefits regarding certain configurations
+        :param player_rect: the rectangle of the player
+        :param enemy_rect: the rectange of the enemy
+        :return: a list of tile coordinates that constitute the path enemy should move
+        """
+        x,y = int(player_rect.centerx / 100), int(player_rect.centery / 100)
+        start_tile = self.tiles[y][x]
+        dest_tile = self.tiles[int(enemy_rect.centery / 100)][int(enemy_rect.centerx / 100)]
+        #check if the enemy is on a solid tile this makes it so the enemy should not move
+        if not self.__truth_map[int(enemy_rect.y / 100)][int(enemy_rect.x / 100)] and \
+                enemy_rect.colliderect(self.tiles[int(enemy_rect.y / 100)][int(enemy_rect.x / 100)].bounding_box):
+            return [None]
+        #add starting tile to values to make it available for x,y coordinates
+        current_truth_map = [row.copy() for row in self.__truth_map]
+        #add solid enemies to the truth map to ensure they move around one another.
+        for coord in solid_sprite_coords:
+            current_truth_map[int(coord[1] / 100)][int(coord[0] / 100)] = False
+        paths = [[start_tile],[start_tile],[start_tile],[start_tile]]
+        cur_dist = self.__tile_dist(start_tile, dest_tile)
+        walked_tiles = [[],[],[],[]]
+        final_path = [None]
+        while cur_dist > 1 and len(paths) > 0:
+            for i, path in enumerate(paths):
+                available_tiles = []
+                x,y = path[-1].coord
+                if not x + 1 >= len(self.tiles[0]) and current_truth_map[y][x + 1] and self.tiles[y][x + 1] not in walked_tiles[i]:
+                    available_tiles.append(self.tiles[y][x + 1])
+                if not x - 1 < 0 and current_truth_map[y][x - 1] and self.tiles[y][x - 1] not in walked_tiles[i]:
+                    available_tiles.append(self.tiles[y][x - 1])
+                if not y + 1 >= len(self.tiles) and current_truth_map[y + 1][x] and self.tiles[y + 1][x] not in walked_tiles[i]:
+                    available_tiles.append(self.tiles[y + 1][x])
+                if not y - 1 < 0 and current_truth_map[y - 1][x] and self.tiles[y - 1][x] not in walked_tiles[i]:
+                    available_tiles.append(self.tiles[y - 1][x])
+                if available_tiles:
+                    #swap tile order to make an if statement check be before the others
+                    available_tiles = available_tiles[i:] + available_tiles[:i]
+                    tile = min(available_tiles, key = lambda x: self.__tile_dist(x, dest_tile))
+                    walked_tiles[i].append(tile)
+                    path.append(tile)
+                    cur_dist = self.__tile_dist(tile, dest_tile)
+                    final_path = path
+                else:
+                    #TODO look into these cases and see if it is worth fixing them.
+                    # print("break")
+                    paths.remove(path)
+                    final_path = path
+        return final_path
+
+    def __tile_dist(self,t1, t2):
+        """
+        Manhatten distance between two tiles, t1 and t2
+        """
+        return abs(t1.coord[0] - t2.coord[0]) + abs(t1.coord[1] - t2.coord[1])
+
+    def __calculate_truth_map(self):
+        """
+        Function for making a matrix that tells if a tile is solid or not.
+        """
+        for y, row in enumerate(self.tiles):
+            for x, val in enumerate(row):
+                if isinstance(val, SolidTile):
+                    self.__truth_map[y][x] = False
+
+    def __configure_bounding_boxes(self):
+        for row in self.tiles:
+            for tile in row:
+                if isinstance(tile, SolidTile):
+                    sur_tiles = [True,True,True,True]
+                    x,y = tile.coord
+                    if y - 1 > 0 and not isinstance(self.tiles[y - 1][x], SolidTile):
+                        sur_tiles[0] = False
+                    if x + 1 < len(self.tiles[0]) and not isinstance(self.tiles[y][x + 1], SolidTile):
+                        sur_tiles[1] = False
+                    if y + 1 < len(self.tiles) and not isinstance(self.tiles[y + 1][x], SolidTile):
+                        sur_tiles[2] = False
+                    if x - 1 > 0 and not isinstance(self.tiles[y][x - 1], SolidTile):
+                        sur_tiles[3] = False
+                    tile.set_bounding_box(sur_tiles)
+
+    def __board_to_tile_coordinates(self, *coords):
+        board_coords = []
+        for coord in coords:
+            board_coords.append([int(coord[0] / 100), int(coord[1] / 100)])
+        return board_coords
+
+class BasicTile:
+    def __init__(self, pos):
+        """
+        The basic tile which is a rectangle of a 100 by a 100 that contains relevant information for that rectangle
+        :param x: the x coordinate of the top left corner
+        :param y: the y coordinate of the top left corner
+        """
+        self.rect = pygame.Rect(*pos,100,100)
+        self.solid = False
+
+    def __getattr__(self, name):
+        return self.rect.__getattribute__(name)
+
+    @property
+    def coord(self):
+        return [int(self.x / 100), int(self.y / 100)]
+
+    def __str__(self):
+        return str(self.coord[0]) + "," + str(self.coord[1])
+
+class SolidTile(BasicTile):
+    def __init__(self, image, pos, high = False):
+        BasicTile.__init__(self, pos)
+        #is chamged after all the tiles are added
+        self.bounding_box = self.rect
+        self.image = image
+        self.high = high
+        self.solid = True
+
+    def __getattr__(self, name):
+        return self.bounding_box.__getattribute__(name)
+
+    def set_bounding_box(self, surrounding_tiles):
+        bb = pygame.Rect(self.rect)
+        # print(bb)
+        if not surrounding_tiles[0]:
+            bb = bb.inflate((0, - int(self.rect.height * 0.2)))
+            bb.bottom = self.rect.bottom
+        elif not surrounding_tiles[2]:
+            bb = bb.inflate((0, - int(self.rect.height * 0.2)))
+            bb.top = self.rect.top
+        if not surrounding_tiles[1]:
+            bb = bb.inflate((-int(self.rect.width * 0.2), 0))
+            bb.left = self.rect.left
+        elif not surrounding_tiles[3]:
+            bb = bb.inflate((-int(self.rect.width * 0.2), 0))
+            bb.right = self.rect.right
+        self.bounding_box = bb
+
+class FinishTile(entities.InteractingEntity):
+    def __init__(self, pos, player, *groups):
+        image = sheets["forest"].image_at((240,32), scale = (80,80), color_key = (255,255,255))
+        entities.InteractingEntity.__init__(self, pos, player, *groups, image = image)
+        self._layer = utilities.MIDDLE_LAYER
+
+    def interact(self):
+        print("interacting")
+
+    @property
+    def coord(self):
+        return [int(self.rect.x / 100), int(self.rect.y / 100)]
+
 
 class Leaf:
-
     def __init__(self, loc, dim):
         self.rect = pygame.Rect((*loc ,*dim))
         self.left_leaf = None
@@ -257,4 +696,4 @@ class Leaf:
         return self.leaf_map
 
 if __name__ == "__main__":
-    build_map((5,5))
+    build_map((5,5), wheights = [8,2])
