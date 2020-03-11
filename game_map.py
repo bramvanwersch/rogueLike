@@ -122,15 +122,24 @@ def build_room_map(wheights = [1]):
 
 class Room:
     def __init__(self, rect, room_type, connections, room_layout, **kwargs):
+        """
+        Class for creating a full room including the background and pictures associated with it.
+        :param rect: The rectangle where the room is located. The coordinate of the room is te location on the map
+        :param room_type: the name of the room
+        :param connections: list of lenght 4 telling the coordinates of a connected room or False when there is no
+        connection
+        :param room_layout: matrix of numbers signifying where solid tiles are located
+        :param kwargs: list of optional parameters, mainly parameters for pictures to use to make the rooms.
+        """
         self.rect = rect
         self.room_type = room_type
         #array of max lenght 4 containing false or a coordinate
         self.connections = connections
-        #plan the room containing objects in the surrounding
+        #create a layout with letters telling where the solid tiles are supposed to go and of what type.
         self.room_layout = self.determine_pictures(room_layout)
         self.add_path()
         self.tiles = TileGroup()
-        self._create_tiles(kwargs["tile_images"],kwargs["solid_tile_names"])
+        self.__create_solid_tiles(kwargs["tile_images"], kwargs["solid_tile_names"])
         self.propnmbr = 50
         self.background_image = self.__create_background_image(kwargs["background_images"])
         self.room_image = self.__create_props_and_tiles_image(kwargs["props"])
@@ -179,7 +188,7 @@ class Room:
                         st[2] = 1
                     if x - 1 < 0 or room_layout[y][x - 1] == number:
                         st[3] = 1
-                    name = self.get_picture_code(st)
+                    name = self.__get_picture_code(st)
                     # check for corner cases
                     if name == "m":
                         if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_layout) and x + 1 < len(row) \
@@ -228,7 +237,12 @@ class Room:
                     picture_map[y][x] = name + str(number)
         return picture_map
 
-    def get_picture_code(self, st):
+    def __get_picture_code(self, st):
+        """
+        Determine a picture code based on the four surrounding tiles.
+        :param st: an array of lenght 4 containing a 1 if a there is another solid tile NESW or 0 otherwise
+        :return: a str code that telss what type of image needs to be in place
+        """
         if st == [1, 1, 0, 0]:
             return "blc"
         if st == [0, 1, 1, 0]:
@@ -247,7 +261,13 @@ class Room:
             return "bs"
         return "m"
 
-    def _create_tiles(self,tile_images, stage_names):
+    def __create_solid_tiles(self, tile_images, stage_names):
+        """
+        Add solid tiles to the tile group (self.tiles) with adding the tiles the pictures are also configured
+        :param tile_images: dictionary with image names for the solid tiles
+        :param stage_names: names corresponding to the numbers appended to the end of the string notifying what type of
+        image needs to be associated with the solid tile.
+        """
         for y, line in enumerate(self.room_layout):
             for x, letter in enumerate(line):
                 image = None
@@ -318,7 +338,7 @@ class Room:
         #                             self.player,self.get_random_weapons(5), self.updater)
         # self.tiles[int(self.tiles.size[1] / 2)][int(self.tiles.size[0] - 2)] = finishtile
         # self.tiles.finish_tiles.append(finishtile)
-        #do some calculatuions after all tiles are added to speed up calculations
+        #do some calculatuions after all tiles are added to speed up calculations later on.
         self.tiles.setup()
 
     def __create_background_image(self, images):
@@ -627,7 +647,6 @@ class FinishTile(entities.InteractingEntity):
     @property
     def coord(self):
         return [int(self.rect.x / 100), int(self.rect.y / 100)]
-
 
 class Leaf:
     def __init__(self, loc, dim):
