@@ -85,15 +85,23 @@ def build_map(size, **kwargs):
     return map_dict
 
 def get_connecting_rooms(game_map, point):
+    """
+    Figures out what rooms are next to the room at point that need to be connected with a path.
+    :param game_map: matrix representation of the room layout
+    :param point: an x,y point within the coordinates of the game map that tells the location of the current room being
+    evaluated
+    :return: an array of lenght 4 that has True when there is a connection in the order [up, right, down, left]
+    """
+    utilities.fancy_matrix_print(game_map)
     surrounding_points = [False, False, False, False]
-    if point[1] - 1 >= 0:
-        surrounding_points[0] = (point[0], point[1] - 1)
-    if point[0] + 1 < len(game_map[0]):
-        surrounding_points[1] = (point[0] + 1, point[1])
-    if point[1] + 1 < len(game_map):
-        surrounding_points[2] = (point[0], point[1] + 1)
-    if point[0] - 1 >= 0:
-        surrounding_points[3] = (point[0] -1, point[1])
+    if point[1] - 1 >= 0 and game_map[point[1] - 1][point[0]] != 0:
+        surrounding_points[0] = True
+    if point[0] + 1 < len(game_map[0]) and game_map[point[1]][point[0] + 1] != 0:
+        surrounding_points[1] = True
+    if point[1] + 1 < len(game_map) and game_map[point[1] + 1][point[0]] != 0:
+        surrounding_points[2] = True
+    if point[0] - 1 >= 0 and game_map[point[1]][point[0] - 1] != 0:
+        surrounding_points[3] = True
     return surrounding_points
 
 #split up a room using binary space partinioning and create a randomized room
@@ -151,6 +159,7 @@ class Room:
         y0,x0 = 0,0
         xdir = True
         for num, coord in enumerate(self.connections):
+            print(self.connections)
             if coord:
                 #setting the restrictions for choosing path
                 if num in [1,3]:
@@ -648,6 +657,7 @@ class FinishTile(entities.InteractingEntity):
     def coord(self):
         return [int(self.rect.x / 100), int(self.rect.y / 100)]
 
+#methods for generating a single room containing blobs in them that the player cannot move trough.
 class Leaf:
     def __init__(self, loc, dim):
         self.rect = pygame.Rect((*loc ,*dim))
