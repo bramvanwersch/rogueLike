@@ -29,6 +29,7 @@ TILE_NAMES = ["bottom_left_corner","bottom_left_icorner",
                "right_top_left_corner","right_bottom_left_corner",
                "left_top_right_corner","left_bottom_right_corner",
                "top_bottom_left_corner","top_bottom_right_corner"]
+PATH_NAMES = ["straight_horizontal", "straight_vertical","center"]
 height = 1000
 GAME_TIME = pygame.time.Clock()
 

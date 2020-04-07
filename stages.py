@@ -45,9 +45,11 @@ class ForestStage(BasicStage):
         #create a dictionary with named tile variant to make an easy way of creating the map.
         forest_images = sheets["forest"].images_at_rectangle((0,0,256,16), (0,16,208,16), scale = (100,100))
         lake_images = sheets["forest"].images_at_rectangle((0,48,256,16), (0,64,208,16), scale = (100,100))
+        path_images = sheets["forest"].images_at_rectangle((208,48,48,16), scale = (100,100))
         fd = {name + "_forest": forest_images[i] for i, name in enumerate(utilities.TILE_NAMES)}
         ld = {name + "_lake": lake_images[i] for i, name in enumerate(utilities.TILE_NAMES)}
-        tile_images = {**fd, **ld}
+        pd = {name: path_images[i] for i, name in enumerate(utilities.PATH_NAMES)}
+        tile_images = {**fd, **ld, **pd}
         props = sheets["forest"].images_at_rectangle((16,32,160,16), scale = (100,100))
         self.stage_map = game_map.build_map((5,5), wheights = [8, 2], background_images = background_images,
                                             tile_images = tile_images, props = props, solid_tile_names = ["forest", "lake"])

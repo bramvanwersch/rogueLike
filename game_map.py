@@ -79,7 +79,7 @@ def build_map(size, **kwargs):
             if value == 1:
                 room_map = build_room_map(kwargs["wheights"])
                 room = Room(pygame.Rect(x,y, int(utilities.DEFAULT_LEVEL_SIZE.width / 100),
-                                        int(utilities.DEFAULT_LEVEL_SIZE.height)), value,
+                                        int(utilities.DEFAULT_LEVEL_SIZE.height / 100)), value,
                             get_connecting_rooms(game_map, (x,y)), room_map, **kwargs)
                 map_dict["{} {}".format(x,y)] = room
     return map_dict
@@ -92,7 +92,6 @@ def get_connecting_rooms(game_map, point):
     evaluated
     :return: an array of lenght 4 that has True when there is a connection in the order [up, right, down, left]
     """
-    utilities.fancy_matrix_print(game_map)
     surrounding_points = [False, False, False, False]
     if point[1] - 1 >= 0 and game_map[point[1] - 1][point[0]] != 0:
         surrounding_points[0] = True
@@ -144,22 +143,20 @@ class Room:
         #array of max lenght 4 containing false or a coordinate
         self.connections = connections
         #create a layout with letters telling where the solid tiles are supposed to go and of what type.
-        self.room_layout = self.determine_pictures(room_layout)
-        self.add_path()
+        room_layout_and_path = self.add_path(room_layout)
+        self.room_layout = self.determine_pictures(room_layout_and_path)
         self.tiles = TileGroup()
         self.__create_solid_tiles(kwargs["tile_images"], kwargs["solid_tile_names"])
         self.propnmbr = 50
         self.background_image = self.__create_background_image(kwargs["background_images"])
         self.room_image = self.__create_props_and_tiles_image(kwargs["props"])
 
-    def add_path(self):
+    def add_path(self, room_layout):
         #middle of room
         xl, yl = round(self.rect.width / 2),round(self.rect.height / 2)
-        target = (xl, yl)
         y0,x0 = 0,0
         xdir = True
         for num, coord in enumerate(self.connections):
-            print(self.connections)
             if coord:
                 #setting the restrictions for choosing path
                 if num in [1,3]:
@@ -173,6 +170,7 @@ class Room:
                         y0 = yl
                 ncurves = random.choice([0,2,4,6])
                 point = (random.randint(x0, x0 + xl), random.randint(y0, y0 + yl))
+        return room_layout
 
     def determine_pictures(self, room_layout):
         """
