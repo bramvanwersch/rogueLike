@@ -138,6 +138,8 @@ class Room:
         :param room_layout: matrix of numbers signifying where solid tiles are located
         :param kwargs: list of optional parameters, mainly parameters for pictures to use to make the rooms.
         """
+        #value tracked here for easy ways of changing. At this point just tracks a constant
+        self.f_offset = 0.25
         self.rect = rect
         self.room_type = room_type
         #array of max lenght 4 containing false or a coordinate
@@ -153,23 +155,56 @@ class Room:
 
     def add_path(self, room_layout):
         #middle of room
-        xl, yl = round(self.rect.width / 2),round(self.rect.height / 2)
-        y0,x0 = 0,0
-        xdir = True
-        for num, coord in enumerate(self.connections):
-            if coord:
-                #setting the restrictions for choosing path
-                if num in [1,3]:
-                    yl = self.rect.height
-                    if num == 1:
-                        x0 = xl
-                elif num in [0,2]:
-                    xl = self.rect.width
-                    xdir = False
-                    if num == 2:
-                        y0 = yl
-                ncurves = random.choice([0,2,4,6])
-                point = (random.randint(x0, x0 + xl), random.randint(y0, y0 + yl))
+        xl, yl = round(self.rect.width / 2) - 1,round(self.rect.height / 2) - 1
+        #take a center that is offset slightly from the actual center to make the paths connect to.
+        target_center = (xl + random.randint(-1 * round(xl* self.f_offset), round(xl * self.f_offset)),
+                         yl + random.randint(-1 * round(yl* self.f_offset), round(yl * self.f_offset)))
+        for num, connection in enumerate(self.connections):
+            if not connection:
+                continue
+            # coordinates that signify the startpoint of the path
+            y0, x0 = 0, 0
+            horizontal = True
+            #setting the restrictions for choosing path
+            if num in [1,3]:
+                #halfway trough the room
+                y0 = yl + random.randint(-1 * round(yl* self.f_offset), round(yl * self.f_offset))
+                if num == 1:
+                    x0 = self.rect.width - 1
+            else: # 0 or 2
+                x0 = xl + random.randint(-1 * round(xl* self.f_offset), round(xl * self.f_offset))
+                horizontal = False
+                if num == 2:
+                    y0 = self.rect.height - 1
+            dx = target_center[0] - x0
+            dy = target_center[1] - y0
+            if horizontal:
+                for i in range(abs(dx)):
+                    if dx < 0:
+                        i *= -1
+                    if room_layout[y0][x0 + i] == -5:
+                        break
+                    room_layout[y0][x0 + i] = -5
+                for i in range(abs(dy) + 1):
+                    if dy < 0:
+                        i *= - 1
+                    if room_layout[y0 + i][x0 + dx] == -5:
+                        break
+                    room_layout[y0 + i][x0 + dx] = -5
+            #when going from top to bottom first draw the vertical line then the horizontal one
+            else:
+                for i in range(abs(dy)):
+                    if dy < 0:
+                        i *= -1
+                    if room_layout[y0 + i][x0] == -5:
+                        break
+                    room_layout[y0 + i][x0] = -5
+                for i in range(abs(dx) + 1):
+                    if dx < 0:
+                        i *= -1
+                    if room_layout[y0 + dy][x0 + i] == -5:
+                        break
+                    room_layout[y0 + dy][x0 + i] = -5
         return room_layout
 
     def determine_pictures(self, room_layout):
@@ -180,12 +215,14 @@ class Room:
         :return: a matrix of the same dimensions now filled  in with string where there were numbers other then zero for the
         texture of each of these tiles.
         """
+        #copy the pictures into a new map to make sure that calculations can be perforemed correctly using the numbers
         picture_map = [[0 for x in range(len(room_layout[0]))] for y in range(len(room_layout))]
         for y, row in enumerate(room_layout):
             for x, number in enumerate(row):
-                if number == 0:
-                    continue
-                else:
+                #here handle the path logic
+                if number == -5:
+                    picture_map[y][x] = "path" + str(9)
+                elif number != 0:
                     st = [0, 0, 0, 0]
                     if y - 1 < 0 or room_layout[y - 1][x] == number:
                         st[0] = 1
@@ -237,7 +274,7 @@ class Room:
                         if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_layout) \
                                 and room_layout[y + 1][x - 1] == 0 and room_layout[y - 1][x] == 0:
                             name = "tblc"
-                        elif y - 1 >= 0 and x - 1 < len(row) and y + 1 < len(room_layout) \
+                        elif y - 1 >= 0 and x + 1 < len(row) and y + 1 < len(room_layout) \
                                 and room_layout[y + 1][x + 1] == 0 and room_layout[y - 1][x] == 0:
                             name = "tbrc"
 
@@ -332,8 +369,13 @@ class Room:
                     image = tile_images["top_bottom_left_corner_" + stage_names[number]]
                 elif letter == "tbrc":
                     image = tile_images["top_bottom_right_corner_" + stage_names[number]]
+                elif letter == "path":
+                    image = tile_images["center"]
                 if image:
-                    if number == 0:
+                    #in case of a path tile
+                    if number == 8:
+                        self.tiles[y][x] = ImageTile(image, (x * 100, y * 100))
+                    elif number == 0:
                         self.tiles[y][x] = SolidTile(image, (x * 100, y * 100), high = True)
                     else:
                         self.tiles[y][x] = SolidTile(image, (x * 100, y * 100))
@@ -388,7 +430,7 @@ class Room:
         image.fill((255, 255, 255))
         final_arr = np.full((utilities.DEFAULT_LEVEL_SIZE.width, utilities.DEFAULT_LEVEL_SIZE.height, 3), 255)
         for coord in all_coords:
-            if isinstance(coord, SolidTile):
+            if isinstance(coord, ImageTile):
                 image.blit(coord.image, (coord.rect.topleft))
             elif not isinstance(coord, BasicTile):
                 image.blit(random.choice(props), (coord[0], coord[1]))
@@ -595,11 +637,6 @@ class TileGroup:
 
 class BasicTile:
     def __init__(self, pos):
-        """
-        The basic tile which is a rectangle of a 100 by a 100 that contains relevant information for that rectangle
-        :param x: the x coordinate of the top left corner
-        :param y: the y coordinate of the top left corner
-        """
         self.rect = pygame.Rect(*pos,100,100)
         self.solid = False
 
@@ -613,12 +650,21 @@ class BasicTile:
     def __str__(self):
         return str(self.coord[0]) + "," + str(self.coord[1])
 
-class SolidTile(BasicTile):
-    def __init__(self, image, pos, high = False):
+class ImageTile(BasicTile):
+    def __init__(self, image, pos):
+        """
+        abstraction level to allow for easier blitting of images on the room background
+        :param image: the image that will be displayed on this tile
+        :param pos: see BasicImage
+        """
         BasicTile.__init__(self, pos)
+        self.image = image
+
+class SolidTile(ImageTile):
+    def __init__(self, image, pos, high = False):
+        ImageTile.__init__(self, image, pos)
         #is chamged after all the tiles are added
         self.bounding_box = self.rect
-        self.image = image
         self.high = high
         self.solid = True
 

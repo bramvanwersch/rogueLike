@@ -4,7 +4,7 @@ from pygame.compat import geterror
 
 
 #test constant
-BOUNDING_BOXES = False
+BOUNDING_BOXES = True
 NR_ENTITIES = True
 FPS = True
 ENTITY_PATHS = False
