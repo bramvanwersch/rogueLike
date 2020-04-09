@@ -72,17 +72,18 @@ def build_map(size, **kwargs):
                     if value == -9:
                         game_map[y][x] = 1
         total_rooms += extra_rooms
-    # create room layouts
-    map_dict = {}
+    # create room layouts by changing all values that are not 0 into room instances
     for y, row in enumerate(game_map):
         for x, value in enumerate(row):
-            if value == 1:
+            if value != 0:
                 room_map = build_room_map(kwargs["wheights"])
                 room = Room(pygame.Rect(x,y, int(utilities.DEFAULT_LEVEL_SIZE.width / 100),
                                         int(utilities.DEFAULT_LEVEL_SIZE.height / 100)), value,
                             get_connecting_rooms(game_map, (x,y)), room_map, **kwargs)
-                map_dict["{} {}".format(x,y)] = room
-    return map_dict
+                game_map[y][x] = room
+    if utilities.WARNINGS:
+        print("Room with value 2, -1 is not handled yet.")
+    return game_map
 
 def get_connecting_rooms(game_map, point):
     """

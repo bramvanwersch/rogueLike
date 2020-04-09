@@ -1,9 +1,7 @@
-import pygame, sys
+import pygame
 from pygame.locals import *
 import utilities, entities, game_map, prop_entities
 from game_images import sheets
-import random
-import numpy as np
 
 class BasicStage:
     def __init__(self, updater, player, weapons = []):
@@ -12,10 +10,21 @@ class BasicStage:
         # self.weapons = weapons
         self.updater = updater
         self.player = player
-        room1 = self.stage_map[list(self.stage_map.keys())[1]]
-        self.background = entities.Entity((0,0), self.updater, image = room1.background_image)
-        self.room_props = entities.Entity((0,0), self.updater, image = room1.room_image)
-        self.tiles = room1.tiles
+        #values are set here to indicat that these are class varaibles. They are defined using the set room function
+        self.background = None
+        self.room_props = None
+        self.tiles = None
+        #find the start room and set the stage to that room
+        for x in self.stage_room_layout:
+            for room in x:
+                if isinstance(room, game_map.Room) and room.room_type == 2:
+                    self.set_room(room)
+                    break
+
+    def set_room(self, room):
+        self.background = entities.Entity((0,0), self.updater, image = room.background_image)
+        self.room_props = entities.Entity((0,0), self.updater, image = room.room_image)
+        self.tiles = room.tiles
 
     def get_random_weapons(self, amnt = 1):
         weapons = []
@@ -51,8 +60,9 @@ class ForestStage(BasicStage):
         pd = {name: path_images[i] for i, name in enumerate(utilities.PATH_NAMES)}
         tile_images = {**fd, **ld, **pd}
         props = sheets["forest"].images_at_rectangle((16,32,160,16), scale = (100,100))
-        self.stage_map = game_map.build_map((5,5), wheights = [8, 2], background_images = background_images,
-                                            tile_images = tile_images, props = props, solid_tile_names = ["forest", "lake"])
+        self.stage_room_layout = game_map.build_map((5, 5), wheights = [8, 2], background_images = background_images,
+                                                    tile_images = tile_images, props = props, solid_tile_names = ["forest", "lake"])
+        print(self.stage_room_layout)
         BasicStage.__init__(self, updater, player, **kwargs)
 
 

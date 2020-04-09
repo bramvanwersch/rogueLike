@@ -49,9 +49,6 @@ class Entity(pygame.sprite.Sprite):
             self.image = image[0]
 
 class InteractingEntity(Entity):
-    """
-    Changes collision field so entity becomes solid and the player or other entitities cannot move trought it
-    """
     def __init__(self, pos, player, action = None, *groups, **kwargs):
         Entity.__init__(self, pos, *groups, **kwargs)
         self.player = player
