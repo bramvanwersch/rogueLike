@@ -140,6 +140,8 @@ class Room:
         """
         #value tracked here for easy ways of changing. At this point just tracks a constant
         self.f_offset = 0.25
+        self.propnmbr = 50
+
         self.rect = rect
         self.room_type = room_type
         #array of max lenght 4 containing false or a coordinate
@@ -149,7 +151,6 @@ class Room:
         self.room_layout = self.determine_pictures(room_layout_and_path)
         self.tiles = TileGroup()
         self.__create_solid_tiles(kwargs["tile_images"], kwargs["solid_tile_names"])
-        self.propnmbr = 50
         self.background_image = self.__create_background_image(kwargs["background_images"])
         self.room_image = self.__create_props_and_tiles_image(kwargs["props"])
 
@@ -159,6 +160,7 @@ class Room:
         #take a center that is offset slightly from the actual center to make the paths connect to.
         target_center = (xl + random.randint(-1 * round(xl* self.f_offset), round(xl * self.f_offset)),
                          yl + random.randint(-1 * round(yl* self.f_offset), round(yl * self.f_offset)))
+        #for each connection that a room has there is a path connected from the side of the room to the target center.
         for num, connection in enumerate(self.connections):
             if not connection:
                 continue
@@ -191,7 +193,8 @@ class Room:
                     if room_layout[y0 + i][x0 + dx] == -5:
                         break
                     room_layout[y0 + i][x0 + dx] = -5
-            #when going from top to bottom first draw the vertical line then the horizontal one
+            #when going from top to bottom first draw the vertical line then the horizontal one from where the vertical
+            #ended
             else:
                 for i in range(abs(dy)):
                     if dy < 0:
@@ -441,7 +444,7 @@ class Room:
     def __sort_on_y_coord(self, val):
         if isinstance(val, BasicTile):
             return val.y
-        elif isinstance(val, FinishTile):
+        elif isinstance(val, InteractingTile):
             return val.rect.y
         else:
             return val[1]
@@ -688,14 +691,10 @@ class SolidTile(ImageTile):
             bb.right = self.rect.right
         self.bounding_box = bb
 
-class FinishTile(entities.InteractingEntity):
-    def __init__(self, pos, player, *groups):
-        image = sheets["forest"].image_at((240,32), scale = (80,80), color_key = (255,255,255))
+class InteractingTile(entities.InteractingEntity):
+    def __init__(self, pos, image, player, *groups):
         entities.InteractingEntity.__init__(self, pos, player, *groups, image = image)
         self._layer = utilities.MIDDLE_LAYER
-
-    def interact(self):
-        print("interacting")
 
     @property
     def coord(self):

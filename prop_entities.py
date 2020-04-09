@@ -6,7 +6,11 @@ import entities, utilities
 class Chest(entities.InteractingEntity):
     def __init__(self, pos, player, loot, *groups):
         image = sheets["forest"].image_at((0,80), scale = (80,80), color_key = (255,255,255))
-        entities.InteractingEntity.__init__(self, pos, player, *groups, image = image)
+        def action():
+            if not self.open:
+                self.image = self.open_image
+                self.open = True
+        entities.InteractingEntity.__init__(self, pos, player, *groups, image = image, action = action)
         self.open_image = sheets["forest"].image_at((16,80), scale = (80,80), color_key = (255,255,255))
         self._layer = utilities.MIDDLE_LAYER
         #list of loot in a chest
@@ -27,11 +31,6 @@ class Chest(entities.InteractingEntity):
         elif self.cooldown > 0:
             self.cooldown -= 1
 
-    def interact(self):
-        if not self.open:
-            self.image = self.open_image
-            self.open = True
-
     def __spawn_weapon(self):
         loot = self.loot.pop(-1)
         LootableWeapon(self.rect.center, self.player, loot, self.groups())
@@ -39,7 +38,11 @@ class Chest(entities.InteractingEntity):
 class LootableWeapon(entities.InteractingEntity):
     def __init__(self, pos, player, weapon, *groups):
         self.weapon = weapon
-        entities.InteractingEntity.__init__(self, pos, player, *groups, image = self.weapon.image)
+        def action():
+            if self.lootable:
+                self.player.inventory.add(self.weapon)
+                self.kill()
+        entities.InteractingEntity.__init__(self, pos, player, *groups, image = self.weapon.image, action = action)
         self.rect = self.weapon.image.get_rect(center = pos)
         self.orig_rect = self.rect
         self.xchange = random.randint(-16,16) / 10
@@ -60,8 +63,4 @@ class LootableWeapon(entities.InteractingEntity):
             if self.cooldown_timer[0] == self.cooldown_timer[1]:
                 self.lootable = True
 
-    def interact(self):
-        if self.lootable:
-            self.player.inventory.add(self.weapon)
-            self.kill()
 

@@ -52,19 +52,17 @@ class InteractingEntity(Entity):
     """
     Changes collision field so entity becomes solid and the player or other entitities cannot move trought it
     """
-    def __init__(self, pos, player, *groups, **kwargs):
+    def __init__(self, pos, player, action = None, *groups, **kwargs):
         Entity.__init__(self, pos, *groups, **kwargs)
         self.player = player
+        #can be set to a function to give functionality to the entity
+        self.action_function = action
 
     def update(self, *args):
         super().update(*args)
-        if self.visible[0] and self.player.pressed_keys[constants.INTERACT]:
+        if self.action_function and self.visible[0] and self.player.pressed_keys[constants.INTERACT]:
             if self.rect.colliderect(self.player.rect):
-                self.interact()
-
-    #implemented by inheriting methods
-    def interact(self):
-        pass
+                self.action_function()
 
 class LivingEntity(Entity):
     def __init__(self, pos, *groups, health = 100, damage = 10, health_regen = 1, speed = 10, tiles = [], xp = 100, **kwargs):
