@@ -391,6 +391,7 @@ class Room:
         #                             self.player,self.get_random_weapons(5), self.updater)
         # self.tiles[int(self.tiles.size[1] / 2)][int(self.tiles.size[0] - 2)] = finishtile
         # self.tiles.finish_tiles.append(finishtile)
+
         #do some calculatuions after all tiles are added to speed up calculations later on.
         self.tiles.setup()
 
@@ -457,7 +458,6 @@ class TileGroup:
         """
         #dont make fcking pointers
         self.tiles = [[0] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
-        self.finish_tiles = []
         self.non_zero_tiles = []
         self.solid_tiles = []
         self.__truth_map = [[True] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
@@ -477,13 +477,6 @@ class TileGroup:
     @property
     def size(self):
         return (len(self.tiles[0]),len(self.tiles))
-
-    def finish_collide(self, rect):
-        #propably one tile
-        for finish in self.finish_tiles:
-            if finish.colliderect(rect):
-                return True
-        return False
 
     def solid_collide(self, rect, height = True):
         """
@@ -610,7 +603,8 @@ class TileGroup:
 
     def __calculate_truth_map(self):
         """
-        Function for making a matrix that tells if a tile is solid or not.
+        Function for making a matrix that tells if a tile is solid or not. Should only be called when creating the tile
+        group innitially
         """
         for y, row in enumerate(self.tiles):
             for x, val in enumerate(row):
@@ -618,6 +612,10 @@ class TileGroup:
                     self.__truth_map[y][x] = False
 
     def __configure_bounding_boxes(self):
+        """
+        Calulated the bounding boxes of all the solid tiles to allow players to move slightly in them creating a better
+        moving environment. This function should only be called when innitialising the tile group class.
+        """
         for row in self.tiles:
             for tile in row:
                 if isinstance(tile, SolidTile):
@@ -657,7 +655,8 @@ class BasicTile:
 class ImageTile(BasicTile):
     def __init__(self, image, pos):
         """
-        abstraction level to allow for easier blitting of images on the room background
+        abstraction level to allow for easier blitting of images on the room background these tiles contain an image
+        but do not have collision
         :param image: the image that will be displayed on this tile
         :param pos: see BasicImage
         """
@@ -692,16 +691,9 @@ class SolidTile(ImageTile):
             bb.right = self.rect.right
         self.bounding_box = bb
 
-class InteractingTile(entities.InteractingEntity):
-    def __init__(self, pos, image, player, *groups):
-        entities.InteractingEntity.__init__(self, pos, player, *groups, image = image)
-        self._layer = utilities.MIDDLE_LAYER
-
-    @property
-    def coord(self):
-        return [int(self.rect.x / 100), int(self.rect.y / 100)]
-
-#methods for generating a single room containing blobs in them that the player cannot move trough.
+#methods for generating a single room containing blobs in them that the player cannot move trough. Spaced in a way that
+#always allows for the player to reach al places of the map with the exception of some openings that can occur at the
+#edges.
 class Leaf:
     def __init__(self, loc, dim):
         self.rect = pygame.Rect((*loc ,*dim))

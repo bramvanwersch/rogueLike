@@ -6,7 +6,6 @@ class Entity(pygame.sprite.Sprite):
     def __init__(self, pos, *groups, **kwargs):
         """
         Class for all entities, these are all images that need to move or change
-        :param image: The image of the sprite
         :param pos: the topleft corner of the rectangle of the image
         :param groups: a sprite group the sprite belongs to.
         """
@@ -19,10 +18,15 @@ class Entity(pygame.sprite.Sprite):
         else:
             self.image = pygame.Surface((100,100)).convert()
             self.image.fill((255, 0, 179))
+        #in case there should specifically not be an image the image is made invisible. This prevents drawing and most
+        #calculations but allows for collision checks.
+        if "visible" in kwargs:
+            self.visible = kwargs["visible"]
+        else:
+            # if the sprite should be visible at the current moment. and if it should be able to be unloaded
+            self.visible = [True, True]
         self.orig_image = self.image
         self.rect = self.image.get_rect(topleft = pos)
-        # if the sprite should be visible at the current moment. and if it should be able to be unloaded
-        self.visible = [True, True]
         # if an entity has collision or if the player can just move trough it.
         self.collision = False
         self.bounding_box = self._get_bounding_box()
@@ -50,14 +54,18 @@ class Entity(pygame.sprite.Sprite):
 
 class InteractingEntity(Entity):
     def __init__(self, pos, player, action = None, *groups, **kwargs):
+        """
+        Entity that preforms an action when a player is pressing the interaction key and colliding with the entity
+        """
         Entity.__init__(self, pos, *groups, **kwargs)
         self.player = player
         #can be set to a function to give functionality to the entity
+        self.interactable = True
         self.action_function = action
 
     def update(self, *args):
         super().update(*args)
-        if self.action_function and self.visible[0] and self.player.pressed_keys[constants.INTERACT]:
+        if self.action_function and self.interactable and self.player.pressed_keys[constants.INTERACT]:
             if self.rect.colliderect(self.player.rect):
                 self.action_function()
 
