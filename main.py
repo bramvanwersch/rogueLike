@@ -253,8 +253,10 @@ def setup_board():
     buttonRestart = menu_methods.Button(text = "Restart")
     pause_menu.add_widget(("c", 150), buttonRestart)
     def restart_action():
-        utilities.scene_name = "Main"
-        setup_board()
+        if utilities.WARNINGS:
+            print("restart is disabled because of a memory bug at the moment")
+        # utilities.scene_name = "Main"
+        # setup_board()
     buttonRestart.set_action(restart_action, MOUSEBUTTONDOWN)
     buttonRestart.set_action(restart_action, K_RETURN)
 

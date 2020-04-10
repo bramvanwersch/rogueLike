@@ -1,6 +1,7 @@
 import os,pygame, random
 from pygame.locals import *
 from pygame.compat import geterror
+import game_map
 
 
 #test constant
@@ -52,7 +53,10 @@ def fancy_matrix_print(matrix):
     s = ""
     for row in matrix:
         for value in row:
-          s += "{:>3}".format(value)
+            if isinstance(value, game_map.Room):
+                s += "{:>3}".format(value.room_type)
+            else:
+                s += "{:>3}".format(value)
         s += "\n"
     print(s)
 

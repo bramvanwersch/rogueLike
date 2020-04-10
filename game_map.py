@@ -145,7 +145,7 @@ class Room:
 
         self.rect = rect
         self.room_type = room_type
-        #array of max lenght 4 containing false or a coordinate
+        #array of max lenght 4 containing false or true
         self.connections = connections
         #create a layout with letters telling where the solid tiles are supposed to go and of what type.
         room_layout_and_path = self.add_path(room_layout)
@@ -376,15 +376,21 @@ class Room:
                 elif letter == "path":
                     image = tile_images["center"]
                 if image:
+                    pos = (x * 100, y * 100)
                     #in case of a path tile
                     if number == 8:
-                        self.tiles[y][x] = ImageTile(image, (x * 100, y * 100))
+                        #for all the path tiles at the edge of the room, they become interactable to allow the player to
+                        #move tot the next room
+                        if y == len(self.room_layout) - 1 or x == len(line) - 1 or y == 0 or x == 0:
+                            self.tiles[y][x] = InteractableTile(image, pos, action_desc="room_transition")
+                        else:
+                            self.tiles[y][x] = ImageTile(image, pos)
                     elif number == 0:
-                        self.tiles[y][x] = SolidTile(image, (x * 100, y * 100), high = True)
+                        self.tiles[y][x] = SolidTile(image, pos, high = True)
                     else:
-                        self.tiles[y][x] = SolidTile(image, (x * 100, y * 100))
+                        self.tiles[y][x] = SolidTile(image, pos)
                 else:
-                    self.tiles[y][x] = BasicTile((x * 100, y * 100))
+                    self.tiles[y][x] = BasicTile(pos)
         # finishtile = FinishTile((int((self.tiles.size[0] - 2) * 100), int(self.tiles.size[1] / 2 * 100)), self.player, self.updater)
         #temporary
         # chest = prop_entities.Chest((int((self.tiles.size[0] - 2) * 100), int((self.tiles.size[1] / 2 -2)* 100)),\
@@ -446,8 +452,6 @@ class Room:
     def __sort_on_y_coord(self, val):
         if isinstance(val, BasicTile):
             return val.y
-        elif isinstance(val, InteractingTile):
-            return val.rect.y
         else:
             return val[1]
         
@@ -460,6 +464,7 @@ class TileGroup:
         self.tiles = [[0] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
         self.non_zero_tiles = []
         self.solid_tiles = []
+        self.interactable_tiles = []
         self.__truth_map = [[True] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
 
     def __getitem__(self, i):
@@ -473,6 +478,7 @@ class TileGroup:
     def __save_tile_groups(self):
         self.non_zero_tiles = [tile for row in self.tiles for tile in row if isinstance(tile, BasicTile)]
         self.solid_tiles = [tile for row in self.tiles for tile in row if isinstance(tile, SolidTile)]
+        self.interactable_tiles = [tile for row in self.tiles for tile in row if isinstance(tile, InteractableTile)]
 
     @property
     def size(self):
@@ -690,6 +696,13 @@ class SolidTile(ImageTile):
             bb = bb.inflate((-int(self.rect.width * 0.2), 0))
             bb.right = self.rect.right
         self.bounding_box = bb
+
+class InteractableTile(ImageTile):
+    def __init__(self, image, pos, action = None, action_desc = None):
+        ImageTile.__init__(self, image, pos)
+        #define an action or define a descriptor that signifies an action that needs to be defined in the stage level.
+        self.action = action
+        self.action_desc = action_desc
 
 #methods for generating a single room containing blobs in them that the player cannot move trough. Spaced in a way that
 #always allows for the player to reach al places of the map with the exception of some openings that can occur at the

@@ -3,7 +3,7 @@ import utilities, constants
 from game_images import sheets
 
 class Entity(pygame.sprite.Sprite):
-    def __init__(self, pos, *groups, **kwargs):
+    def __init__(self, pos, *groups, visible = [True,True], **kwargs):
         """
         Class for all entities, these are all images that need to move or change
         :param pos: the topleft corner of the rectangle of the image
@@ -18,13 +18,8 @@ class Entity(pygame.sprite.Sprite):
         else:
             self.image = pygame.Surface((100,100)).convert()
             self.image.fill((255, 0, 179))
-        #in case there should specifically not be an image the image is made invisible. This prevents drawing and most
-        #calculations but allows for collision checks.
-        if "visible" in kwargs:
-            self.visible = kwargs["visible"]
-        else:
-            # if the sprite should be visible at the current moment. and if it should be able to be unloaded
-            self.visible = [True, True]
+        # if the sprite should be visible at the current moment. and if it should be able to be unloaded
+        self.visible = visible
         self.orig_image = self.image
         self.rect = self.image.get_rect(topleft = pos)
         # if an entity has collision or if the player can just move trough it.
@@ -53,7 +48,7 @@ class Entity(pygame.sprite.Sprite):
             self.image = image[0]
 
 class InteractingEntity(Entity):
-    def __init__(self, pos, player, action = None, *groups, **kwargs):
+    def __init__(self, pos, player, *groups, action = None, **kwargs):
         """
         Entity that preforms an action when a player is pressing the interaction key and colliding with the entity
         """
