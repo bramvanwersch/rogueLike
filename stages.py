@@ -58,7 +58,7 @@ class BasicStage:
             elif tile.action_desc:
                 if tile.action_desc == "room_transition":
                     entities.InteractingEntity(tile.topleft, self.player, self.updater, self.interacting_group,
-                                               action=self.action, visible = [False, True])
+                                               action=self.action, visible = [False, False])
 
     def get_random_weapons(self, amnt = 1):
         weapons = []
