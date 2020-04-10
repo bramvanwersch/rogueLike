@@ -5,7 +5,7 @@ from game_images import sheets
 
 class BasicStage:
     def __init__(self, updater, player, weapons = []):
-
+        self.interacting_group = pygame.sprite.Group()
         # self.weapons = weapons
         self.updater = updater
         self.player = player
@@ -24,11 +24,10 @@ class BasicStage:
                     self.set_room(room)
                     break
 
+    #function purely defined as an action function for the connecting rooms
     def action(self):
         pr = self.player.rect
         cr = self.current_room.rect
-        utilities.fancy_matrix_print(self.stage_rooms_map)
-        print(pr, cr)
         if pr.x > 0.75 * cr.width * 100:
             room = self.stage_rooms_map[cr[1]][cr[0] + 1]
             self.player.rect.topleft = (110, round(cr.height * 100 * 0.5))
@@ -47,13 +46,19 @@ class BasicStage:
         self.background.image = room.background_image
         self.room_props.image = room.room_image
         self.tiles = room.tiles
+        for sprite in self.interacting_group.sprites():
+            sprite.kill()
+        self.interacting_group.empty()
+        self.player.tiles = self.tiles
         self.current_room = room
         for tile in self.tiles.interactable_tiles:
             if tile.action:
-                entities.InteractingEntity(tile.topleft, self.player, self.updater, action = tile.action)
+                entities.InteractingEntity(tile.topleft, self.player, self.updater, self.interacting_group,
+                                           action = tile.action)
             elif tile.action_desc:
                 if tile.action_desc == "room_transition":
-                    entities.InteractingEntity(tile.topleft, self.player, self.updater, action=self.action, visible = [False, True])
+                    entities.InteractingEntity(tile.topleft, self.player, self.updater, self.interacting_group,
+                                               action=self.action, visible = [False, True])
 
     def get_random_weapons(self, amnt = 1):
         weapons = []
