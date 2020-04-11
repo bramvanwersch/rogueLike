@@ -3,10 +3,9 @@ from pygame.locals import *
 from pygame.compat import geterror
 import game_map
 
-
 #test constant
 WARNINGS = True
-BOUNDING_BOXES = True
+BOUNDING_BOXES = False
 NR_ENTITIES = True
 FPS = True
 ENTITY_PATHS = False
@@ -30,7 +29,11 @@ TILE_NAMES = ["bottom_left_corner","bottom_left_icorner",
                "bottom_top_left_corner","bottom_top_right_corner",
                "right_top_left_corner","right_bottom_left_corner",
                "left_top_right_corner","left_bottom_right_corner",
-               "top_bottom_left_corner","top_bottom_right_corner"]
+               "top_bottom_left_corner","top_bottom_right_corner",
+               "single", "only_top", "only_right", "only_bottom", "only_left",
+               "left_right_open","bottom_top_open",
+               "top_double_corner", "right_double_corner",
+               "bottom_double_corner", "left_double_corner",]
 PATH_NAMES = ["straight_horizontal", "straight_vertical","center"]
 height = 1000
 GAME_TIME = pygame.time.Clock()

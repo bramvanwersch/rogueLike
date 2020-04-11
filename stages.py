@@ -87,8 +87,8 @@ class ForestStage(BasicStage):
         background_images = sheets["forest"].images_at((208,16),(224,16),(240,16), (0,32), scale = (100,100))
 
         #create a dictionary with named tile variant to make an easy way of creating the map.
-        forest_images = sheets["forest"].images_at_rectangle((0,0,256,16), (0,16,208,16), scale = (100,100))
-        lake_images = sheets["forest"].images_at_rectangle((0,48,256,16), (0,64,208,16), scale = (100,100))
+        forest_images = sheets["forest"].images_at_rectangle((0,0,256,16), (0,16,208,16), (32,80,192,16), scale = (100,100))
+        lake_images = sheets["forest"].images_at_rectangle((0,48,256,16), (0,64,208,16), (0,96,192,16), scale = (100,100))
         path_images = sheets["forest"].images_at_rectangle((208,64,48,16), scale = (100,100))
         fd = {name + "_forest": forest_images[i] for i, name in enumerate(utilities.TILE_NAMES)}
         ld = {name + "_lake": lake_images[i] for i, name in enumerate(utilities.TILE_NAMES)}

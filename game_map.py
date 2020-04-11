@@ -156,6 +156,16 @@ class Room:
         self.room_image = self.__create_props_and_tiles_image(kwargs["props"])
 
     def add_path(self, room_layout, connections):
+        """
+        Generates a path that connects rooms. The function chooses a coordinate on the side of the room within a range
+        and a middle coordinate for the path to move towards. It stops generatign new path blocks when it hits a path
+        block or finds the middle coordinate
+        :param room_layout: a map that has the layout of the room
+        :param connections: a boolean tuple of lenght 4 telling if there is a connecting room or not in order N,E,S,W
+        TODO: at the moment the path blocks overwrite any existing generated terrain resulting in some weird generation.
+        TODO: at this moment there is only one sort of path block used. There should be corners etc.
+        :return: the room layout matrix with an extra path
+        """
         #middle of room
         xl, yl = round(self.rect.width / 2) - 1,round(self.rect.height / 2) - 1
         #take a center that is offset slightly from the actual center to make the paths connect to.
@@ -257,31 +267,31 @@ class Room:
                             name = "tlic"
                     elif name == "rs":
                         if y - 1 >= 0 and x - 1 >= 0 and x + 1 < len(row) \
-                                and room_layout[y - 1][x - 1] == 0 and room_layout[y][x + 1] == 0:
+                                and room_layout[y - 1][x - 1] <= 0 and room_layout[y][x + 1] <= 0:
                             name = "rtlc"
                         elif y + 1 < len(room_layout) and x - 1 >= 0 and x + 1 < len(row) \
-                                and room_layout[y + 1][x - 1] == 0 and room_layout[y][x + 1] == 0:
+                                and room_layout[y + 1][x - 1] <= 0 and room_layout[y][x + 1] <= 0:
                             name = "rblc"
                     elif name == "bs":
                         if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_layout) \
-                                and room_layout[y - 1][x - 1] == 0 and room_layout[y - 1][x] == 0:
+                                and room_layout[y - 1][x - 1] <= 0 and room_layout[y + 1][x] <= 0:
                             name = "btlc"
                         elif y - 1 >= 0 and x + 1 < len(row) and y + 1 < len(room_layout) \
-                                and room_layout[y - 1][x + 1] == 0 and room_layout[y - 1][x] == 0:
+                                and room_layout[y - 1][x + 1] <= 0 and room_layout[y + 1][x] <= 0:
                             name = "btrc"
                     elif name == "ls":
                         if y - 1 >= 0 and x - 1 >= 0 and x + 1 < len(row) \
-                                and room_layout[y - 1][x + 1] == 0 and room_layout[y][x - 1] == 0:
+                                and room_layout[y - 1][x + 1] <= 0 and room_layout[y][x - 1] <= 0:
                             name = "ltrc"
                         elif y + 1 < len(room_layout) and x - 1 >= 0 and x + 1 < len(row) \
-                                and room_layout[y + 1][x + 1] == 0 and room_layout[y][x - 1] == 0:
+                                and room_layout[y + 1][x + 1] <= 0 and room_layout[y][x - 1] <= 0:
                             name = "lbrc"
                     elif name == "ts":
                         if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_layout) \
-                                and room_layout[y + 1][x - 1] == 0 and room_layout[y - 1][x] == 0:
+                                and room_layout[y + 1][x - 1] <= 0 and room_layout[y - 1][x] <= 0:
                             name = "tblc"
                         elif y - 1 >= 0 and x + 1 < len(row) and y + 1 < len(room_layout) \
-                                and room_layout[y + 1][x + 1] == 0 and room_layout[y - 1][x] == 0:
+                                and room_layout[y + 1][x + 1] <= 0 and room_layout[y - 1][x] <= 0:
                             name = "tbrc"
 
                     picture_map[y][x] = name + str(number)
@@ -309,6 +319,20 @@ class Room:
             return "rs"
         if st == [1, 1, 0, 1]:
             return "bs"
+        if st == [1, 0, 0, 0]:
+            return "tsc"
+        if st == [0, 1, 0, 0]:
+            return "rsc"
+        if st == [0, 0, 1, 0]:
+            return "bsc"
+        if st == [0, 0, 0, 1]:
+            return "lsc"
+        if st == [0, 0, 0, 0]:
+            return "sin"
+        if st == [1, 0, 1, 0]:
+            return "tab"
+        if st == [0, 1, 0, 1]:
+            return "ral"
         return "m"
 
     def __create_solid_tiles(self, tile_images, stage_names):
@@ -375,6 +399,20 @@ class Room:
                     image = tile_images["top_bottom_left_corner_" + stage_names[number]]
                 elif letter == "tbrc":
                     image = tile_images["top_bottom_right_corner_" + stage_names[number]]
+                elif letter == "tsc":
+                    image = tile_images["only_top_" + stage_names[number]]
+                elif letter == "rsc":
+                    image = tile_images["only_right_" + stage_names[number]]
+                elif letter == "bsc":
+                    image = tile_images["only_bottom_" + stage_names[number]]
+                elif letter == "lsc":
+                    image = tile_images["only_left_" + stage_names[number]]
+                elif letter == "sin":
+                    image = tile_images["single_" + stage_names[number]]
+                elif letter == "tab":
+                    image = tile_images["left_right_open_" + stage_names[number]]
+                elif letter == "ral":
+                    image = tile_images["bottom_top_open_" + stage_names[number]]
                 elif letter == "path":
                     image = tile_images["center"]
                 if image:
@@ -684,14 +722,17 @@ class SolidTile(ImageTile):
 
     def set_bounding_box(self, surrounding_tiles):
         bb = pygame.Rect(self.rect)
-        # print(bb)
-        if not surrounding_tiles[0]:
+        if not surrounding_tiles[0] and not surrounding_tiles[2]:
+            bb = bb.inflate(0, -int(self.rect.height * 0.4))
+        elif not surrounding_tiles[0]:
             bb = bb.inflate((0, - int(self.rect.height * 0.2)))
             bb.bottom = self.rect.bottom
         elif not surrounding_tiles[2]:
             bb = bb.inflate((0, - int(self.rect.height * 0.2)))
             bb.top = self.rect.top
-        if not surrounding_tiles[1]:
+        if not surrounding_tiles[1] and not surrounding_tiles[3]:
+            bb = bb.inflate((-int(self.rect.width * 0.4), 0))
+        elif not surrounding_tiles[1]:
             bb = bb.inflate((-int(self.rect.width * 0.2), 0))
             bb.left = self.rect.left
         elif not surrounding_tiles[3]:
