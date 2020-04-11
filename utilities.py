@@ -31,10 +31,11 @@ TILE_NAMES = ["bottom_left_corner","bottom_left_icorner",
                "left_top_right_corner","left_bottom_right_corner",
                "top_bottom_left_corner","top_bottom_right_corner",
                "single", "only_top", "only_right", "only_bottom", "only_left",
-               "left_right_open","bottom_top_open",
-               "top_double_corner", "right_double_corner",
-               "bottom_double_corner", "left_double_corner",]
-PATH_NAMES = ["straight_horizontal", "straight_vertical","center"]
+               "left_right_open","bottom_top_open"]
+PATH_NAMES = ["only_left","only_bottom","only_top","only_right",
+              "bottom_left_corner","bottom_right_corner","top_right_corner","top_left_corner",
+              "bottom_top_open", "left_right_open","middle",
+              "left_straight","right_straight","top_straight", "bottom_straight"]
 height = 1000
 GAME_TIME = pygame.time.Clock()
 

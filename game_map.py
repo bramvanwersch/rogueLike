@@ -148,21 +148,20 @@ class Room:
         #array of lenght 4 containing False for no connection and a coordinate in case of a connection
         self.connections = [False,False,False,False]
         #create a layout with letters telling where the solid tiles are supposed to go and of what type.
-        room_layout_and_path = self.add_path(room_layout, connections)
-        self.room_layout = self.determine_pictures(room_layout_and_path)
+        room_layout_and_path = self.add_path(room_layout, connections, len(kwargs["solid_tile_names"]) + 1)
+        self.room_layout = self.determine_pictures(room_layout_and_path, len(kwargs["solid_tile_names"]))
         self.tiles = TileGroup()
-        self.__create_solid_tiles(kwargs["tile_images"], kwargs["solid_tile_names"])
+        self.__create_solid_tiles(kwargs["tile_images"], list(kwargs["solid_tile_names"] + ["path"]))
         self.background_image = self.__create_background_image(kwargs["background_images"])
         self.room_image = self.__create_props_and_tiles_image(kwargs["props"])
 
-    def add_path(self, room_layout, connections):
+    def add_path(self, room_layout, connections, amnt_stage_names):
         """
         Generates a path that connects rooms. The function chooses a coordinate on the side of the room within a range
         and a middle coordinate for the path to move towards. It stops generatign new path blocks when it hits a path
         block or finds the middle coordinate
         :param room_layout: a map that has the layout of the room
         :param connections: a boolean tuple of lenght 4 telling if there is a connecting room or not in order N,E,S,W
-        TODO: at the moment the path blocks overwrite any existing generated terrain resulting in some weird generation.
         TODO: at this moment there is only one sort of path block used. There should be corners etc.
         :return: the room layout matrix with an extra path
         """
@@ -197,33 +196,33 @@ class Room:
                 for i in range(abs(dx)):
                     if dx < 0:
                         i *= -1
-                    if room_layout[y0][x0 + i] == -5:
+                    if room_layout[y0][x0 + i] == amnt_stage_names:
                         break
-                    room_layout[y0][x0 + i] = -5
+                    room_layout[y0][x0 + i] = amnt_stage_names
                 for i in range(abs(dy) + 1):
                     if dy < 0:
                         i *= - 1
-                    if room_layout[y0 + i][x0 + dx] == -5:
+                    if room_layout[y0 + i][x0 + dx] == amnt_stage_names:
                         break
-                    room_layout[y0 + i][x0 + dx] = -5
+                    room_layout[y0 + i][x0 + dx] = amnt_stage_names
             #when going from top to bottom first draw the vertical line then the horizontal one from where the vertical
             #ended
             else:
                 for i in range(abs(dy)):
                     if dy < 0:
                         i *= -1
-                    if room_layout[y0 + i][x0] == -5:
+                    if room_layout[y0 + i][x0] == amnt_stage_names:
                         break
-                    room_layout[y0 + i][x0] = -5
+                    room_layout[y0 + i][x0] = amnt_stage_names
                 for i in range(abs(dx) + 1):
                     if dx < 0:
                         i *= -1
-                    if room_layout[y0 + dy][x0 + i] == -5:
+                    if room_layout[y0 + dy][x0 + i] == amnt_stage_names:
                         break
-                    room_layout[y0 + dy][x0 + i] = -5
+                    room_layout[y0 + dy][x0 + i] = amnt_stage_names
         return room_layout
 
-    def determine_pictures(self, room_layout):
+    def determine_pictures(self, room_layout, amnt_stage_names):
         """
         Determine the pictures that should go in place for each generated tile. Add numbers that determine the texture of
         the pictures
@@ -235,10 +234,7 @@ class Room:
         picture_map = [[0 for x in range(len(room_layout[0]))] for y in range(len(room_layout))]
         for y, row in enumerate(room_layout):
             for x, number in enumerate(row):
-                #here handle the path logic
-                if number == -5:
-                    picture_map[y][x] = "path" + str(9)
-                elif number != 0:
+                if number != 0:
                     st = [0, 0, 0, 0]
                     if y - 1 < 0 or room_layout[y - 1][x] == number:
                         st[0] = 1
@@ -249,49 +245,50 @@ class Room:
                     if x - 1 < 0 or room_layout[y][x - 1] == number:
                         st[3] = 1
                     name = self.__get_picture_code(st)
-                    # check for corner cases
-                    if name == "m":
+                    #list of tiles that should not be regarded
+                    empty_tiles = [0, amnt_stage_names + 1]
+                    if name == "m" and number <= amnt_stage_names :
                         if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_layout) and x + 1 < len(row) \
-                                and room_layout[y - 1][x - 1] == 0 and room_layout[y + 1][x + 1] == 0:
+                                and room_layout[y - 1][x - 1] != number and room_layout[y + 1][x + 1] != number:
                             name = "tbd"
                         elif y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_layout) and x + 1 < len(row) \
-                                and (room_layout[y - 1][x + 1] == 0) and (room_layout[y + 1][x - 1] == 0):
+                                and (room_layout[y - 1][x + 1] != number) and (room_layout[y + 1][x - 1] != number):
                             name = "btd"
-                        elif y + 1 < len(room_layout) and x - 1 >= 0 and (room_layout[y + 1][x - 1] == 0):
+                        elif y + 1 < len(room_layout) and x - 1 >= 0 and (room_layout[y + 1][x - 1] != number):
                             name = "blic"
-                        elif y + 1 < len(room_layout) and x + 1 < len(row) and (room_layout[y + 1][x + 1] == 0):
+                        elif y + 1 < len(room_layout) and x + 1 < len(row) and (room_layout[y + 1][x + 1] != number):
                             name = "bric"
-                        elif y - 1 >= 0 and x + 1 < len(row) and (room_layout[y - 1][x + 1] == 0):
+                        elif y - 1 >= 0 and x + 1 < len(row) and (room_layout[y - 1][x + 1] != number):
                             name = "tric"
-                        elif y - 1 >= 0 and x - 1 >= 0 and (room_layout[y - 1][x - 1] == 0):
+                        elif y - 1 >= 0 and x - 1 >= 0 and (room_layout[y - 1][x - 1] != number):
                             name = "tlic"
-                    elif name == "rs":
+                    elif name == "rs" and number <= amnt_stage_names :
                         if y - 1 >= 0 and x - 1 >= 0 and x + 1 < len(row) \
-                                and room_layout[y - 1][x - 1] <= 0 and room_layout[y][x + 1] <= 0:
+                                and room_layout[y - 1][x - 1] != number and room_layout[y][x + 1] != number:
                             name = "rtlc"
                         elif y + 1 < len(room_layout) and x - 1 >= 0 and x + 1 < len(row) \
-                                and room_layout[y + 1][x - 1] <= 0 and room_layout[y][x + 1] <= 0:
+                                and room_layout[y + 1][x - 1] != number and room_layout[y][x + 1] != number:
                             name = "rblc"
-                    elif name == "bs":
+                    elif name == "bs" and number <= amnt_stage_names :
                         if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_layout) \
-                                and room_layout[y - 1][x - 1] <= 0 and room_layout[y + 1][x] <= 0:
+                                and room_layout[y - 1][x - 1] != number and room_layout[y + 1][x] != number:
                             name = "btlc"
                         elif y - 1 >= 0 and x + 1 < len(row) and y + 1 < len(room_layout) \
-                                and room_layout[y - 1][x + 1] <= 0 and room_layout[y + 1][x] <= 0:
+                                and room_layout[y - 1][x + 1] != number and room_layout[y + 1][x] != number:
                             name = "btrc"
-                    elif name == "ls":
+                    elif name == "ls" and number <= amnt_stage_names:
                         if y - 1 >= 0 and x - 1 >= 0 and x + 1 < len(row) \
-                                and room_layout[y - 1][x + 1] <= 0 and room_layout[y][x - 1] <= 0:
+                                and room_layout[y - 1][x + 1] != number and room_layout[y][x - 1] != number:
                             name = "ltrc"
                         elif y + 1 < len(room_layout) and x - 1 >= 0 and x + 1 < len(row) \
-                                and room_layout[y + 1][x + 1] <= 0 and room_layout[y][x - 1] <= 0:
+                                and room_layout[y + 1][x + 1] != number and room_layout[y][x - 1] != number:
                             name = "lbrc"
-                    elif name == "ts":
+                    elif name == "ts" and number <= amnt_stage_names:
                         if y - 1 >= 0 and x - 1 >= 0 and y + 1 < len(room_layout) \
-                                and room_layout[y + 1][x - 1] <= 0 and room_layout[y - 1][x] <= 0:
+                                and room_layout[y + 1][x - 1] != number and room_layout[y - 1][x] != number:
                             name = "tblc"
                         elif y - 1 >= 0 and x + 1 < len(row) and y + 1 < len(room_layout) \
-                                and room_layout[y + 1][x + 1] <= 0 and room_layout[y - 1][x] <= 0:
+                                and room_layout[y + 1][x + 1] != number and room_layout[y - 1][x] != number:
                             name = "tbrc"
 
                     picture_map[y][x] = name + str(number)
@@ -413,12 +410,10 @@ class Room:
                     image = tile_images["left_right_open_" + stage_names[number]]
                 elif letter == "ral":
                     image = tile_images["bottom_top_open_" + stage_names[number]]
-                elif letter == "path":
-                    image = tile_images["center"]
                 if image:
                     pos = (x * 100, y * 100)
                     #in case of a path tile
-                    if number == 8:
+                    if number == len(stage_names) - 1:
                         #for all the path tiles at the edge of the room, they become interactable to allow the player to
                         #move to the next room
                         if y == len(self.room_layout) - 1 or x == len(line) - 1 or y == 0 or x == 0:
