@@ -24,31 +24,33 @@ class BasicStage:
                     self.set_room(room)
                     break
 
-    #function purely defined as an action function for the connecting rooms
+    #function purely defined as an action function for connecting rooms
     def action(self):
         pr = self.player.rect
         cr = self.current_room.rect
         if pr.x > 0.75 * cr.width * 100:
             room = self.stage_rooms_map[cr[1]][cr[0] + 1]
-            self.player.rect.topleft = (110, round(cr.height * 100 * 0.5))
+            self.player.rect.topleft = (110, room.connections[3][1] * 100)
         elif pr.x < 0.25 * cr.width * 100:
             room = self.stage_rooms_map[cr[1]][cr[0] - 1]
-            self.player.rect.topleft = (cr.width * 100 - 110 - self.player.rect.width, round(cr.height * 100 * 0.5))
+            self.player.rect.topleft = (cr.width * 100 - 110 - self.player.rect.width, room.connections[1][1] * 100)
         elif pr.y > 0.75 * cr.height * 100:
             room = self.stage_rooms_map[cr[1] + 1][cr[0]]
-            self.player.rect.topleft = (round(cr.width * 100 * 0.5), 110)
+            self.player.rect.topleft = (room.connections[0][0] * 100, 110)
         elif pr.y < 0.25 * cr.height * 100:
             room = self.stage_rooms_map[cr[1] - 1][cr[0]]
-            self.player.rect.topleft = (round(cr.width* 100  * 0.5), cr.height * 100 - 110 - self.player.rect.height)
+            self.player.rect.topleft = (room.connections[2][0] * 100, cr.height * 100 - 110 - self.player.rect.height)
         self.set_room(room)
 
     def set_room(self, room):
         self.background.image = room.background_image
         self.room_props.image = room.room_image
         self.tiles = room.tiles
+        #remove all the interacting entities
         for sprite in self.interacting_group.sprites():
             sprite.kill()
         self.interacting_group.empty()
+        #update the tiles for the player. The enemies should be spawned per room.
         self.player.tiles = self.tiles
         self.current_room = room
         for tile in self.tiles.interactable_tiles:
@@ -59,6 +61,8 @@ class BasicStage:
                 if tile.action_desc == "room_transition":
                     entities.InteractingEntity(tile.topleft, self.player, self.updater, self.interacting_group,
                                                action=self.action, visible = [False, False])
+            elif utilities.WARNINGS:
+                print("Interacting tile with no interaction specified!!!")
 
     def get_random_weapons(self, amnt = 1):
         weapons = []

@@ -145,24 +145,24 @@ class Room:
 
         self.rect = rect
         self.room_type = room_type
-        #array of max lenght 4 containing false or true
-        self.connections = connections
+        #array of lenght 4 containing False for no connection and a coordinate in case of a connection
+        self.connections = [False,False,False,False]
         #create a layout with letters telling where the solid tiles are supposed to go and of what type.
-        room_layout_and_path = self.add_path(room_layout)
+        room_layout_and_path = self.add_path(room_layout, connections)
         self.room_layout = self.determine_pictures(room_layout_and_path)
         self.tiles = TileGroup()
         self.__create_solid_tiles(kwargs["tile_images"], kwargs["solid_tile_names"])
         self.background_image = self.__create_background_image(kwargs["background_images"])
         self.room_image = self.__create_props_and_tiles_image(kwargs["props"])
 
-    def add_path(self, room_layout):
+    def add_path(self, room_layout, connections):
         #middle of room
         xl, yl = round(self.rect.width / 2) - 1,round(self.rect.height / 2) - 1
         #take a center that is offset slightly from the actual center to make the paths connect to.
         target_center = (xl + random.randint(-1 * round(xl* self.f_offset), round(xl * self.f_offset)),
                          yl + random.randint(-1 * round(yl* self.f_offset), round(yl * self.f_offset)))
         #for each connection that a room has there is a path connected from the side of the room to the target center.
-        for num, connection in enumerate(self.connections):
+        for num, connection in enumerate(connections):
             if not connection:
                 continue
             # coordinates that signify the startpoint of the path
@@ -174,11 +174,13 @@ class Room:
                 y0 = yl + random.randint(-1 * round(yl* self.f_offset), round(yl * self.f_offset))
                 if num == 1:
                     x0 = self.rect.width - 1
+                self.connections[num] = (x0, y0)
             else: # 0 or 2
                 x0 = xl + random.randint(-1 * round(xl* self.f_offset), round(xl * self.f_offset))
                 horizontal = False
                 if num == 2:
                     y0 = self.rect.height - 1
+                self.connections[num] = (x0, y0)
             dx = target_center[0] - x0
             dy = target_center[1] - y0
             if horizontal:
@@ -380,7 +382,7 @@ class Room:
                     #in case of a path tile
                     if number == 8:
                         #for all the path tiles at the edge of the room, they become interactable to allow the player to
-                        #move tot the next room
+                        #move to the next room
                         if y == len(self.room_layout) - 1 or x == len(line) - 1 or y == 0 or x == 0:
                             self.tiles[y][x] = InteractableTile(image, pos, action_desc="room_transition")
                         else:
@@ -486,7 +488,7 @@ class TileGroup:
 
     def solid_collide(self, rect, height = True):
         """
-        Fast method for calculating collision by checking the 4 cornors and seeing with what tiles they overlap. This
+        Fast method for calculating collision by checking the 4 corners and seeing with what tiles they overlap. This
         makes it at most 4 checks for collision. Also checks for out of bounds
         :param rect: a rectangle that is checked for an overlap
         :param height tells if there should be checked for height when checking collision
