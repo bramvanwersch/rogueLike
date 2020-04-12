@@ -76,10 +76,9 @@ def build_map(size, **kwargs):
     for y, row in enumerate(game_map):
         for x, value in enumerate(row):
             if value != 0:
-                room_map = build_room_map(kwargs["wheights"])
                 room = Room(pygame.Rect(x,y, int(utilities.DEFAULT_LEVEL_SIZE.width / 100),
-                                        int(utilities.DEFAULT_LEVEL_SIZE.height / 100)), value,
-                            get_connecting_rooms(game_map, (x,y)), room_map, **kwargs)
+                            int(utilities.DEFAULT_LEVEL_SIZE.height / 100)), value,
+                            get_connecting_rooms(game_map, (x,y)), **kwargs)
                 game_map[y][x] = room
     if utilities.WARNINGS:
         print("Room with value 2, -1 is not handled yet.")
@@ -104,32 +103,8 @@ def get_connecting_rooms(game_map, point):
         surrounding_points[3] = True
     return surrounding_points
 
-#split up a room using binary space partinioning and create a randomized room
-def build_room_map(wheights = [1]):
-    did_split = True
-    leafs = [Leaf((0,0),(int((utilities.DEFAULT_LEVEL_SIZE.width - 200) / 100), int((utilities.DEFAULT_LEVEL_SIZE.height - 200) / 100)))]
-    while did_split:
-        did_split = False
-        for l in leafs:
-            if l.left_leaf == None and l.rigth_leaf == None:
-                if l.rect.width > MAX_LEAF_SIZE or l.rect.height > MAX_LEAF_SIZE or random.randint(1,4) == 1:
-                    if l.split():
-                        leafs.append(l.rigth_leaf)
-                        leafs.append(l.left_leaf)
-                        did_split = True
-    #create wheighted array for consistent random with a seed.
-    wheighted_array = [[i +1]* wheights[i] for i in range(len(wheights))]
-    wheighted_array = [number for row in wheighted_array for number in row]
-    leafs[0].create_blob(wheighted_array)
-    final_map = leafs[0].get_map()
-    #create border around map.
-    for i, row in enumerate(final_map):
-        final_map[i] = [1] + row + [1]
-    final_map = [[1]* len(final_map[0])] + final_map + [[1]* len(final_map[0])]
-    return final_map
-
 class Room:
-    def __init__(self, rect, room_type, connections, room_layout, **kwargs):
+    def __init__(self, rect, room_type, connections, **kwargs):
         """
         Class for creating a full room including the background and pictures associated with it.
         :param rect: The rectangle where the room is located. The coordinate of the room is te location on the map
@@ -139,21 +114,60 @@ class Room:
         :param room_layout: matrix of numbers signifying where solid tiles are located
         :param kwargs: list of optional parameters, mainly parameters for pictures to use to make the rooms.
         """
+        self.rect = rect
+        self.room_type = room_type
+        self.room_layout = RoomLayout(self.rect, connections, **kwargs)
+        #for convenience
+        self.tiles = self.room_layout.tiles
+        self.connections = self.room_layout.connections
+        self.enemies = self.__choose_enemies(kwargs["enemies"], kwargs["spawn_weights"],kwargs["spawn_amnt_range"])
+
+    def __choose_enemies(self, enemies, spawn_weights, spawn_amnt_range):
+        enemie_choice = utilities.get_wheighted_array(enemies, spawn_weights)
+        enemies = []
+        for _ in range(random.randint(*spawn_amnt_range)):
+            enemies.append(random.choice(enemie_choice))
+        return enemies
+
+class RoomLayout:
+    def __init__(self, rect, connections, **kwargs):
+        self.rect = rect
         #value tracked here for easy ways of changing. At this point just tracks a constant
         self.f_offset = 0.25
         self.propnmbr = 50
-
-        self.rect = rect
-        self.room_type = room_type
-        #array of lenght 4 containing False for no connection and a coordinate in case of a connection
         self.connections = [False,False,False,False]
-        #create a layout with letters telling where the solid tiles are supposed to go and of what type.
+        room_layout = self.build_room_map(kwargs["solid_tile_weights"])
         room_layout_and_path = self.add_path(room_layout, connections, len(kwargs["solid_tile_names"]) + 1)
         self.room_layout = self.determine_pictures(room_layout_and_path, len(kwargs["solid_tile_names"]))
         self.tiles = TileGroup()
-        self.__create_solid_tiles(kwargs["tile_images"], list(kwargs["solid_tile_names"] + ["path"]))
+        self.__create_tiles(kwargs["tile_images"], list(kwargs["solid_tile_names"] + ["path"]))
+        self.tiles.setup()
         self.background_image = self.__create_background_image(kwargs["background_images"])
         self.room_image = self.__create_props_and_tiles_image(kwargs["props"])
+
+    # split up a room using binary space partinioning and create a randomized room
+    def build_room_map(self, wheights=[1]):
+        did_split = True
+        leafs = [Leaf((0, 0), (
+        int((utilities.DEFAULT_LEVEL_SIZE.width - 200) / 100), int((utilities.DEFAULT_LEVEL_SIZE.height - 200) / 100)))]
+        while did_split:
+            did_split = False
+            for l in leafs:
+                if l.left_leaf == None and l.rigth_leaf == None:
+                    if l.rect.width > MAX_LEAF_SIZE or l.rect.height > MAX_LEAF_SIZE or random.randint(1, 4) == 1:
+                        if l.split():
+                            leafs.append(l.rigth_leaf)
+                            leafs.append(l.left_leaf)
+                            did_split = True
+        # create wheighted array for consistent random with a seed.
+        wheighted_array = utilities.get_wheighted_array([1, 2], wheights)
+        leafs[0].create_blob(wheighted_array)
+        final_map = leafs[0].get_map()
+        # create border around map.
+        for i, row in enumerate(final_map):
+            final_map[i] = [1] + row + [1]
+        final_map = [[1] * len(final_map[0])] + final_map + [[1] * len(final_map[0])]
+        return final_map
 
     def add_path(self, room_layout, connections, amnt_stage_names):
         """
@@ -162,7 +176,8 @@ class Room:
         block or finds the middle coordinate
         :param room_layout: a map that has the layout of the room
         :param connections: a boolean tuple of lenght 4 telling if there is a connecting room or not in order N,E,S,W
-        TODO: at this moment there is only one sort of path block used. There should be corners etc.
+        :param amnt_stage_names: an integer that tells how many different textures there are for the blobs. The paths
+        get a number one bigger then this one.
         :return: the room layout matrix with an extra path
         """
         #middle of room
@@ -332,7 +347,7 @@ class Room:
             return "ral"
         return "m"
 
-    def __create_solid_tiles(self, tile_images, stage_names):
+    def __create_tiles(self, tile_images, stage_names):
         """
         Add solid tiles to the tile group (self.tiles) with adding the tiles the pictures are also configured
         :param tile_images: dictionary with image names for the solid tiles
@@ -434,7 +449,6 @@ class Room:
         # self.tiles.finish_tiles.append(finishtile)
 
         #do some calculatuions after all tiles are added to speed up calculations later on.
-        self.tiles.setup()
 
     def __create_background_image(self, images):
         pygame.surfarray.use_arraytype("numpy")
@@ -456,7 +470,6 @@ class Room:
 
     def __create_props_and_tiles_image(self, props):
         ps = props[0].get_rect().width
-
         max_props = min(int(utilities.DEFAULT_LEVEL_SIZE.width / ps), int(utilities.DEFAULT_LEVEL_SIZE.height / ps))
         xcoords = [random.randint(0, int(utilities.DEFAULT_LEVEL_SIZE.width / ps) - 1) for _ in
                    range(self.propnmbr * 2)]
