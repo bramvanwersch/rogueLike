@@ -112,7 +112,7 @@ class Room:
         :param connections: list of lenght 4 telling the coordinates of a connected room or False when there is no
         connection
         :param room_layout: matrix of numbers signifying where solid tiles are located
-        :param kwargs: list of optional parameters, mainly parameters for pictures to use to make the rooms.
+        :param kwargs: list of optional parameters, mainly parameters for pictures to used to make the rooms.
         """
         self.rect = rect
         self.room_type = room_type
@@ -123,10 +123,17 @@ class Room:
         self.enemies = self.__choose_enemies(kwargs["enemies"], kwargs["spawn_weights"],kwargs["spawn_amnt_range"])
 
     def __choose_enemies(self, enemies, spawn_weights, spawn_amnt_range):
-        enemie_choice = utilities.get_wheighted_array(enemies, spawn_weights)
+        enemie_choices = utilities.get_wheighted_array(enemies, spawn_weights)
         enemies = []
         for _ in range(random.randint(*spawn_amnt_range)):
-            enemies.append(random.choice(enemie_choice))
+            enemie_choice  = random.choice(enemie_choices)
+            collide = True
+            #random a location until the enemy fits
+            while collide:
+                test_rect = pygame.Rect(random.randint(0,self.rect.width * 100), random.randint(0,self.rect.height * 100),
+                                        *enemie_choice[1])
+                collide = self.tiles.solid_collide(test_rect)
+            enemies.append([enemie_choice[0], test_rect.topleft])
         return enemies
 
 class RoomLayout:

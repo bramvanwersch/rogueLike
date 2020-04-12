@@ -251,6 +251,7 @@ class Enemy(LivingEntity):
             self.previous_acctack_cycle = self.player.right_arm.attack_cycle
 
 class RedSquare(Enemy):
+    SIZE = (50,50)
     def __init__(self, pos, player, tiles, *groups):
         image = sheets["enemies"].image_at((240,0), scale = (50,50))
         Enemy.__init__(self, pos, player, *groups, speed = 5, tiles = tiles, image = image)
@@ -287,6 +288,7 @@ class RedSquare(Enemy):
             self.speedy += self.max_speed
 
 class BadBat(Enemy):
+    SIZE = (100,50)
     def __init__(self, pos, player,tiles, *groups):
         animation_images = sheets["enemies"].images_at_rectangle((16,0,224,16), scale = (100,50), size = (32,16),
                                                                  color_key = (255,255,255))
@@ -307,7 +309,7 @@ class BadBat(Enemy):
         """
         return self.rect.inflate((-self.rect.width * 0.8, - self.rect.height * 0.2))
 
-    def _check_collision(self):
+    def _check_collision(self, height = False):
         """
         Check the collision of x and y simoultaniously and return if x and y have collision
         :return:
@@ -336,11 +338,13 @@ class BadBat(Enemy):
         return [xcol, ycol]
 
 class TestDummy(Enemy):
+    SIZE = (50,100)
     def __init__(self, pos, player, tiles, *groups):
         image = sheets["enemies"].image_at((0,48), scale = (50,100), size = (16,32), color_key = (255,255,255))
         Enemy.__init__(self, pos, player, *groups, health = 2000, health_regen = 1000, speed = 0, tiles = tiles, image = image)
 
 class Archer(Enemy):
+    SIZE = (60,120)
     def __init__(self, pos, player,tiles, *groups):
         image = sheets["enemies"].image_at((0,16), scale = (60,120), size = (16,32), color_key = (255,255,255))
         Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = 4, image = image)

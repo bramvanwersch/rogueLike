@@ -1,4 +1,4 @@
-import pygame
+import pygame, random
 from pygame.locals import *
 import utilities, entities, game_map, prop_entities
 from game_images import sheets
@@ -65,8 +65,7 @@ class BasicStage:
             elif utilities.WARNINGS:
                 print("Interacting tile with no interaction specified!!!")
         for enemie in room.enemies:
-            pass
-
+            self.add_enemy(*enemie)
 
     def get_random_weapons(self, amnt = 1):
         weapons = []
@@ -99,7 +98,8 @@ class ForestStage(BasicStage):
         props = sheets["forest"].images_at_rectangle((16,32,160,16), scale = (100,100))
         self.stage_rooms_map = game_map.build_map((5, 5), solid_tile_weights = [8, 2], background_images = background_images,
                                         tile_images = tile_images, props = props, solid_tile_names = ["forest", "lake"],
-                                        enemies = ["red square", "bad bat", "archer"], spawn_weights = [1,2,1],
+                                        enemies = [["red square", entities.RedSquare.SIZE], ["bad bat",entities.BadBat.SIZE],
+                                                   ["archer",entities.Archer.SIZE]], spawn_weights = [1,2,1],
                                         spawn_amnt_range = [0,5])
         BasicStage.__init__(self, updater, player, **kwargs)
 
