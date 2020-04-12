@@ -13,7 +13,6 @@ class BasicStage:
         #values are set here to indicat that these are class varaibles. They are defined using the set room function
         self.background = None
         self.room_props = None
-        self.tiles = None
         #find the start room and set the stage to that room
         for x in self.stage_rooms_map:
             for room in x:
@@ -46,15 +45,17 @@ class BasicStage:
     def set_room(self, room):
         self.background.image = room.room_layout.background_image
         self.room_props.image = room.room_layout.room_image
-        self.tiles = room.tiles
         #remove all the interacting entities
         for sprite in self.interacting_group.sprites():
             sprite.kill()
         self.interacting_group.empty()
+        #remove all enemie sprites to be sure.
+        for sprite in self.enemy_sprite_group.sprites():
+            sprite.dead = True
         #update the tiles for the player. The enemies should be spawned per room.
-        self.player.tiles = self.tiles
         self.current_room = room
-        for tile in self.tiles.interactable_tiles:
+        self.player.tiles = self.current_room.tiles
+        for tile in self.current_room.tiles.interactable_tiles:
             if tile.action:
                 entities.InteractingEntity(tile.topleft, self.player, self.updater, self.interacting_group,
                                            action = tile.action)
@@ -64,7 +65,7 @@ class BasicStage:
                                                action=self.action, visible = [False, False])
             elif utilities.WARNINGS:
                 print("Interacting tile with no interaction specified!!!")
-        for enemie in room.enemies:
+        for enemie in self.current_room.enemies:
             self.add_enemy(*enemie)
 
     def get_random_weapons(self, amnt = 1):
@@ -75,13 +76,13 @@ class BasicStage:
 
     def add_enemy(self, name, pos):
         if name == "red square":
-            entities.RedSquare(pos, self.player, self.tiles, self.updater, self.enemy_sprite_group)
+            entities.RedSquare(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group)
         elif name == "bad bat":
-            entities.BadBat(pos, self.player, self.tiles, self.updater,self.enemy_sprite_group)
+            entities.BadBat(pos, self.player, self.current_room.tiles, self.updater,self.enemy_sprite_group)
         elif name == "dummy":
-            entities.TestDummy(pos, self.player, self.tiles, self.updater, self.enemy_sprite_group)
+            entities.TestDummy(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group)
         elif name == "archer":
-            entities.Archer(pos, self.player, self.tiles, self.updater, self.enemy_sprite_group)
+            entities.Archer(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group)
         else:
             print("Warning unknown enemy: "+ name)
 

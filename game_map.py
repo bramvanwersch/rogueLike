@@ -432,8 +432,8 @@ class RoomLayout:
                     image = tile_images["left_right_open_" + stage_names[number]]
                 elif letter == "ral":
                     image = tile_images["bottom_top_open_" + stage_names[number]]
+                pos = (x * 100, y * 100)
                 if image:
-                    pos = (x * 100, y * 100)
                     #in case of a path tile
                     if number == len(stage_names) - 1:
                         #for all the path tiles at the edge of the room, they become interactable to allow the player to

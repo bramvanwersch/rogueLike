@@ -228,12 +228,11 @@ def setup_board():
 
     global stage
     stage = stages.ForestStage(game_sprites, player, weapons=weapons)
-    player.tiles = stage.tiles
-
+    #
     # stage.add_enemy("dummy", (600, 500))
     # # TODO needs to be moved to different place
     # stage.add_enemy("red square", (600, 500))
-    # # stage.add_enemy("archer", (100,100))
+    stage.add_enemy("archer", (100,100))
     # # stage.add_enemy("bad bat", (100,300))
     # for i in range(5):
     #     stage.add_enemy("archer", (100 + i * 100, 100))

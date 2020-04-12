@@ -358,15 +358,20 @@ class Archer(Enemy):
         self.shooting_cooldown = 50
         self.collision = True
         self.vision_line = []
+        self.projectiles = []
 
     def update(self, *args):
         super().update(*args)
+        for p in self.projectiles:
+            if p.dead:
+                self.projectiles.remove(p)
         if self.shooting and self.shooting_cooldown <= 0:
             #update animation
             # self.shooting_animation.update()
             # if self.shooting_animation.cycles > 0:
             self.shooting = False
-            LinearProjectile(self.rect.center, self.player, super().groups()[0], size = [50, 10], tiles = self.tiles, speed = 20)
+            self.projectiles.append(LinearProjectile(self.rect.center, self.player, super().groups()[0], size = [50, 10],
+                                                     tiles = self.tiles, speed = 20))
             self.shooting_cooldown = 50
         elif self.shooting_cooldown > 0:
             self.shooting_cooldown -= 1
@@ -415,6 +420,10 @@ class Archer(Enemy):
         """
         bb = self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.4))
         return bb
+
+    def _die(self):
+        for p in self.projectiles:
+            p.dead = True
 
 class LinearProjectile(Enemy):
     def __init__(self, start_pos, player, *groups, p_type = "arrow", accuracy = 80, **kwargs):
