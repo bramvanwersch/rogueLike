@@ -64,6 +64,18 @@ def fancy_matrix_print(matrix):
         s += "\n"
     print(s)
 
+def get_wheighted_array(array, wheights):
+    """
+    Create an array that has each ellement of the orignal array times the amount of the wheight in it.
+    :param array: an array of presumably unique values
+    :param wheights: an array of integers the same lenght as the array of values
+    :return: an array that is the lenght of the sum of the integers in the wheights array
+    """
+    assert len(array) == len(wheights)
+    wheighted_array = [[value]* wheights[i] for i, value in enumerate(array)]
+    wheighted_array = [number for row in wheighted_array for number in row]
+    return wheighted_array
+
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)
     try:
