@@ -1,34 +1,44 @@
 #!/usr/bin/env python
 # Import Modules
-import os, pygame
-import numpy as np
+import pygame
 import utilities, entities, manufacturers
+from game_images import sheets
 from pygame.locals import *
 from pygame.compat import geterror
 
-# if not pygame.font:
-#     print("Warning, fonts disabled")
-# if not pygame.mixer:
-#     print("Warning, sound disabled")
-
-class AbstractWeapon:
-    def __init__(self, image):
+class Weapon:
+    def __init__(self, parts):
         #default pos will need to be assigned when relevant
-        #TODO at some point this transform needs to go and the images cobined using blitting.
-        self.image = pygame.transform.scale(image, (int(image.get_rect().width * 0.7),int(image.get_rect().height * 0.8)))
-        self.rect = self.image.get_rect()
+        self.parts = parts
+        self.image = self.__create_weapon_image()
         self.font25 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 25)
-
-class MeleeWeapon(AbstractWeapon):
-    def __init__(self, weaponparts):
-        self.parts = weaponparts
-        AbstractWeapon.__init__(self, self.__create_weapon_image())
         self.damage, self.reload_speed, self.fire_rate, self.weight = self.__calculate_stats()
-        self.inventory_text = self.__create_inventory_text()
+
+    def __create_weapon_image(self):
+        """
+        Create a combined image that includes all the weapon parts.
+        :return: an image and repsective rectangle size.
+        """
+        width = sum(self.parts[key].rect.width for key in ["stock", "body", "barrel"])
+        height = sum(self.parts[key].rect.height for key in ["accesory","body","magazine"])
+        image = pygame.Surface((width, height))
+        image.fill((255,255,255))
+        image.blit(self.parts["body"].image, (self.parts["stock"].rect.width,
+                                              self.parts["accesory"].rect.height))
+        acc_loc = self.parts["stock"].rect.width + self.parts["body"].contact_points[0] - self.parts["accesory"].contact_points[2]
+        image.blit(self.parts["accesory"].image, (acc_loc, 0))
+        stock_loc = self.parts["accesory"].rect.height + self.parts["body"].contact_points[3] - self.parts["stock"].contact_points[1]
+        image.blit(self.parts["stock"].image, (0,stock_loc))
+        barrel_loc = self.parts["accesory"].rect.height + self.parts["body"].contact_points[1] - self.parts["barrel"].contact_points[3]
+        image.blit(self.parts["barrel"].image, (self.parts["stock"].rect.width + self.parts["body"].rect.width, barrel_loc))
+        magazine_loc = self.parts["stock"].rect.width + self.parts["body"].contact_points[2] - self.parts["magazine"].contact_points[0]
+        image.blit(self.parts["magazine"].image, (magazine_loc, self.parts["accesory"].rect.height + self.parts["body"].rect.height))
+        image = image.convert()
+        return image
 
     def __calculate_stats(self):
         #handle determines the manufactorer of the melee weapon
-        manufactorer = manufacturers.get_manufacturer(self.parts["handle"].manufacturer)
+        manufactorer = manufacturers.get_manufacturer(self.parts["body"].manufacturer)
         damage =  manufactorer.damage
         reload_speed = manufactorer.reload_speed
         fire_rate = manufactorer.fire_rate
@@ -40,39 +50,12 @@ class MeleeWeapon(AbstractWeapon):
             weight += self.parts[part].weight
         if damage < 1:
             damage = 1
-        if reload_speed < 0:
-            reload_speed = 0
-        if fire_rate < 5:
+        if reload_speed < 0.1:
+            reload_speed = 0.1
+        if fire_rate < 0.5:
             fire_rate = 0.5
-        else:
-            fire_rate /= 10
         return damage, reload_speed, fire_rate, weight
 
-    def __create_weapon_image(self):
-        """
-        Create a combined image that includes all the weapon parts.
-        :return: an image and repsective rectangle size.
-        """
-        pygame.surfarray.use_arraytype("numpy")
-        #the weapon parts as an array numpy matrixes containing pixels
-        partspixels = [pygame.surfarray.pixels3d(self.parts[x].image) for x in self.parts]
-        #widest component is the guard
-        width = partspixels[1].shape[0]
-        lenght = sum(x.shape[1] for x in partspixels)
-        #make final pixel array consisting of width lenght and 3 for rgb values
-        final_arr = np.full((width, lenght, 3), 255)
-        trl = 0
-        # requires size of the parts to be even number of pixels to properly work.
-        for pa in partspixels:
-            hw = width / 2
-            final_arr[int(hw - pa.shape[0]/2):int(hw + pa.shape[0]/2),trl:int(trl + pa.shape[1])] = pa
-            trl += pa.shape[1]
-        image = pygame.surfarray.make_surface(final_arr)
-        #set all the white white pixels transparant
-        image.set_colorkey((255,255,255), RLEACCEL)
-        # image = pygame.transform.scale(image, (int(image.get_rect()[2] * 0.8), int(image.get_rect()[3] * 0.8)))
-        image = image.convert()
-        return image
 
     def __create_inventory_text(self):
         text_surface = pygame.Surface((900,550))
@@ -106,26 +89,45 @@ class MeleeWeapon(AbstractWeapon):
             text_surface.blit(name, (0,250 + 50 * i))
         return text_surface
 
-
-class ProjectileWeapon(AbstractWeapon):
-    def __init__(self):
-        AbstractWeapon.__init__(self)
-
-class AbstractPart:
+class WeaponPart:
     def __init__(self, data):
-        self.image = utilities.load_image(data["imageName"])
-        self.type = data["partType"]
+        self.damage,self.reload_speed,self.fire_rate,self.weight, self.accuracy = 0,0,0,0,0
+        self.element, self.bullet_pattern, self.bullets_per_shot = None, None, None
+        self.type = data["part type"]
         self.name = data["name"]
-        self.damage = int(data["damage"])
         self.manufacturer = data["manufacturer"]
-        self.reload_speed = int(data["reload speed"])
-        self.fire_rate = int(data["fire rate"])
-        self.weight = int(data["wheight"])
+        loc = list(int(x) for x in data["rect"].split("-"))
+        self.image = sheets["weapons"].image_at((loc[0],loc[1]), color_key= (255,255,255), size = (loc[2], loc[3]))
+        self.rect = self.image.get_rect()
+        self.__set_data_values(data)
 
-class MeleePart(AbstractPart):
-    def __init__(self, data):
-        AbstractPart.__init__(self, data)
+        #order of NESW
+        self.contact_points = [None,None,None,None]
+        self.__set_contact_points(data)
 
-class ProjectilePart(AbstractPart):
-    def __init__(self, data):
-        AbstractPart.__init__(self, data)
+    def __set_data_values(self, data):
+        if "damage" in data:
+            self.damage = int(data["damage"])
+        if "reload speed" in data:
+            self.reload_speed = int(data["reload speed"])
+        if "fire rate" in data:
+            self.fire_rate = int(data["fire rate"])
+        if "weight" in data:
+            self.weight = int(data["weight"])
+        if "accuracy" in data:
+            self.accuracy = int(data["accuracy"])
+        if "magazine size" in data:
+            self.magazine_size = int(data["magazine size"])
+        if "element" in data:
+            self.element = data["element"]
+        if "bullets per shot" in data:
+            self.bullets_per_shot = int(data["bullets per shot"])
+        if "bullet pattern" in data:
+            self.bullet_pattern = data["bullet pattern"]
+
+
+    def __set_contact_points(self, data):
+        for i, key in enumerate(["N","E","S","W"]):
+            if "contact" + key in data:
+                #save the average since this is what is going to be used anyway.
+                self.contact_points[i] = round(sum(int(x) for x in data["contact" + key].split("-")) / 2)

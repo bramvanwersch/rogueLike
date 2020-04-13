@@ -494,7 +494,6 @@ class RoomLayout:
         all_coords.sort(key=lambda x: self.__sort_on_y_coord(x))
         image = pygame.Surface((utilities.DEFAULT_LEVEL_SIZE.width, utilities.DEFAULT_LEVEL_SIZE.height))
         image.fill((255, 255, 255))
-        final_arr = np.full((utilities.DEFAULT_LEVEL_SIZE.width, utilities.DEFAULT_LEVEL_SIZE.height, 3), 255)
         for coord in all_coords:
             if isinstance(coord, ImageTile):
                 image.blit(coord.image, (coord.rect.topleft))

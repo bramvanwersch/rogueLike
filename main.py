@@ -4,7 +4,7 @@ import weapon, utilities, entities, stages, camera, player_methods, menu_methods
 from pygame.locals import *
 from pygame.compat import geterror
 
-def get_random_weapon(parts, melee = True):
+def get_random_weapon(parts):
     """
     Gives a random weapon randoming from a pool of random parts. This is different for melee and projectile weapons
     NOTE: projectile implementation is incomplete
@@ -13,42 +13,29 @@ def get_random_weapon(parts, melee = True):
     :param melee: a boolean telling if the weapon is a melee or a projectile weapon
     :return: an instance of a weapon class.
     """
-    weaponparts = {"blade":"","guard":"","handle":"","pommel":""}
-    for name in parts.keys():
-        try:
-            partdict = parts[name]
-            partname = random.choice(list(partdict.keys()))
-            weaponparts[name] = parts[name][partname]
-        except KeyError as e:
-            raise Exception("Weapon part missing. Major problem should not occur.") from e
-    if melee:
-        return weapon.MeleeWeapon(weaponparts)
-    return weapon.ProjectileWeapon(weaponparts)
+    weapon_parts = {"body":None,"barrel":None,"stock":None,"magazine":None,"accesory":None}
+    for part in parts.keys():
+        part_dict = parts[part]
+        weapon_parts[part] = random.choice(part_dict)
+    return weapon.Weapon(weapon_parts)
 
 def load_parts():
     """
     Pre loads the immages defined for the weapon parts
-    :return: return a tuple containing projectile and melee parts in seperate dictionaries that contain a dictionary
-    for each part consisting of part classes.
+    :return: return a dictionary of parts containing a list of dictionaries with an entry for each part.
     """
     partsfile = os.path.join(utilities.DATA_DIR, "info//parts.csv")
     f = open(partsfile,"r")
     lines = f.readlines()
     f.close()
-    meleeweaponparts, projectileweaponparts = {"blade" : {},"guard" : {},"handle" : {},"pommel" : {}}, {}
-    dictnames = lines[0].replace("\n","").split(",")
+    projectileweaponparts = {"body":[],"barrel":[],"stock":[],"magazine":[],"accesory":[]}
+    #first line is descriptors
+    dictnames = list(x.strip() for x in lines[0].replace("\n","").split(","))
     for line in lines[1:]:
         information = line.replace("\n","").split(",")
-        data = {dictnames[x] : i for x,i in enumerate(information)}
-        if data["type"] == "melee":
-            try:
-                meleepart = weapon.MeleePart(data)
-                meleeweaponparts[meleepart.type][meleepart.name] = meleepart
-            except KeyError as e:
-                raise Exception("Unknown part name found.") from e
-        elif data["type"] == "projectile":
-            weaponparts[data["name"]] = weapon.ProjectilePart(data)
-    return (meleeweaponparts, projectileweaponparts)
+        data = {dictnames[x] : i.strip() for x,i in enumerate(information) if i.strip()}
+        projectileweaponparts[data["part type"]].append(weapon.WeaponPart(data))
+    return projectileweaponparts
 
 def load_unload_sprites(player):
     """
@@ -219,23 +206,16 @@ weaponparts = load_parts()
 
 #setup the board and player sprites
 def setup_board():
-    weapons = [get_random_weapon(weaponparts[0]) for _ in range(20)]
+    #generate 20 random weapons
+    weapons = [get_random_weapon(weaponparts) for _ in range(20)]
 
-    player = player_methods.Player((150, 500), get_random_weapon(weaponparts[0]))
+    player = player_methods.Player((150, 500), get_random_weapon(weaponparts))
     game_sprites = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
     player.right_arm.add(game_sprites)
     player.left_arm.add(game_sprites)
 
     global stage
     stage = stages.ForestStage(game_sprites, player, weapons=weapons)
-    #
-    # stage.add_enemy("dummy", (600, 500))
-    # # TODO needs to be moved to different place
-    # stage.add_enemy("red square", (600, 500))
-    stage.add_enemy("archer", (100,100))
-    # # stage.add_enemy("bad bat", (100,300))
-    # for i in range(5):
-    #     stage.add_enemy("archer", (100 + i * 100, 100))
 
     #pause menu
     pause_sprites = pygame.sprite.LayeredUpdates()

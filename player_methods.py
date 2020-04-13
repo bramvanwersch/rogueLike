@@ -317,9 +317,9 @@ class RightArm(GenericArm):
         """
         self.weapon = weapon
         weapon_image = self.weapon.image
-        weapon_image = pygame.transform.rotate(weapon_image, 90)
-        weapon_image = pygame.transform.flip(weapon_image, True, False)
-        image = pygame.Surface((weapon_image.get_rect().width + 5, self.arm.get_rect().height + 9))
+        # weapon_image = pygame.transform.rotate(weapon_image, 90)
+        # weapon_image = pygame.transform.flip(weapon_image, True, False)
+        image = pygame.Surface((weapon_image.get_rect().width + 5, weapon_image.get_rect().height + 9))
         image.fill((255,255,255))
 
         image.blit(weapon_image, (0, image.get_rect().height - weapon_image.get_rect().height), weapon_image.get_rect())
