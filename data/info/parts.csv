@@ -1,6 +1,6 @@
-name,part type,manufacturer,reload speed,damage,fire rate,accuracy,magazine size,bullets per shot,bullet patern,weight,element,contactN,contactE,contactS,contactW,rect
-test_body,body,Jenkins,,5,2,10,,,,,,15-26,8-18,14-29,9-19,0-0-48-32
-test_barrel,barrel,Jenkins,,5,-1,,,,linear,,,,,,9-22,48-0-32-32
-test_stock,stock,Jenkins,,-2,,25,,,,,,,10-20,,,80-0-32-32
-test_magazine,magazine,Jenkins,1,,,,10,1,,,,9-26,,,,112-0-32-32
-test_accesory,accesory,Jenkins,,,,5,,,,,,,,2-28,,144-0-32-16
+name         ,part type,manufacturer,reload speed,damage,fire rate,accuracy,magazine size,bullets per shot,bullet patern,weight,element,contactN,contactE,contactS,contactW,rect
+test_body    ,body     ,Jenkins     ,            ,5     ,2        ,10      ,             ,                ,             ,      ,       ,15-26   ,8-18    ,14-29   ,9-19    ,0-0-48-32
+test_barrel  ,barrel   ,Jenkins     ,            ,5     ,-1       ,        ,             ,                ,linear       ,      ,       ,        ,        ,        ,9-22    ,48-0-32-32
+test_stock   ,stock    ,Jenkins     ,            ,-2    ,         ,25      ,             ,                ,             ,      ,       ,        ,10-20   ,        ,        ,80-0-32-32
+test_magazine,magazine ,Jenkins     ,1           ,      ,         ,        ,10           ,1               ,             ,      ,       ,2-15    ,        ,        ,        ,112-0-16-16
+test_accesory,accesory ,Jenkins     ,            ,      ,         ,5       ,             ,                ,             ,      ,       ,        ,        ,2-28    ,        ,128-0-32-16

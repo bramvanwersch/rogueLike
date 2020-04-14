@@ -27,7 +27,7 @@ class Player(LivingEntity):
         self.inventory = Inventory()
         self._layer = utilities.PLAYER_LAYER2
         self.inventory.add(start_weapon)
-        arm = sheets["player"].image_at((32,32) ,scale = (15,30))
+        arm = sheets["player"].image_at((32,32) ,scale = (15,35))
         self.right_arm = RightArm((self.rect.centerx - 8, self.rect.centery - 8), image = arm)
         self.equip(start_weapon)
         self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8), image = arm)
@@ -71,10 +71,10 @@ class Player(LivingEntity):
             self.next_level()
         self.handle_user_input()
         if self.flipped:
-            self.right_arm.move_arm((self.rect.centerx - 5, self.rect.centery))
+            self.right_arm.move_arm((self.rect.centerx , self.rect.centery + 5))
             self.left_arm.move_arm((self.rect.centerx - 5, self.rect.centery +14))
         elif not self.flipped:
-            self.right_arm.move_arm((self.rect.centerx + 2, self.rect.centery + 2))
+            self.right_arm.move_arm((self.rect.centerx + 3, self.rect.centery + 7))
         self.animations()
 
     def next_level(self):
@@ -116,16 +116,12 @@ class Player(LivingEntity):
             if not self.pressed_keys[UP] and not self.pressed_keys[DOWN]:
                 self.speedy  = 0
 #attacking
-        if self.pressed_keys[A_LEFT]:
+        if pygame.mouse.get_pos()[0] < self.rect.x:
             if not self.flipped:
                 self.flipped = not self.flipped
-            if not self.right_arm.attacking:
-                self.right_arm.do_attack()
-        if self.pressed_keys[A_RIGHT]:
+        else:
             if self.flipped:
                 self.flipped = not self.flipped
-            if not self.right_arm.attacking:
-                self.right_arm.do_attack()
 
     def __dodge(self):
         #TODO not finished yet
@@ -207,8 +203,8 @@ class GenericArm(entities.Entity):
         entities.Entity.__init__(self, pos, **kwargs)
         self.image.set_colorkey((255, 255, 255), RLEACCEL)
         self._layer = utilities.PLAYER_LAYER2
-        self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
-        self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
+        # self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
+        # self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
 
     def flip(self):
         """
@@ -250,9 +246,6 @@ class RightArm(GenericArm):
         #for tracking the original image when rotating
         self.orig_image = self.image
         self.angle = 0
-        #dont touch the numbers they are great and just work
-        self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
-        self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
         #tracks the number of attacks and helps enemies track damage
         self.attack_cycle = 0
         self.attack_cooldown = 0
@@ -264,14 +257,12 @@ class RightArm(GenericArm):
         :param pos: position to move the arm to.
         """
         self.rect.center = pos
-        if self.attacking:
-            self.angle -= 10
-            if self.angle < -30:
-                self.attacking = False
-                self.angle = 0
+        mx, my = pygame.mouse.get_pos()
+        if mx == self.rect.centerx:
+            return
+        rad = math.atan((my - self.rect.centery) / (mx - self.rect.centerx))
+        self.angle = (rad / math.pi) * 180
         self.rotate()
-        if self.attack_cooldown > 0:
-            self.attack_cooldown -= 1 / utilities.GAME_TIME.get_fps()
 
     def do_attack(self):
         """
@@ -290,17 +281,11 @@ class RightArm(GenericArm):
         Rotate an image and calculate a new position based on a offset and an angle.
         """
         if not self.flipped:
-            if self.angle !=  0:
-                self.image = pygame.transform.rotozoom(self.orig_image, self.angle, 1)
-            else:
-                self.image = self.orig_image
-            offset_rotated = self.offset.rotate( - self.angle)
+            self.image = pygame.transform.rotozoom(self.orig_image, - self.angle, 1)
+            offset_rotated = self.offset.rotate(self.angle)
             self.rect = self.image.get_rect(center=self.rect.center + offset_rotated)
         elif self.flipped:
-            if self.angle > 0:
-                self.image = pygame.transform.rotozoom(self.orig_image, - self.angle, 1)
-            else:
-                self.image = self.orig_image
+            self.image = pygame.transform.rotozoom(self.orig_image, - self.angle, 1)
             offset_rotated2 = self.offset2.rotate(self.angle)
             self.rect = self.image.get_rect(center=self.rect.center - offset_rotated2)
         #ensure the bounding box is synced with the image location
@@ -319,19 +304,21 @@ class RightArm(GenericArm):
         weapon_image = self.weapon.image
         # weapon_image = pygame.transform.rotate(weapon_image, 90)
         # weapon_image = pygame.transform.flip(weapon_image, True, False)
-        image = pygame.Surface((weapon_image.get_rect().width + 5, weapon_image.get_rect().height + 9))
+        image = pygame.Surface((weapon_image.get_rect().width, weapon_image.get_rect().height))
+        ir = image.get_rect()
         image.fill((255,255,255))
 
         image.blit(weapon_image, (0, image.get_rect().height - weapon_image.get_rect().height), weapon_image.get_rect())
-        image.blit(self.arm ,(5,0), self.arm.get_rect())
-
+        image = pygame.transform.scale(image, (round(0.8*image.get_rect().width), round(0.8*image.get_rect().height)))
+        rotated_arm = pygame.transform.rotate(self.arm, 40)
+        image.blit(rotated_arm,(25,20), rotated_arm.get_rect())
         image.set_colorkey((255,255,255), pygame.RLEACCEL)
         image = image.convert_alpha()
         self.image = image#self.__create_weapon_arm(weapon_image)
         self.orig_image = self.image
         self.rect = self.image.get_rect(center = self.rect.center)
-        self.offset = pygame.Vector2(int(self.rect.width * 0.5) -10, int(self.rect.height * 0.5)- 2)
-        self.offset2 = pygame.Vector2(int(self.rect.width * 0.5) - 10, int(self.rect.height * 0.5) - 35)
+        self.offset = pygame.Vector2(20,-5)
+        self.offset2 = pygame.Vector2(20,-5)
         self.damage = weapon.damage
 
 class Inventory:

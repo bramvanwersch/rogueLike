@@ -65,8 +65,9 @@ class BasicStage:
                                                action=self.action, visible = [False, False])
             elif utilities.WARNINGS:
                 print("Interacting tile with no interaction specified!!!")
-        for enemie in self.current_room.enemies:
-            self.add_enemy(*enemie)
+        if not utilities.PEACEFULL:
+            for enemie in self.current_room.enemies:
+                self.add_enemy(*enemie)
 
     def get_random_weapons(self, amnt = 1):
         weapons = []
