@@ -216,6 +216,7 @@ def setup_board():
 
     global stage
     stage = stages.ForestStage(game_sprites, player, weapons=weapons)
+    stage.add_enemy("archer",(500,500))
 
     #pause menu
     pause_sprites = pygame.sprite.LayeredUpdates()
@@ -366,7 +367,7 @@ def run():
 
     while utilities.going:
         scene = scenes[utilities.scene_name]
-        utilities.GAME_TIME.tick(200)
+        utilities.GAME_TIME.tick(60)
         scene.handle_events(pygame.event.get())
         scene.update()
         scene.draw()

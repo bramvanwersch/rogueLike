@@ -5,12 +5,12 @@ import game_map
 
 #test constant
 WARNINGS = True
-BOUNDING_BOXES = False
+BOUNDING_BOXES = True
 NR_ENTITIES = True
 FPS = True
 ENTITY_PATHS = False
 VISION_LINE = False
-PEACEFULL = True
+PEACEFULL = False
 
 #some global constants
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]

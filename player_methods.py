@@ -43,7 +43,7 @@ class Player(LivingEntity):
              K_POWER, K_PRINT, K_QUESTION, K_QUOTE, K_QUOTEDBL, K_RALT, K_RCTRL, K_RETURN, K_RIGHT, K_RIGHTBRACKET,
              K_RIGHTPAREN, K_RMETA, K_RSHIFT, K_RSUPER, K_SCROLLOCK, K_SEMICOLON, K_SLASH, K_SPACE, K_SYSREQ, K_TAB,
              K_UNDERSCORE, K_UNKNOWN, K_UP, K_a, K_b, K_c, K_d, K_e, K_f, K_g, K_h, K_i, K_j, K_k, K_l, K_m, K_n, K_o,
-             K_p, K_q, K_r, K_s, K_t, K_u, K_v, K_w, K_x, K_y, K_z]
+             K_p, K_q, K_r, K_s, K_t, K_u, K_v, K_w, K_x, K_y, K_z,"mouse1"]
         self.pressed_keys = {key : False for key in l}
         self.dodge_cd = 0
         self.xp = [0,1000]
@@ -70,6 +70,7 @@ class Player(LivingEntity):
         if self.xp[0] >= self.xp[1]:
             self.next_level()
         self.handle_user_input()
+        #move arms witht the body
         if self.flipped:
             self.right_arm.move_arm((self.rect.centerx , self.rect.centery + 5))
             self.left_arm.move_arm((self.rect.centerx - 5, self.rect.centery +14))
@@ -91,6 +92,10 @@ class Player(LivingEntity):
                 self.pressed_keys[event.key] = True
             elif event.type == KEYUP:
                 self.pressed_keys[event.key] = False
+            elif event.type == MOUSEBUTTONDOWN:
+                self.pressed_keys["mouse1"] = True
+            elif event.type == MOUSEBUTTONUP:
+                self.pressed_keys["mouse1"] = False
 #dodge
         if self.pressed_keys[DODGE] and self.dodge_cd <= 0:
             self.__dodge()
@@ -116,12 +121,9 @@ class Player(LivingEntity):
             if not self.pressed_keys[UP] and not self.pressed_keys[DOWN]:
                 self.speedy  = 0
 #attacking
-        if pygame.mouse.get_pos()[0] < utilities.get_screen_relative_coordinate(self.rect.center)[0]:
-            if not self.flipped:
-                self.flipped = not self.flipped
-        else:
-            if self.flipped:
-                self.flipped = not self.flipped
+        if self.pressed_keys["mouse1"]:
+            self.right_arm.do_attack()
+
 
     def __dodge(self):
         #TODO not finished yet
@@ -144,6 +146,12 @@ class Player(LivingEntity):
         Flips an image based on the direction the player is attacking in. Also flips the arms accordingly.
         :return: None
         """
+        if pygame.mouse.get_pos()[0] < utilities.get_screen_relative_coordinate(self.rect.center)[0]:
+            if not self.flipped:
+                self.flipped = not self.flipped
+        else:
+            if self.flipped:
+                self.flipped = not self.flipped
         if self.flipped:
             self.image = self.flipped_image
         else:
@@ -168,8 +176,6 @@ class Player(LivingEntity):
         Runs an animation based on the current actions of the player.
         :return: None
         """
-        if self.right_arm.attacking:
-            self.idle_animation.cycles += 1
         if int(self.speedx) != 0 or int(self.speedy) != 0:
             self.walking_animation.update()
             self._change_image(self.walking_animation.image)
@@ -242,7 +248,6 @@ class LeftArm(GenericArm):
 class RightArm(GenericArm):
     def __init__(self, pos, **kwargs):
         GenericArm.__init__(self, pos, **kwargs)
-        self.attacking = False
         #for tracking the original image when rotating
         self.orig_image = self.image
         self.angle = 0
@@ -271,10 +276,9 @@ class RightArm(GenericArm):
         :return: None
         """
         if self.attack_cooldown > 0:
+            self.attack_cooldown -= 1
             return
-        self.attacking = True
-        self.angle = 150
-        self.attack_cycle += 1
+        # entities.LinearProjectile(self.rect.center,)
         self.attack_cooldown = 1 / self.weapon.fire_rate
 
     def rotate(self):

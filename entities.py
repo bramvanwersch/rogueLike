@@ -1,5 +1,5 @@
 import pygame, random, math
-import utilities, constants
+import utilities, constants, trajectories
 from game_images import sheets
 
 class Entity(pygame.sprite.Sprite):
@@ -245,10 +245,11 @@ class Enemy(LivingEntity):
             self.player._change_health(- self.damage)
 
     def _check_self_hit(self):
-        if self.player.right_arm.attacking and self.rect.colliderect(self.player.right_arm.bounding_box) and\
-                self.previous_acctack_cycle != self.player.right_arm.attack_cycle:
-            self._change_health(- self.player.right_arm.damage)
-            self.previous_acctack_cycle = self.player.right_arm.attack_cycle
+        pass
+        # if self.player.right_arm.attacking and self.rect.colliderect(self.player.right_arm.bounding_box) and\
+        #         self.previous_acctack_cycle != self.player.right_arm.attack_cycle:
+        #     self._change_health(- self.player.right_arm.damage)
+        #     self.previous_acctack_cycle = self.player.right_arm.attack_cycle
 
 class RedSquare(Enemy):
     SIZE = (50,50)
@@ -347,6 +348,7 @@ class Archer(Enemy):
     SIZE = (60,120)
     def __init__(self, pos, player,tiles, *groups):
         image = sheets["enemies"].image_at((0,16), scale = (60,120), size = (16,32), color_key = (255,255,255))
+        self.arrow = sheets["enemies"].image_at((0,0), scale =(50,25), color_key = (255,255,255))
         Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = 4, image = image)
         self.shot_player_distance = 600
         #make sure path is calculated at start of creation
@@ -370,8 +372,8 @@ class Archer(Enemy):
             # self.shooting_animation.update()
             # if self.shooting_animation.cycles > 0:
             self.shooting = False
-            self.projectiles.append(LinearProjectile(self.rect.center, self.player, super().groups()[0], size = [50, 10],
-                                                     tiles = self.tiles, speed = 20))
+            self.projectiles.append(EnemyProjectile(self.rect.center, self.player, super().groups()[0], size = [50, 10],
+                                                    tiles = self.tiles, speed = 20, image = self.arrow))
             self.shooting_cooldown = 50
         elif self.shooting_cooldown > 0:
             self.shooting_cooldown -= 1
@@ -425,56 +427,33 @@ class Archer(Enemy):
         for p in self.projectiles:
             p.dead = True
 
-class LinearProjectile(Enemy):
-    def __init__(self, start_pos, player, *groups, p_type = "arrow", accuracy = 80, **kwargs):
-        arrow = sheets["enemies"].image_at((0,0), scale =(50,25), color_key = (255,255,255))
-        self.projectile_offset = pygame.Vector2(0,0)
-        Enemy.__init__(self, start_pos, player, *groups, image = arrow, xp = 0, health = 10,**kwargs)
-        self.accuracy = accuracy
-        self.dest = list(self.player.bounding_box.center)
+class Projectile(LivingEntity):
+    def __init__(self, start_pos, *groups, **kwargs):
+        LivingEntity.__init__(self, start_pos, *groups, **kwargs)
         self.rect.center = start_pos
-        if self.dest < list(self.rect.topleft):
-            self.max_speed = - self.max_speed
-        self.__configure_trajectory()
-        self.dead_timer = 60
-        #make implementation of this
+
+    def _get_bounding_box(self):
+        """
+        Return a rectangle at the tip of the arrow to make sure the arrow does not collide with unexpected places
+        :return: a pygame.Rect object
+        """
+        if not hasattr(self, "trajectory"):
+            return self.rect
+        return pygame.Rect(*(self.rect.center - self.trajectory.projectile_offset), 10,10)
+
+    def move(self):
+        if any(self._check_collision(sprites = False)):
+            self._die()
+        self.rect.topleft += pygame.Vector2(self.trajectory.speedx,self.trajectory.speedy)
 
     def __configure_trajectory(self):
-        # in the case of a linear relationship. is always the same but for now leave like this.
-        #https://math.stackexchange.com/questions/656500/given-a-point-slope-and-a-distance-along-that-slope-easily-find-a-second-p
-        # delta y / delta x
-        inacuracy = 100 - self.accuracy
-        if random.randint(1,2) == 1:
-            self.dest[0] += random.randint(0, inacuracy)
-            self.dest[1] += random.randint(0, inacuracy)
-        else:
-            self.dest[0] -= random.randint(0, inacuracy)
-            self.dest[1] -= random.randint(0, inacuracy)
-        try:
-            a = (self.dest[1] - self.rect.y) / (self.dest[0] - self.rect.x)
-        except ZeroDivisionError:
-            a = 0
-        self.speedx = self.max_speed * 1 / math.sqrt(1 + a**2)
-        self.speedy = self.max_speed * a / math.sqrt(1 + a**2)
-        self.projectile_offset = pygame.Vector2(- int(self.rect.width * 0.5), int(self.rect.height * 0.25))
-        if self.max_speed < 0:
-            self.image = self.flipped_image
-            self.projectile_offset = pygame.Vector2(int(self.rect.width * 0.5), int(self.rect.height * 0.25))
-        #orient the arrow the rigth way
-        if self.speedx != 0 and self.speedy != 0:
-            rad = math.atan(self.speedy / self.speedx)
-            degree = rad * 180 / math.pi
-            old_center = self.rect.center
-            self.image = pygame.transform.rotate(self.image, - degree)
-            self.projectile_offset = self.projectile_offset.rotate(degree)
-            self.rect = self.image.get_rect(center = old_center)
-
-    def _use_brain(self):
-        """
-        ensure no unnecesairy calculations
-        TODO also make sure this is not neccesairy. Probably needs a layer of abstraction inbetween or just hijack methods
-        """
         pass
+
+class EnemyProjectile(Projectile):
+    def __init__(self, start_pos, player, *groups, **kwargs):
+        Projectile.__init__(self, start_pos, *groups, **kwargs)
+        self.player = player
+        self.trajectory = self.__configure_trajectory()
 
     def do_flip(self):
         """
@@ -483,23 +462,23 @@ class LinearProjectile(Enemy):
         """
         pass
 
-    def _get_bounding_box(self):
-        """
-        Return a rectangle at the tip of the arrow to make sure the arrow does not collide with unexpected places
-        :return: a pygame.Rect object
-        """
-        return pygame.Rect(*(self.rect.center - self.projectile_offset), 10, 10)
-
-    def move(self):
-        if any(self._check_collision(sprites = False)):
-            self._die()
-        self.rect.topleft += pygame.Vector2(self.speedx,self.speedy)
+    def update(self, *args):
+        super().update()
+        self._check_player_hit()
 
     def _check_player_hit(self):
         if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
             self.player.set_immune()
             self.player._change_health(- self.damage)
             self._die()
+
+    def __configure_trajectory(self):
+        trajectory = trajectories.LinearTrajectory(self.rect.center, self.player.rect.center, self.rect, self.image, super().groups()[0],
+                                                   max_speed=20)
+        self.image = trajectory.image
+        self.rect = trajectory.rect
+        return trajectory
+
 
 class TextSprite(Entity):
     def __init__(self,text, pos, *groups, **kwargs):
