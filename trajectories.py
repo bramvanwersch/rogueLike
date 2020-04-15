@@ -11,6 +11,7 @@ class LinearTrajectory(Trajectory):
     def __init__(self, start_pos, dest_pos, rect, image, *groups, max_speed = 10, **kwargs):
         Trajectory.__init__(self, start_pos, rect, image, *groups, **kwargs)
         self.projectile_offset = pygame.Vector2(0,0)
+        self.start = start_pos
         self.dest = list(dest_pos) #list(self.player.bounding_box.center)
         self.max_speed = max_speed
         if self.dest < list(self.rect.topleft):
@@ -30,7 +31,7 @@ class LinearTrajectory(Trajectory):
             self.dest[0] -= random.randint(0, inacuracy)
             self.dest[1] -= random.randint(0, inacuracy)
         try:
-            a = (self.dest[1] - self.rect.y) / (self.dest[0] - self.rect.x)
+            a = (self.dest[1] - self.start[1]) / (self.dest[0] - self.start[0])
         except ZeroDivisionError:
             a = 0
         self.speedx = self.max_speed * 1 / math.sqrt(1 + a**2)

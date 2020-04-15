@@ -122,7 +122,7 @@ class Player(LivingEntity):
                 self.speedy  = 0
 #attacking
         if self.pressed_keys["mouse1"]:
-            self.right_arm.do_attack()
+            self.right_arm.do_attack(self.tiles)
 
 
     def __dodge(self):
@@ -270,15 +270,16 @@ class RightArm(GenericArm):
         self.angle = (rad / math.pi) * 180
         self.rotate()
 
-    def do_attack(self):
+    def do_attack(self, tiles):
         """
         Pre defined angles for attacking
         :return: None
         """
         if self.attack_cooldown > 0:
-            self.attack_cooldown -= 1
+            self.attack_cooldown -= utilities.GAME_TIME.get_time() / 1000
             return
-        # entities.LinearProjectile(self.rect.center,)
+        entities.Projectile(self.rect.center, pygame.mouse.get_pos(),super().groups()[0], size=[20,20], tiles = tiles,
+                            damage = self.weapon.damage, screen_relative=utilities.get_screen_relative_coordinate(self.rect.center))
         self.attack_cooldown = 1 / self.weapon.fire_rate
 
     def rotate(self):

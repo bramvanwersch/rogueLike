@@ -72,7 +72,7 @@ def get_screen_relative_coordinate(coord):
         screen_player_x = SCREEN_SIZE[2] / 2
     else:
         screen_player_x = coord[0]
-    if (DEFAULT_LEVEL_SIZE.height - SCREEN_SIZE[3] / 2) - coord[1] + 150< 0:
+    if (DEFAULT_LEVEL_SIZE.height - SCREEN_SIZE[3] / 2) - coord[1] + 150 < 0:
         screen_player_y = SCREEN_SIZE[3] / 2 - 1 * ( DEFAULT_LEVEL_SIZE.height - SCREEN_SIZE[3] / 2 - coord[1]) - 150
     elif coord[1] - SCREEN_SIZE[3] / 2 > 0:
         screen_player_y = SCREEN_SIZE[3] / 2

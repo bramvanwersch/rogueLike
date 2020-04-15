@@ -372,8 +372,9 @@ class Archer(Enemy):
             # self.shooting_animation.update()
             # if self.shooting_animation.cycles > 0:
             self.shooting = False
-            self.projectiles.append(EnemyProjectile(self.rect.center, self.player, super().groups()[0], size = [50, 10],
-                                                    tiles = self.tiles, speed = 20, image = self.arrow))
+            self.projectiles.append(EnemyProjectile(self.rect.center, self.player.rect.center, self.player,
+                                                    super().groups()[0], size = [50, 10],tiles = self.tiles, speed = 20,
+                                                    image = self.arrow, bounding_size=[10,10]))
             self.shooting_cooldown = 50
         elif self.shooting_cooldown > 0:
             self.shooting_cooldown -= 1
@@ -428,9 +429,40 @@ class Archer(Enemy):
             p.dead = True
 
 class Projectile(LivingEntity):
-    def __init__(self, start_pos, *groups, **kwargs):
+    def __init__(self, start_pos, end_pos, *groups, **kwargs):
         LivingEntity.__init__(self, start_pos, *groups, **kwargs)
         self.rect.center = start_pos
+        #for when the player shoots the projetile and the end pos is a mouse coordinate
+        if "screen_relative" in kwargs:
+            start_pos = kwargs["screen_relative"]
+        self.trajectory = self.__configure_trajectory(start_pos, end_pos)
+        if "bounding_size" in kwargs:
+            self.bb_size = kwargs["bounding_size"]
+        else:
+            self.bb_size = (self.rect.width, self.rect.height)
+
+    def move(self):
+        if any(self._check_collision(sprites = False)):
+            self._die()
+        self.rect.topleft += pygame.Vector2(self.trajectory.speedx,self.trajectory.speedy)
+
+    def __configure_trajectory(self, start_pos, end_pos):
+        trajectory = trajectories.LinearTrajectory(start_pos, end_pos, self.rect, self.image, super().groups()[0],
+                                                   max_speed=self.max_speed)
+        self.image = trajectory.image
+        return trajectory
+
+class EnemyProjectile(Projectile):
+    def __init__(self, start_pos, end_pos, player, *groups, **kwargs):
+        Projectile.__init__(self, start_pos, end_pos, *groups, **kwargs)
+        self.player = player
+
+    def do_flip(self):
+        """
+        make sure the image does not flip
+        TODO make a better sytem for this. This is kind of dumb.
+        """
+        pass
 
     def _get_bounding_box(self):
         """
@@ -439,28 +471,7 @@ class Projectile(LivingEntity):
         """
         if not hasattr(self, "trajectory"):
             return self.rect
-        return pygame.Rect(*(self.rect.center - self.trajectory.projectile_offset), 10,10)
-
-    def move(self):
-        if any(self._check_collision(sprites = False)):
-            self._die()
-        self.rect.topleft += pygame.Vector2(self.trajectory.speedx,self.trajectory.speedy)
-
-    def __configure_trajectory(self):
-        pass
-
-class EnemyProjectile(Projectile):
-    def __init__(self, start_pos, player, *groups, **kwargs):
-        Projectile.__init__(self, start_pos, *groups, **kwargs)
-        self.player = player
-        self.trajectory = self.__configure_trajectory()
-
-    def do_flip(self):
-        """
-        make sure the image does not flip
-        TODO make a better sytem for this. This is kind of dumb.
-        """
-        pass
+        return pygame.Rect(*(self.rect.center - self.trajectory.projectile_offset), *(self.bb_size))
 
     def update(self, *args):
         super().update()
@@ -471,14 +482,6 @@ class EnemyProjectile(Projectile):
             self.player.set_immune()
             self.player._change_health(- self.damage)
             self._die()
-
-    def __configure_trajectory(self):
-        trajectory = trajectories.LinearTrajectory(self.rect.center, self.player.rect.center, self.rect, self.image, super().groups()[0],
-                                                   max_speed=20)
-        self.image = trajectory.image
-        self.rect = trajectory.rect
-        return trajectory
-
 
 class TextSprite(Entity):
     def __init__(self,text, pos, *groups, **kwargs):
