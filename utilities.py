@@ -5,7 +5,7 @@ import game_map
 
 #test constant
 WARNINGS = True
-BOUNDING_BOXES = True
+BOUNDING_BOXES = False
 NR_ENTITIES = True
 FPS = True
 ENTITY_PATHS = False

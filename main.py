@@ -216,7 +216,6 @@ def setup_board():
 
     global stage
     stage = stages.ForestStage(game_sprites, player, weapons=weapons)
-    stage.add_enemy("archer",(500,500))
 
     #pause menu
     pause_sprites = pygame.sprite.LayeredUpdates()

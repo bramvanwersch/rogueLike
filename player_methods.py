@@ -76,6 +76,9 @@ class Player(LivingEntity):
             self.left_arm.move_arm((self.rect.centerx - 5, self.rect.centery +14))
         elif not self.flipped:
             self.right_arm.move_arm((self.rect.centerx + 3, self.rect.centery + 7))
+        for p in self.right_arm.projectiles:
+            if p.dead:
+                self.right_arm.projectiles.remove(p)
         self.animations()
 
     def next_level(self):
@@ -165,6 +168,8 @@ class Player(LivingEntity):
         Function repeaditly called when the player is dead.
         :return: None
         """
+        for p in self.right_arm.projectiles:
+            p.dead = True
         self.dead_animation.update()
         if self.dead_animation.marked:
             self.right_arm.visible = [False, False]
@@ -252,8 +257,8 @@ class RightArm(GenericArm):
         self.orig_image = self.image
         self.angle = 0
         #tracks the number of attacks and helps enemies track damage
-        self.attack_cycle = 0
         self.attack_cooldown = 0
+        self.projectiles = []
 
     def move_arm(self, pos):
         """
@@ -278,8 +283,8 @@ class RightArm(GenericArm):
         if self.attack_cooldown > 0:
             self.attack_cooldown -= utilities.GAME_TIME.get_time() / 1000
             return
-        entities.Projectile(self.rect.center, pygame.mouse.get_pos(),super().groups()[0], size=[20,20], tiles = tiles,
-                            damage = self.weapon.damage, screen_relative=utilities.get_screen_relative_coordinate(self.rect.center))
+        self.projectiles.append(entities.Projectile(self.rect.center, pygame.mouse.get_pos(),super().groups()[0], size=[20,20], tiles = tiles,
+                            damage = self.weapon.damage, screen_relative=utilities.get_screen_relative_coordinate(self.rect.center), speed= 20))
         self.attack_cooldown = 1 / self.weapon.fire_rate
 
     def rotate(self):

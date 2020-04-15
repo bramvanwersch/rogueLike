@@ -96,7 +96,7 @@ class LivingEntity(Entity):
         self.do_flip()
         # regen health
         if self.health[0] < self.health[1]:
-            self._change_health((utilities.GAME_TIME.get_time() / 1000) * self.health_regen)
+            self.change_health((utilities.GAME_TIME.get_time() / 1000) * self.health_regen)
         #regulate i frames
         if self.immune[0] and self.immune[1] <= 0:
             self.immune[0] = False
@@ -131,7 +131,7 @@ class LivingEntity(Entity):
             else:
                 self.image = self.orig_image
 
-    def _change_health(self, amnt):
+    def change_health(self, amnt):
         """
         changes the health of the entity by a positive or negative value. Cannot heal over max and is declared dead if
         hp is at or below 0
@@ -219,7 +219,6 @@ class Enemy(LivingEntity):
         if not self.dead:
             self._use_brain()
             self._check_player_hit()
-            self._check_self_hit()
 
     def _die(self):
         super()._die()
@@ -242,14 +241,7 @@ class Enemy(LivingEntity):
     def _check_player_hit(self):
         if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
             self.player.set_immune()
-            self.player._change_health(- self.damage)
-
-    def _check_self_hit(self):
-        pass
-        # if self.player.right_arm.attacking and self.rect.colliderect(self.player.right_arm.bounding_box) and\
-        #         self.previous_acctack_cycle != self.player.right_arm.attack_cycle:
-        #     self._change_health(- self.player.right_arm.damage)
-        #     self.previous_acctack_cycle = self.player.right_arm.attack_cycle
+            self.player.change_health(- self.damage)
 
 class RedSquare(Enemy):
     SIZE = (50,50)
@@ -425,6 +417,7 @@ class Archer(Enemy):
         return bb
 
     def _die(self):
+        super()._die()
         for p in self.projectiles:
             p.dead = True
 
@@ -440,6 +433,22 @@ class Projectile(LivingEntity):
             self.bb_size = kwargs["bounding_size"]
         else:
             self.bb_size = (self.rect.width, self.rect.height)
+        if "damage" in kwargs:
+            self.damage = kwargs["damage"]
+        else:
+            self.damage = 0
+
+    def update(self, *args):
+        super().update()
+        if not self.dead:
+            self._check_hit()
+
+    def _check_hit(self):
+        for sprite in super().groups()[0].sprites():
+            if isinstance(sprite, Enemy) and not sprite.immune[0] and sprite != self:
+                if sprite.rect.colliderect(self.rect):
+                    sprite.change_health(- self.damage)
+                    self._die()
 
     def move(self):
         if any(self._check_collision(sprites = False)):
@@ -473,14 +482,10 @@ class EnemyProjectile(Projectile):
             return self.rect
         return pygame.Rect(*(self.rect.center - self.trajectory.projectile_offset), *(self.bb_size))
 
-    def update(self, *args):
-        super().update()
-        self._check_player_hit()
-
-    def _check_player_hit(self):
+    def _check_hit(self):
         if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
             self.player.set_immune()
-            self.player._change_health(- self.damage)
+            self.player.change_health(- self.damage)
             self._die()
 
 class TextSprite(Entity):
