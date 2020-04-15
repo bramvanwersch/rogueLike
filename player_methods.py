@@ -116,7 +116,7 @@ class Player(LivingEntity):
             if not self.pressed_keys[UP] and not self.pressed_keys[DOWN]:
                 self.speedy  = 0
 #attacking
-        if pygame.mouse.get_pos()[0] < self.rect.x:
+        if pygame.mouse.get_pos()[0] < utilities.get_screen_relative_coordinate(self.rect.center)[0]:
             if not self.flipped:
                 self.flipped = not self.flipped
         else:
@@ -258,9 +258,10 @@ class RightArm(GenericArm):
         """
         self.rect.center = pos
         mx, my = pygame.mouse.get_pos()
-        if mx == self.rect.centerx:
+        screen_player_x,screen_player_y = utilities.get_screen_relative_coordinate(self.rect.center)
+        if mx == screen_player_x:
             return
-        rad = math.atan((my - self.rect.centery) / (mx - self.rect.centerx))
+        rad = math.atan((my - screen_player_y) / (mx - screen_player_x))
         self.angle = (rad / math.pi) * 180
         self.rotate()
 

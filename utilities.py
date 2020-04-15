@@ -65,6 +65,21 @@ def fancy_matrix_print(matrix):
         s += "\n"
     print(s)
 
+def get_screen_relative_coordinate(coord):
+    if (DEFAULT_LEVEL_SIZE.width - SCREEN_SIZE[2] / 2) - coord[0] < 0:
+        screen_player_x = SCREEN_SIZE[2] / 2 - 1 * ( DEFAULT_LEVEL_SIZE.width - SCREEN_SIZE[2] / 2 - coord[0])
+    elif coord[0] - SCREEN_SIZE[2] / 2 > 0:
+        screen_player_x = SCREEN_SIZE[2] / 2
+    else:
+        screen_player_x = coord[0]
+    if (DEFAULT_LEVEL_SIZE.height - SCREEN_SIZE[3] / 2) - coord[1] + 150< 0:
+        screen_player_y = SCREEN_SIZE[3] / 2 - 1 * ( DEFAULT_LEVEL_SIZE.height - SCREEN_SIZE[3] / 2 - coord[1]) - 150
+    elif coord[1] - SCREEN_SIZE[3] / 2 > 0:
+        screen_player_y = SCREEN_SIZE[3] / 2
+    else:
+        screen_player_y = coord[1]
+    return (screen_player_x, screen_player_y)
+
 def get_wheighted_array(array, wheights):
     """
     Create an array that has each ellement of the orignal array times the amount of the wheight in it.
