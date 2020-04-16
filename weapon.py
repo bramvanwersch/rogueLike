@@ -12,7 +12,7 @@ class Weapon:
         self.parts = parts
         self.image = self.__create_weapon_image()
         self.font25 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 25)
-        self.damage, self.reload_speed, self.fire_rate, self.weight = self.__calculate_stats()
+        self.damage, self.reload_speed, self.fire_rate, self.weight, self.accuracy, self.magazine_size = self.__calculate_stats()
 
     def __create_weapon_image(self):
         """
@@ -38,24 +38,33 @@ class Weapon:
 
     def __calculate_stats(self):
         #handle determines the manufactorer of the melee weapon
-        manufactorer = manufacturers.get_manufacturer(self.parts["body"].manufacturer)
-        damage =  manufactorer.damage
-        reload_speed = manufactorer.reload_speed
-        fire_rate = manufactorer.fire_rate
-        weight = manufactorer.weight
+        self.manufactorer = manufacturers.get_manufacturer(self.parts["body"].manufacturer)
+        damage =  self.manufactorer.damage
+        reload_speed = self.manufactorer.reload_speed
+        fire_rate = self.manufactorer.fire_rate
+        weight = self.manufactorer.weight
+        accuracy = self.manufactorer.accuracy
+        magazine_size = self.manufactorer.magazine_size
         for part in self.parts:
             damage += self.parts[part].damage
             reload_speed += self.parts[part].reload_speed
             fire_rate += self.parts[part].fire_rate
             weight += self.parts[part].weight
+            accuracy += self.parts[part].accuracy
+            magazine_size += self.parts[part].magazine_size
         if damage < 1:
             damage = 1
         if reload_speed < 0.1:
             reload_speed = 0.1
-        if fire_rate < 0.5:
-            fire_rate = 0.5
-        return damage, reload_speed, fire_rate, weight
-
+        if fire_rate > 50:
+            fire_rate = 50
+        if accuracy > 100:
+            accuracy = 100
+        elif accuracy < 1:
+            accuracy = 1
+        if magazine_size < 1:
+            magazine_size = 1
+        return damage, reload_speed, fire_rate, weight, accuracy, magazine_size
 
     def __create_inventory_text(self):
         text_surface = pygame.Surface((900,550))
@@ -91,7 +100,7 @@ class Weapon:
 
 class WeaponPart:
     def __init__(self, data):
-        self.damage,self.reload_speed,self.fire_rate,self.weight, self.accuracy = 0,0,0,0,0
+        self.damage,self.reload_speed,self.fire_rate,self.weight, self.accuracy, self.magazine_size = 0,0,0,0,0,0
         self.element, self.bullet_pattern, self.bullets_per_shot = None, None, None
         self.type = data["part type"]
         self.name = data["name"]
@@ -124,7 +133,6 @@ class WeaponPart:
             self.bullets_per_shot = int(data["bullets per shot"])
         if "bullet pattern" in data:
             self.bullet_pattern = data["bullet pattern"]
-
 
     def __set_contact_points(self, data):
         for i, key in enumerate(["N","E","S","W"]):

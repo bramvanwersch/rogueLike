@@ -73,7 +73,7 @@ class LivingEntity(Entity):
         self.max_speed = speed
         self.speedx, self.speedy = 0,0
         self.health = [health, health]
-        self.damage = 10
+        self.damage = damage
         #second regen
         self.xp = xp
         self.health_regen = health_regen
@@ -422,21 +422,15 @@ class Archer(Enemy):
             p.dead = True
 
 class Projectile(LivingEntity):
-    def __init__(self, start_pos, end_pos, *groups, **kwargs):
+    def __init__(self, start_pos, end_pos, *groups, accuracy = 80, **kwargs):
         LivingEntity.__init__(self, start_pos, *groups, **kwargs)
         self.rect.center = start_pos
-        #for when the player shoots the projetile and the end pos is a mouse coordinate
-        if "screen_relative" in kwargs:
-            start_pos = kwargs["screen_relative"]
-        self.trajectory = self.__configure_trajectory(start_pos, end_pos)
+        self.accuracy = accuracy
+        self.trajectory = self._configure_trajectory(start_pos, end_pos)
         if "bounding_size" in kwargs:
             self.bb_size = kwargs["bounding_size"]
         else:
             self.bb_size = (self.rect.width, self.rect.height)
-        if "damage" in kwargs:
-            self.damage = kwargs["damage"]
-        else:
-            self.damage = 0
 
     def update(self, *args):
         super().update()
@@ -455,9 +449,24 @@ class Projectile(LivingEntity):
             self._die()
         self.rect.topleft += pygame.Vector2(self.trajectory.speedx,self.trajectory.speedy)
 
-    def __configure_trajectory(self, start_pos, end_pos):
+    def _configure_trajectory(self, start_pos, end_pos):
         trajectory = trajectories.LinearTrajectory(start_pos, end_pos, self.rect, self.image, super().groups()[0],
-                                                   max_speed=self.max_speed)
+                                                   max_speed=self.max_speed, accuracy = self.accuracy)
+        self.image = trajectory.image
+        return trajectory
+
+class PlayerProjectile(Projectile):
+    def __init__(self, start_pos, end_pos, *groups, **kwargs):
+        Projectile.__init__(self, start_pos, end_pos, *groups, **kwargs)
+
+    def _configure_trajectory(self, start_pos, end_pos):
+        """
+        Original trajectory but now containing a screen relative coordinate
+        :param start_pos:
+        :param end_pos:
+        """
+        trajectory = trajectories.LinearTrajectory(utilities.get_screen_relative_coordinate(start_pos), end_pos, self.rect,
+                                                   self.image, super().groups()[0],max_speed=self.max_speed, accuracy = self.accuracy)
         self.image = trajectory.image
         return trajectory
 

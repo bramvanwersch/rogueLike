@@ -283,8 +283,8 @@ class RightArm(GenericArm):
         if self.attack_cooldown > 0:
             self.attack_cooldown -= utilities.GAME_TIME.get_time() / 1000
             return
-        self.projectiles.append(entities.Projectile(self.rect.center, pygame.mouse.get_pos(),super().groups()[0], size=[20,20], tiles = tiles,
-                            damage = self.weapon.damage, screen_relative=utilities.get_screen_relative_coordinate(self.rect.center), speed= 20))
+        self.projectiles.append(entities.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
+                            size=[20,20], tiles = tiles, damage = self.weapon.damage, speed= 20, accuracy=self.weapon.accuracy))
         self.attack_cooldown = 1 / self.weapon.fire_rate
 
     def rotate(self):

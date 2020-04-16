@@ -2,10 +2,10 @@ import pygame, random, math
 import utilities
 
 class Trajectory:
-    def __init__(self, start_pos, rect, image, *groups, accuracy = 80, **kwargs):
+    def __init__(self, start_pos, rect, image, *groups, **kwargs):
         self.rect = rect
         self.image = image
-        self.accuracy = accuracy
+        self.accuracy = kwargs["accuracy"]
 
 class LinearTrajectory(Trajectory):
     def __init__(self, start_pos, dest_pos, rect, image, *groups, max_speed = 10, **kwargs):
