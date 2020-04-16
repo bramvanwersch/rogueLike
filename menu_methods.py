@@ -208,9 +208,9 @@ class WeaponListDisplay(MenuPane):
         self.selectable_widgets = []
         offset = 0
         if self.title:
-            offset = 90
+            offset = 110
         for i, item in enumerate(self.items):
-            size = (self.rect.width - 20, 60)
+            size = (self.rect.width - 15, 100)
             #reverse size because image will be flipped before placing in the label
             lbl = WeaponItemLabel(item, size)
             self.add_widget(("c", offset + i*60), lbl)
@@ -256,8 +256,7 @@ class SelectableLabel(Label):
             self.image = self.unselected_image
 
     def __make_images(self, image, size):
-        image = pygame.transform.flip(pygame.transform.rotate(image, 90), True, False)
-        image = pygame.transform.scale(image, (int(1.5* image.get_rect().width),int(1.5* image.get_rect().height)))
+        image = pygame.transform.scale(image, (int(1.4* image.get_rect().width),int(1.4* image.get_rect().height)))
 
         img = pygame.Surface(size)
         img.fill(BACKGROUND_COLOR)
@@ -268,6 +267,7 @@ class SelectableLabel(Label):
         tly = int((size[1] - ir.height) / 2)
 
         img.blit(image,(tlx,tly))
+        img.set_colorkey((255,255,255), RLEACCEL)
         imgsel = img.copy()
         pygame.draw.rect(imgsel, (0, 0, 0), (0, 0, *imgsel.get_rect().size), 5)
         return img, imgsel

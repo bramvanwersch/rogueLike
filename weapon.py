@@ -13,6 +13,7 @@ class Weapon:
         self.image = self.__create_weapon_image()
         self.font25 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 25)
         self.damage, self.reload_speed, self.fire_rate, self.weight, self.accuracy, self.magazine_size = self.__calculate_stats()
+        self.inventory_text = self.__create_inventory_text()
 
     def __create_weapon_image(self):
         """
@@ -67,7 +68,7 @@ class Weapon:
         return damage, reload_speed, fire_rate, weight, accuracy, magazine_size
 
     def __create_inventory_text(self):
-        text_surface = pygame.Surface((900,550))
+        text_surface = pygame.Surface((900,600))
         text_surface.fill(utilities.BACKGROUND_COLOR)
 
         name = self.font25.render("Damage:", True, (0,0,0))
@@ -80,22 +81,32 @@ class Weapon:
         text_surface.blit(name, (0,50))
         text_surface.blit(value, (250, 50))
 
-        name = self.font25.render("Attacks/s:", True, (0,0,0))
-        value = self.font25.render(str(self.fire_rate), True, (0,0,0))
+        name = self.font25.render("Fire rate:", True, (0,0,0))
+        value = self.font25.render("{} / second:".format(self.fire_rate), True, (0,0,0))
         text_surface.blit(name, (0,100))
         text_surface.blit(value, (250, 100))
 
-        name = self.font25.render("Weight:", True, (0,0,0))
-        value = self.font25.render(str(self.weight), True, (0,0,0))
-        text_surface.blit(name, (0,150))
+        name = self.font25.render("accuracy:", True, (0, 0, 0))
+        value = self.font25.render(str(self.accuracy), True, (0, 0, 0))
+        text_surface.blit(name, (0, 150))
         text_surface.blit(value, (250, 150))
 
+        name = self.font25.render("Magazine size:", True, (0, 0, 0))
+        value = self.font25.render(str(self.magazine_size), True, (0, 0, 0))
+        text_surface.blit(name, (0, 200))
+        text_surface.blit(value, (250, 200))
+
+        name = self.font25.render("Weight:", True, (0,0,0))
+        value = self.font25.render(str(self.weight), True, (0,0,0))
+        text_surface.blit(name, (0,250))
+        text_surface.blit(value, (250, 250))
+
         name = self.font25.render("Parts:", True, (0,0,0))
-        text_surface.blit(name, (0,200))
+        text_surface.blit(name, (0,300))
 
         for i, part in enumerate(self.parts):
             name = self.font25.render(" - {} ({})".format(self.parts[part].name, self.parts[part].manufacturer), True, (0,0,0))
-            text_surface.blit(name, (0,250 + 50 * i))
+            text_surface.blit(name, (0,350 + 50 * i))
         return text_surface
 
 class WeaponPart:
