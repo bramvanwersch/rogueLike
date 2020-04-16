@@ -201,7 +201,7 @@ game_images.load()
 pygame.display.set_caption("Welcome to the forest")
 pygame.mouse.set_visible(True)
 
-# pre random some weapons
+#load all the parts at the start of the game
 weaponparts = load_parts()
 
 #setup the board and player sprites
@@ -295,6 +295,10 @@ class MainScene(Scene):
         Scene.__init__(self, sprites, event_sprite)
         self.nr_loaded_sprites = 0
         self.inventory_frame = get_inventory_frame()
+
+    def update(self):
+        super().update()
+        stage.update()
 
     def handle_events(self, events):
         player_events = []

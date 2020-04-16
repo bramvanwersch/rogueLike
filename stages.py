@@ -6,6 +6,7 @@ from game_images import sheets
 class BasicStage:
     def __init__(self, updater, player, weapons = []):
         self.interacting_group = pygame.sprite.Group()
+        self.transition_group = pygame.sprite.Group()
         self.enemy_sprite_group = pygame.sprite.Group()
         # self.weapons = weapons
         self.updater = updater
@@ -24,8 +25,17 @@ class BasicStage:
                     self.set_room(room)
                     break
 
+    def update(self):
+        #function for checking updates relating to stages.
+        if len(self.enemy_sprite_group.sprites()) <= 0:
+            self.current_room.finished = True
+            for sprite in self.transition_group.sprites():
+                sprite.visible = [False,False]
+
     #function purely defined as an action function for connecting rooms
     def action(self):
+        if not self.current_room.finished:
+            return
         pr = self.player.rect
         cr = self.current_room.rect
         if pr.x > 0.75 * cr.width * 100:
@@ -49,6 +59,7 @@ class BasicStage:
         for sprite in self.interacting_group.sprites():
             sprite.kill()
         self.interacting_group.empty()
+        self.transition_group.empty()
         #remove all enemie sprites to be sure.
         for sprite in self.enemy_sprite_group.sprites():
             sprite.dead = True
@@ -61,11 +72,11 @@ class BasicStage:
                                            action = tile.action)
             elif tile.action_desc:
                 if tile.action_desc == "room_transition":
-                    entities.InteractingEntity(tile.topleft, self.player, self.updater, self.interacting_group,
-                                               action=self.action, visible = [False, False])
+                    entities.InteractingEntity(tile.topleft, self.player, self.updater, self.transition_group, self.interacting_group,
+                                               action=self.action, visible = [True, True])
             elif utilities.WARNINGS:
                 print("Interacting tile with no interaction specified!!!")
-        if not utilities.PEACEFULL:
+        if not utilities.PEACEFULL and not self.current_room.finished:
             for enemie in self.current_room.enemies:
                 self.add_enemy(*enemie)
 

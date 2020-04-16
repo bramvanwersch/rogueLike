@@ -121,6 +121,7 @@ class Room:
         self.tiles = self.room_layout.tiles
         self.connections = self.room_layout.connections
         self.enemies = self.__choose_enemies(kwargs["enemies"], kwargs["spawn_weights"],kwargs["spawn_amnt_range"])
+        self.finished = False
 
     def __choose_enemies(self, enemies, spawn_weights, spawn_amnt_range):
         enemie_choices = utilities.get_wheighted_array(enemies, spawn_weights)
