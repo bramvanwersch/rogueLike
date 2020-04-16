@@ -366,7 +366,7 @@ class Archer(Enemy):
             self.shooting = False
             self.projectiles.append(EnemyProjectile(self.rect.center, self.player.rect.center, self.player,
                                                     super().groups()[0], size = [50, 10],tiles = self.tiles, speed = 20,
-                                                    image = self.arrow, bounding_size=[10,10]))
+                                                    image = self.arrow, bounding_size=[10,10], damage = 10))
             self.shooting_cooldown = 50
         elif self.shooting_cooldown > 0:
             self.shooting_cooldown -= 1
@@ -484,8 +484,8 @@ class EnemyProjectile(Projectile):
 
     def _check_hit(self):
         if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
+            self.player.change_health(-self.damage)
             self.player.set_immune()
-            self.player.change_health(- self.damage)
             self._die()
 
 class TextSprite(Entity):
