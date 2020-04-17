@@ -31,6 +31,7 @@ class BasicStage:
             self.current_room.finished = True
             for sprite in self.transition_group.sprites():
                 sprite.visible = [False,False]
+                sprite.collision = False
 
     #function purely defined as an action function for connecting rooms
     def action(self):
@@ -73,7 +74,7 @@ class BasicStage:
             elif tile.action_desc:
                 if tile.action_desc == "room_transition":
                     entities.InteractingEntity(tile.topleft, self.player, self.updater, self.transition_group, self.interacting_group,
-                                               action=self.action, visible = [True, True])
+                                               action=self.action, visible = [True, True], collision = True)
             elif utilities.WARNINGS:
                 print("Interacting tile with no interaction specified!!!")
         if not utilities.PEACEFULL and not self.current_room.finished:

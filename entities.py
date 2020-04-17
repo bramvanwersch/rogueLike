@@ -24,6 +24,8 @@ class Entity(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft = pos)
         # if an entity has collision or if the player can just move trough it.
         self.collision = False
+        if "collision" in kwargs:
+            self.collision = kwargs["collision"]
         self.bounding_box = self._get_bounding_box()
         self.flipped = False
 
