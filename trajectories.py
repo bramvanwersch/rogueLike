@@ -12,9 +12,9 @@ class LinearTrajectory(Trajectory):
         Trajectory.__init__(self, start_pos, rect, image, *groups, **kwargs)
         self.projectile_offset = pygame.Vector2(0,0)
         self.start = start_pos
-        self.dest = list(dest_pos) #list(self.player.bounding_box.center)
+        self.dest = list(dest_pos)
         self.max_speed = max_speed
-        if self.dest < list(self.rect.topleft):
+        if self.dest[0] < start_pos[0]:
             self.max_speed = - self.max_speed
         self.speedx, self.speedy = 0, 0
         self.projectile_offset = pygame.Vector2(0,0)
@@ -33,7 +33,12 @@ class LinearTrajectory(Trajectory):
         try:
             a = (self.dest[1] - self.start[1]) / (self.dest[0] - self.start[0])
         except ZeroDivisionError:
-            a = 0
+            #rare case where delta x = 0
+            #make a sufficiently large so it goes straight up or down
+            if self.dest[1] - self.start[1] > 0:
+                a = 10000
+            else:
+                a = -10000
         self.speedx = self.max_speed * 1 / math.sqrt(1 + a**2)
         self.speedy = self.max_speed * a / math.sqrt(1 + a**2)
         self.projectile_offset = pygame.Vector2(- int(self.rect.width * 0.5), int(self.rect.height * 0.25))

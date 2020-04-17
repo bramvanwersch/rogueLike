@@ -453,6 +453,7 @@ class Projectile(LivingEntity):
         trajectory = trajectories.LinearTrajectory(start_pos, end_pos, self.rect, self.image, super().groups()[0],
                                                    max_speed=self.max_speed, accuracy = self.accuracy)
         self.image = trajectory.image
+        self.rect = trajectory.rect
         return trajectory
 
 class PlayerProjectile(Projectile):
@@ -468,6 +469,7 @@ class PlayerProjectile(Projectile):
         trajectory = trajectories.LinearTrajectory(utilities.get_screen_relative_coordinate(start_pos), end_pos, self.rect,
                                                    self.image, super().groups()[0],max_speed=self.max_speed, accuracy = self.accuracy)
         self.image = trajectory.image
+        self.rect = trajectory.rect
         return trajectory
 
 class EnemyProjectile(Projectile):

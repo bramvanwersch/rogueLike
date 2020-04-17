@@ -258,7 +258,7 @@ class RightArm(GenericArm):
         self.attack_cooldown = 0
         self.projectiles = []
         self.offset = pygame.Vector2(20,-5)
-        self.weapon_point_offset = pygame.Vector2(40,0)
+        self.bullet = sheets["weapons"].image_at((160,0), size = (32,16), color_key = (255,255,255))
 
     def move_arm(self, pos):
         """
@@ -277,14 +277,15 @@ class RightArm(GenericArm):
 
     def do_attack(self, tiles):
         """
-        Pre defined angles for attacking
-        :return: None
+        spawn a bullet of the center of the player in the direction of the mouse pointer
         """
         if self.attack_cooldown > 0:
             self.attack_cooldown -= utilities.GAME_TIME.get_time() / 1000
             return
-        self.projectiles.append(entities.PlayerProjectile(self.weapon_point, pygame.mouse.get_pos(), super().groups()[0],
-                            size=[20,20], tiles = tiles, damage = self.weapon.damage, speed= 20, accuracy=self.weapon.accuracy))
+        bullet_image = pygame.transform.scale(self.bullet, (20,20))
+        self.projectiles.append(entities.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
+                            tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
+                            image = self.bullet))
         self.attack_cooldown = 1 / self.weapon.fire_rate
 
     def rotate(self):
@@ -294,13 +295,10 @@ class RightArm(GenericArm):
         self.image = pygame.transform.rotozoom(self.orig_image, - self.angle, 1)
         offset_rotated = self.offset.rotate(self.angle)
         #weapon offset rotated
-        wor = self.weapon_point_offset.rotate(self.angle)
         if not self.flipped:
             self.rect = self.image.get_rect(center=self.rect.center + offset_rotated)
-            self.weapon_point = self.rect.center + wor
         elif self.flipped:
             self.rect = self.image.get_rect(center=self.rect.center - offset_rotated)
-            self.weapon_point = center=self.rect.center - wor
         #ensure the bounding box is synced with the image location
         self.bounding_box = self.rect
 
