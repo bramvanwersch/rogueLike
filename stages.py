@@ -29,7 +29,6 @@ class BasicStage:
         #function for checking updates relating to stages.
         if len(self.enemy_sprite_group.sprites()) <= 0:
             for sprite in self.transition_group.sprites():
-                sprite.visible = [False,False]
                 sprite.interactable = True
 
     #function purely defined as an action function for connecting rooms
@@ -73,7 +72,7 @@ class BasicStage:
             elif tile.action_desc:
                 if tile.action_desc == "room_transition":
                     topleft = list(tile.topleft)
-                    tis = self.transition_image.get_rect()
+                    tis = self.transition_animation.image[0].get_rect()
                     if tile.coord[0] == 0:
                         topleft[1] -= (tis.height - constants.TILE_SIZE[1]) * 0.5
                     elif tile.coord[0] == self.current_room.tiles.size[0] - 1:
@@ -84,9 +83,10 @@ class BasicStage:
                     elif tile.coord[1] == self.current_room.tiles.size[1] - 1:
                         topleft[0] -= (tis.width - constants.TILE_SIZE[0])* 0.5
                         topleft[1] -= tis.height - constants.TILE_SIZE[1]
+                    self.transition_animation.reset()
                     entities.InteractingEntity(topleft, self.player, self.updater, self.transition_group, self.interacting_group,
-                                               action=self.action, visible = [True, True], image = self.transition_image,
-                                               interactable=False, trigger_cooldown=[30,30])
+                                               action=self.action, visible = [True, True], image = self.transition_animation.image[0],
+                                               interactable=False, trigger_cooldown=[30,30], animation=self.transition_animation)
             elif utilities.WARNINGS:
                 print("Interacting tile with no interaction specified!!!")
         if not utilities.PEACEFULL and not self.current_room.finished:
@@ -122,7 +122,8 @@ class ForestStage(BasicStage):
         pd = {name + "_path": path_images[i] for i, name in enumerate(utilities.PATH_NAMES)}
         tile_images = {**fd, **ld, **pd}
         props = sheets["forest"].images_at_rectangle((16,32,160,16), scale = (100,100))
-        self.transition_image = sheets["forest"].image_at((0,112), size = (32,32), scale = (130,130), color_key= (255,255,255))
+        ti = sheets["forest"].images_at_rectangle((0,112,256,32), size = (32,32), scale = (130,130), color_key= (255,255,255))
+        self.transition_animation = utilities.Animation(*ti, repetition=1, speed = 10)
         self.stage_rooms_map = game_map.build_map((5, 5), solid_tile_weights = [8, 2], background_images = background_images,
                                         tile_images = tile_images, props = props, solid_tile_names = ["forest", "lake"],
                                         enemies = [["red square", entities.RedSquare.SIZE], ["bad bat",entities.BadBat.SIZE],

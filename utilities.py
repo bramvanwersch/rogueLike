@@ -123,7 +123,7 @@ def load_sound(name):
     return sound
 
 class Animation:
-    def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0), start_frame = 0):
+    def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0), repetition = "continuous", start_frame = 0):
         """
         Stores an animation to be progressed when calling the update of the animation
         :param image_names: list of all the images to be played in sequence
@@ -151,11 +151,18 @@ class Animation:
             self.current_frame = start_frame
         self.image = self.animation_images[0]
         self.cycles = 0
+        self.repetition = repetition
+        self.finished = False
 
     def update(self):
         """
         Function to be called every update to progress the animation. This methods loops endlesly when called
         """
+        #allows for configuring an animation for a certain amount of cycles.
+        if not self.repetition == "continuous" and self.cycles >= self.repetition:
+            self.finished = True
+            #make sure to end and add a flag to allow to stop refreshing.
+            return
         self.frame_count += 1
         if self.frame_count % self.speed[self.current_frame] == 0:
             self.current_frame += 1
@@ -174,6 +181,7 @@ class Animation:
         self.current_frame = 0
         self.image = self.animation_images[0]
         self.cycles = 0
+        self.finished = False
 
 class MarkedAnimation(Animation):
     def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0), start_frame = 0, marked_frames = []):

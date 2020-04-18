@@ -53,8 +53,12 @@ class Entity(pygame.sprite.Sprite):
         imr = self.image.get_rect()
         self.rect = pygame.Rect((*self.rect.topleft, imr.width, imr.height))
 
+    def run_animation(self):
+        self.animation.update()
+        self.change_image(self.animation.image)
+
 class InteractingEntity(Entity):
-    def __init__(self, pos, player, *groups, action = None, interactable = True, trigger_cooldown = [0,0], **kwargs):
+    def __init__(self, pos, player, *groups, action = None, interactable = True, trigger_cooldown = [0,0], animation = None, **kwargs):
         """
         Entity that preforms an action when a player is pressing the interaction key and colliding with the entity
         """
@@ -65,14 +69,19 @@ class InteractingEntity(Entity):
         self.action_function = action
         #list of lenght 2 first being current cooldown second being the reset cooldown
         self.trigger_cooldown = trigger_cooldown
+        self.animation = animation
 
     def update(self, *args):
         super().update(*args)
         if self.action_function and self.interactable and self.player.pressed_keys[constants.INTERACT] and \
                 self.trigger_cooldown[0] <= 0:
             if self.rect.colliderect(self.player.rect):
-                self.action_function()
-                self.trigger_cooldown[0] = self.trigger_cooldown[1]
+                if self.animation and self.animation.finished:
+                    self.action_function()
+                    self.trigger_cooldown[0] = self.trigger_cooldown[1]
+                else:
+                    self.action_function()
+                    self.trigger_cooldown[0] = self.trigger_cooldown[1]
         elif not self.interactable and self.player.pressed_keys[constants.INTERACT] and self.message_cooldown <= 0:
             if self.rect.colliderect(self.player.rect):
                 TextSprite("KILL ALL!", self.player.rect.topleft, super().groups()[0], color= "orange")
@@ -81,6 +90,11 @@ class InteractingEntity(Entity):
             self.message_cooldown -= 1
         if self.trigger_cooldown[0] > 0:
             self.trigger_cooldown[0] -= 1
+        #run animation when the object becomes interactable
+        if self.animation:
+            if self.interactable and not self.animation.finished:
+                self.run_animation()
+
 
 
 class LivingEntity(Entity):
@@ -383,9 +397,13 @@ class Archer(Enemy):
             # self.shooting_animation.update()
             # if self.shooting_animation.cycles > 0:
             self.shooting = False
-            self.projectiles.append(EnemyProjectile(self.rect.center, self.player.rect.center, self.player,
+            try:
+                self.projectiles.append(EnemyProjectile(self.rect.center, self.player.rect.center, self.player,
                                                     super().groups()[0], size = [50, 10],tiles = self.tiles, speed = 20,
                                                     image = self.arrow, bounding_size=[10,10], damage = 10))
+            except IndexError:
+                #happens when the projectile is spawned same frame as the enemy dies just skip IK bad practice
+                pass
             self.shooting_cooldown = 50
         elif self.shooting_cooldown > 0:
             self.shooting_cooldown -= 1
