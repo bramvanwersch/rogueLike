@@ -1,6 +1,6 @@
 import pygame, random
 from pygame.locals import *
-import utilities, entities, game_map, prop_entities
+import utilities, entities, game_map, prop_entities, constants
 from game_images import sheets
 
 class BasicStage:
@@ -28,15 +28,12 @@ class BasicStage:
     def update(self):
         #function for checking updates relating to stages.
         if len(self.enemy_sprite_group.sprites()) <= 0:
-            self.current_room.finished = True
             for sprite in self.transition_group.sprites():
                 sprite.visible = [False,False]
-                sprite.collision = False
+                sprite.interactable = True
 
     #function purely defined as an action function for connecting rooms
     def action(self):
-        if not self.current_room.finished:
-            return
         pr = self.player.rect
         cr = self.current_room.rect
         if pr.x > 0.75 * cr.width * 100:
@@ -73,8 +70,21 @@ class BasicStage:
                                            action = tile.action)
             elif tile.action_desc:
                 if tile.action_desc == "room_transition":
-                    entities.InteractingEntity(tile.topleft, self.player, self.updater, self.transition_group, self.interacting_group,
-                                               action=self.action, visible = [True, True], collision = True)
+                    topleft = list(tile.topleft)
+                    tis = self.transition_image.get_rect()
+                    if tile.coord[0] == 0:
+                        topleft[1] -= (tis.height - constants.TILE_SIZE[1]) * 0.5
+                    elif tile.coord[0] == self.current_room.tiles.size[0] - 1:
+                        topleft[0] -= tis.width - constants.TILE_SIZE[0]
+                        topleft[1] -= (tis.height - constants.TILE_SIZE[1]) * 0.5
+                    elif tile.coord[1] == 0:
+                        topleft[0] -= (tis.width - constants.TILE_SIZE[0]) * 0.5
+                    elif tile.coord[1] == self.current_room.tiles.size[1] - 1:
+                        topleft[0] -= (tis.width - constants.TILE_SIZE[0])* 0.5
+                        topleft[1] -= tis.height - constants.TILE_SIZE[1]
+                    entities.InteractingEntity(topleft, self.player, self.updater, self.transition_group, self.interacting_group,
+                                               action=self.action, visible = [True, True], image = self.transition_image,
+                                               interactable=False)
             elif utilities.WARNINGS:
                 print("Interacting tile with no interaction specified!!!")
         if not utilities.PEACEFULL and not self.current_room.finished:
@@ -110,6 +120,7 @@ class ForestStage(BasicStage):
         pd = {name + "_path": path_images[i] for i, name in enumerate(utilities.PATH_NAMES)}
         tile_images = {**fd, **ld, **pd}
         props = sheets["forest"].images_at_rectangle((16,32,160,16), scale = (100,100))
+        self.transition_image = sheets["forest"].image_at((0,112), size = (32,32), scale = (130,130), color_key= (255,255,255))
         self.stage_rooms_map = game_map.build_map((5, 5), solid_tile_weights = [8, 2], background_images = background_images,
                                         tile_images = tile_images, props = props, solid_tile_names = ["forest", "lake"],
                                         enemies = [["red square", entities.RedSquare.SIZE], ["bad bat",entities.BadBat.SIZE],

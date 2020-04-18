@@ -28,6 +28,8 @@ class Entity(pygame.sprite.Sprite):
             self.collision = kwargs["collision"]
         self.bounding_box = self._get_bounding_box()
         self.flipped = False
+        #varaible that tracks if the previous
+        self.message_cooldown = 60
 
     def update(self, *args):
         """
@@ -50,14 +52,14 @@ class Entity(pygame.sprite.Sprite):
             self.image = image[0]
 
 class InteractingEntity(Entity):
-    def __init__(self, pos, player, *groups, action = None, **kwargs):
+    def __init__(self, pos, player, *groups, action = None, interactable = True, **kwargs):
         """
         Entity that preforms an action when a player is pressing the interaction key and colliding with the entity
         """
         Entity.__init__(self, pos, *groups, **kwargs)
         self.player = player
         #can be set to a function to give functionality to the entity
-        self.interactable = True
+        self.interactable = interactable
         self.action_function = action
 
     def update(self, *args):
@@ -65,6 +67,13 @@ class InteractingEntity(Entity):
         if self.action_function and self.interactable and self.player.pressed_keys[constants.INTERACT]:
             if self.rect.colliderect(self.player.rect):
                 self.action_function()
+        elif not self.interactable and self.player.pressed_keys[constants.INTERACT] and self.message_cooldown <= 0:
+            if self.rect.colliderect(self.player.rect):
+                TextSprite("KILL ALL!", self.player.rect.topleft, super().groups()[0], color= "orange")
+                self.message_cooldown = 60
+        if self.message_cooldown > 0:
+            self.message_cooldown -= 1
+
 
 class LivingEntity(Entity):
     def __init__(self, pos, *groups, health = 100, damage = 10, health_regen = 1, speed = 10, tiles = [], xp = 100, **kwargs):
@@ -302,7 +311,7 @@ class BadBat(Enemy):
         :return: a pygame.Rect object that is smaller then the self.rect object with the same bottom value and a
         new centered x value.
         """
-        return self.rect.inflate((-self.rect.width * 0.8, - self.rect.height * 0.2))
+        return self.rect.inflate((-self.rect.width * 0.2, - self.rect.height * 0.2))
 
     def _check_collision(self, height = False):
         """
