@@ -20,8 +20,8 @@ class BasicStage:
                 #set the innitial values
                 if isinstance(room, game_map.Room) and room.room_type == 2:
                     self.current_room = room
-                    self.background = entities.Entity((0, 0), self.updater, image=room.room_layout.background_image)
-                    self.room_props = entities.Entity((0, 0), self.updater,  image=room.room_layout.room_image)
+                    self.background = entities.Entity((0, 0), self.updater, image=room.room_layout.background_image, visible = [True, False])
+                    self.room_props = entities.Entity((0, 0), self.updater,  image=room.room_layout.room_image, visible = [True, False])
                     self.set_room(room)
                     break
 
@@ -36,23 +36,25 @@ class BasicStage:
     def action(self):
         pr = self.player.rect
         cr = self.current_room.rect
-        if pr.x > 0.75 * cr.width * 100:
+
+        if pr.x > 0.75 * cr.width * constants.TILE_SIZE[0]:
             room = self.stage_rooms_map[cr[1]][cr[0] + 1]
-            self.player.rect.topleft = (110, room.connections[3][1] * 100)
-        elif pr.x < 0.25 * cr.width * 100:
+            self.player.rect.topleft = (110, room.connections[3][1] * constants.TILE_SIZE[1])
+        elif pr.x < 0.25 * cr.width * constants.TILE_SIZE[0]:
             room = self.stage_rooms_map[cr[1]][cr[0] - 1]
-            self.player.rect.topleft = (cr.width * 100 - 110 - self.player.rect.width, room.connections[1][1] * 100)
-        elif pr.y > 0.75 * cr.height * 100:
+            self.player.rect.topleft = (room.rect.width * constants.TILE_SIZE[0] - 110 - self.player.rect.width, room.connections[1][1] * constants.TILE_SIZE[1])
+        elif pr.y > 0.75 * cr.height * constants.TILE_SIZE[1]:
             room = self.stage_rooms_map[cr[1] + 1][cr[0]]
-            self.player.rect.topleft = (room.connections[0][0] * 100, 110)
-        elif pr.y < 0.25 * cr.height * 100:
+            self.player.rect.topleft = (room.connections[0][0] * constants.TILE_SIZE[0], 110)
+        elif pr.y < 0.25 * cr.height * constants.TILE_SIZE[1]:
             room = self.stage_rooms_map[cr[1] - 1][cr[0]]
-            self.player.rect.topleft = (room.connections[2][0] * 100, cr.height * 100 - 110 - self.player.rect.height)
+            self.player.rect.topleft = (room.connections[2][0] * constants.TILE_SIZE[0], room.rect.height * constants.TILE_SIZE[1] - 110 - self.player.rect.height)
         self.set_room(room)
 
     def set_room(self, room):
-        self.background.image = room.room_layout.background_image
-        self.room_props.image = room.room_layout.room_image
+        self.current_room.finished = True
+        self.background.change_image((room.room_layout.background_image, room.room_layout.background_image))
+        self.room_props.change_image((room.room_layout.room_image,room.room_layout.room_image))
         #remove all the interacting entities
         for sprite in self.interacting_group.sprites():
             sprite.kill()
@@ -84,7 +86,7 @@ class BasicStage:
                         topleft[1] -= tis.height - constants.TILE_SIZE[1]
                     entities.InteractingEntity(topleft, self.player, self.updater, self.transition_group, self.interacting_group,
                                                action=self.action, visible = [True, True], image = self.transition_image,
-                                               interactable=False)
+                                               interactable=False, trigger_cooldown=[30,30])
             elif utilities.WARNINGS:
                 print("Interacting tile with no interaction specified!!!")
         if not utilities.PEACEFULL and not self.current_room.finished:

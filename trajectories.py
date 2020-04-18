@@ -21,8 +21,6 @@ class LinearTrajectory(Trajectory):
         self.__configure_trajectory()
 
     def __configure_trajectory(self):
-        #https://math.stackexchange.com/questions/656500/given-a-point-slope-and-a-distance-along-that-slope-easily-find-a-second-p
-        # delta y / delta x
         inacuracy = 100 - self.accuracy
         if random.randint(1,2) == 1:
             self.dest[0] += random.randint(0, inacuracy)
@@ -39,6 +37,7 @@ class LinearTrajectory(Trajectory):
                 a = 10000
             else:
                 a = -10000
+        #https://math.stackexchange.com/questions/656500/given-a-point-slope-and-a-distance-along-that-slope-easily-find-a-second-p
         self.speedx = self.max_speed * 1 / math.sqrt(1 + a**2)
         self.speedy = self.max_speed * a / math.sqrt(1 + a**2)
         self.projectile_offset = pygame.Vector2(- int(self.rect.width * 0.5), int(self.rect.height * 0.25))

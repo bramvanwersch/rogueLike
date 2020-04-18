@@ -45,14 +45,16 @@ class Entity(pygame.sprite.Sprite):
         """
         return self.rect
 
-    def _change_image(self, image):
+    def change_image(self, image):
         if self.flipped:
             self.image = image[1]
         else:
             self.image = image[0]
+        imr = self.image.get_rect()
+        self.rect = pygame.Rect((*self.rect.topleft, imr.width, imr.height))
 
 class InteractingEntity(Entity):
-    def __init__(self, pos, player, *groups, action = None, interactable = True, **kwargs):
+    def __init__(self, pos, player, *groups, action = None, interactable = True, trigger_cooldown = [0,0], **kwargs):
         """
         Entity that preforms an action when a player is pressing the interaction key and colliding with the entity
         """
@@ -61,18 +63,24 @@ class InteractingEntity(Entity):
         #can be set to a function to give functionality to the entity
         self.interactable = interactable
         self.action_function = action
+        #list of lenght 2 first being current cooldown second being the reset cooldown
+        self.trigger_cooldown = trigger_cooldown
 
     def update(self, *args):
         super().update(*args)
-        if self.action_function and self.interactable and self.player.pressed_keys[constants.INTERACT]:
+        if self.action_function and self.interactable and self.player.pressed_keys[constants.INTERACT] and \
+                self.trigger_cooldown[0] <= 0:
             if self.rect.colliderect(self.player.rect):
                 self.action_function()
+                self.trigger_cooldown[0] = self.trigger_cooldown[1]
         elif not self.interactable and self.player.pressed_keys[constants.INTERACT] and self.message_cooldown <= 0:
             if self.rect.colliderect(self.player.rect):
                 TextSprite("KILL ALL!", self.player.rect.topleft, super().groups()[0], color= "orange")
                 self.message_cooldown = 60
         if self.message_cooldown > 0:
             self.message_cooldown -= 1
+        if self.trigger_cooldown[0] > 0:
+            self.trigger_cooldown[0] -= 1
 
 
 class LivingEntity(Entity):
@@ -182,9 +190,9 @@ class LivingEntity(Entity):
         xcol, ycol = False, False
         #check for x and y collison as long as any of the two are false.
         while (not xcol or not ycol):
-            if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
+            if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > self.tiles.size[0] * constants.TILE_SIZE[0]):
                 xcol = True
-            if (self.bounding_box.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
+            if (self.bounding_box.top + self.speedy < 0 or self.rect.bottom + self.speedy > self.tiles.size[1] * constants.TILE_SIZE[1]):
                 ycol = True
             if self.speedx > 0:
                 x_rect = self.bounding_box.move((self.speedx + 1, 0))
@@ -303,7 +311,7 @@ class BadBat(Enemy):
     def update(self, *args):
         super().update(*args)
         self.animation.update()
-        self._change_image(self.animation.image)
+        self.change_image(self.animation.image)
 
     def _get_bounding_box(self):
         """
@@ -321,9 +329,9 @@ class BadBat(Enemy):
         xcol, ycol = False, False
         #check for x and y collison as long as any of the two are false.
         while (not xcol or not ycol):
-            if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > utilities.DEFAULT_LEVEL_SIZE.right):
+            if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > self.tiles.size[0] * constants.TILE_SIZE[0]):
                 xcol = True
-            if (self.rect.top + self.speedy < 0 or self.rect.bottom + self.speedy > utilities.DEFAULT_LEVEL_SIZE.bottom):
+            if (self.bounding_box.top + self.speedy < 0 or self.rect.bottom + self.speedy > self.tiles.size[1] * constants.TILE_SIZE[1]):
                 ycol = True
             if self.speedx > 0:
                 x_rect = self.bounding_box.move((self.speedx + 1, 0))

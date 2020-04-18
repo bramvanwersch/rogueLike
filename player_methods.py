@@ -174,7 +174,7 @@ class Player(LivingEntity):
         if self.dead_animation.marked:
             self.right_arm.visible = [False, False]
             self.left_arm.visible = [False, False]
-        self._change_image(self.dead_animation.image)
+        self.change_image(self.dead_animation.image)
 
     def animations(self):
         """
@@ -183,7 +183,7 @@ class Player(LivingEntity):
         """
         if int(self.speedx) != 0 or int(self.speedy) != 0:
             self.walking_animation.update()
-            self._change_image(self.walking_animation.image)
+            self.change_image(self.walking_animation.image)
             self.idle_animation.cycles += 1
         else:
             #idle animation plays at random every 500 frames of inactivity
@@ -193,11 +193,11 @@ class Player(LivingEntity):
                 if self.idle_animation.marked:
                     self.right_arm.visible = [False, True]
                     self.left_arm.visible = [False, self.left_arm.visible[1]]
-                self._change_image(self.idle_animation.image)
+                self.change_image(self.idle_animation.image)
             elif random.randint(1, 500) == 1:
                 self.idle_animation.reset()
             else:
-                self._change_image([self.image, self.flipped_image])
+                self.change_image([self.image, self.flipped_image])
 
     def equip(self, weapon):
         """

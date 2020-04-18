@@ -1,6 +1,6 @@
 import pygame, random
 from pygame.locals import *
-import utilities, entities, game_map, prop_entities
+import utilities, entities, game_map, prop_entities, constants
 from game_images import sheets
 import numpy as np
 
@@ -75,13 +75,19 @@ def build_map(size, **kwargs):
     # create room layouts by changing all values that are not 0 into room instances
     for y, row in enumerate(game_map):
         for x, value in enumerate(row):
-            if value != 0:
+            if value == 1 or value == -1:
                 room = Room(pygame.Rect(x,y, int(utilities.DEFAULT_LEVEL_SIZE.width / 100),
                             int(utilities.DEFAULT_LEVEL_SIZE.height / 100)), value,
                             get_connecting_rooms(game_map, (x,y)), **kwargs)
-                game_map[y][x] = room
+            elif value == 2:
+                room = StartingRoom(pygame.Rect(x,y, int(utilities.DEFAULT_LEVEL_SIZE.width / 200 ),
+                            int(utilities.DEFAULT_LEVEL_SIZE.height / 200)), value,
+                            get_connecting_rooms(game_map, (x,y)),**kwargs)
+            else:
+                continue
+            game_map[y][x] = room
     if utilities.WARNINGS:
-        print("Room with value 2, -1 is not handled yet.")
+        print("Room with value -1 is not handled yet.")
     return game_map
 
 def get_connecting_rooms(game_map, point):
@@ -137,6 +143,21 @@ class Room:
             enemies.append([enemie_choice[0], test_rect.topleft])
         return enemies
 
+class StartingRoom(Room):
+    def __init__(self, rect, room_type, connections, **kwargs):
+        #change anything about the kwargs
+        kwargs["room_layout"] =self.__get_room_layout(rect)
+        Room.__init__(self, rect, room_type, connections, **kwargs)
+        self.enemies = []
+
+    def __get_room_layout(self, rect):
+        layout = [[0] * rect.width for _ in range(rect.height)]
+        for y in range(rect.height):
+            for x in range(rect.width ):
+                if y == 0 or y == rect.height - 1 or x == 0 or x == rect.width - 1:
+                    layout[y][x] = 1
+        return layout
+
 class RoomLayout:
     def __init__(self, rect, connections, **kwargs):
         self.rect = rect
@@ -144,10 +165,14 @@ class RoomLayout:
         self.f_offset = 0.25
         self.propnmbr = 50
         self.connections = [False,False,False,False]
-        room_layout = self.build_room_map(kwargs["solid_tile_weights"])
+        #specify your own layout for certain rooms.
+        if "room_layout" in kwargs:
+            room_layout = kwargs["room_layout"]
+        else:
+            room_layout = self.build_room_map(kwargs["solid_tile_weights"])
         room_layout_and_path = self.add_path(room_layout, connections, len(kwargs["solid_tile_names"]) + 1)
         self.room_layout = self.determine_pictures(room_layout_and_path, len(kwargs["solid_tile_names"]))
-        self.tiles = TileGroup()
+        self.tiles = TileGroup((self.rect.width, self.rect.height))
         self.__create_tiles(kwargs["tile_images"], list(kwargs["solid_tile_names"] + ["path"]))
         self.tiles.setup()
         self.background_image = self.__create_background_image(kwargs["background_images"])
@@ -157,7 +182,7 @@ class RoomLayout:
     def build_room_map(self, wheights=[1]):
         did_split = True
         leafs = [Leaf((0, 0), (
-        int((utilities.DEFAULT_LEVEL_SIZE.width - 200) / 100), int((utilities.DEFAULT_LEVEL_SIZE.height - 200) / 100)))]
+        int((self.rect.width * constants.TILE_SIZE[0] - 200) / 100), int((self.rect.height * constants.TILE_SIZE[1] - 200) / 100)))]
         while did_split:
             did_split = False
             for l in leafs:
@@ -465,9 +490,9 @@ class RoomLayout:
         pp180 = [pygame.surfarray.pixels3d(image) for image in c180onvertedimages]
         partspixels = pp0 + pp180
         image_rows = []
-        for i in range(int(utilities.DEFAULT_LEVEL_SIZE.width / 100)):
+        for i in range(self.rect.width):
             image_row = []
-            for j in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100)):
+            for j in range(self.rect.height):
                 image_row.append(random.choice(partspixels))
             image_rows.append(np.concatenate(image_row, 1))
         final_arr = np.concatenate(image_rows)
@@ -478,10 +503,10 @@ class RoomLayout:
 
     def __create_props_and_tiles_image(self, props):
         ps = props[0].get_rect().width
-        max_props = min(int(utilities.DEFAULT_LEVEL_SIZE.width / ps), int(utilities.DEFAULT_LEVEL_SIZE.height / ps))
-        xcoords = [random.randint(0, int(utilities.DEFAULT_LEVEL_SIZE.width / ps) - 1) for _ in
+        max_props = min(int(self.rect.width * constants.TILE_SIZE[0] / ps), int(self.rect.height * constants.TILE_SIZE[1] / ps))
+        xcoords = [random.randint(0, int(self.rect.width * constants.TILE_SIZE[0] / ps) - 1) for _ in
                    range(self.propnmbr * 2)]
-        ycoords = [random.randint(0, int(utilities.DEFAULT_LEVEL_SIZE.height / ps) - 1) for _ in
+        ycoords = [random.randint(0, int(self.rect.height * constants.TILE_SIZE[1] / ps) - 1) for _ in
                    range(self.propnmbr * 2)]
         prop_coords = []
         combcoords = list(zip(xcoords, ycoords))
@@ -493,7 +518,7 @@ class RoomLayout:
         prop_coords = [(coord[0] * ps, coord[1] * ps) for coord in prop_coords]
         all_coords = prop_coords + self.tiles.non_zero_tiles
         all_coords.sort(key=lambda x: self.__sort_on_y_coord(x))
-        image = pygame.Surface((utilities.DEFAULT_LEVEL_SIZE.width, utilities.DEFAULT_LEVEL_SIZE.height))
+        image = pygame.Surface((self.rect.width * constants.TILE_SIZE[0], self.rect.height * constants.TILE_SIZE[1]))
         image.fill((255, 255, 255))
         for coord in all_coords:
             if isinstance(coord, ImageTile):
@@ -511,16 +536,16 @@ class RoomLayout:
             return val[1]
         
 class TileGroup:
-    def __init__(self):
+    def __init__(self, size):
         """
         Class for managing the tiles as a group and calculating fast collisions or other things
         """
         #dont make fcking pointers
-        self.tiles = [[0] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
+        self.tiles = [[0] *size[0] for _ in range(size[1])]
         self.non_zero_tiles = []
         self.solid_tiles = []
         self.interactable_tiles = []
-        self.__truth_map = [[True] *int(utilities.DEFAULT_LEVEL_SIZE.width / 100) for _ in range(int(utilities.DEFAULT_LEVEL_SIZE.height / 100))]
+        self.__truth_map = [[True] *size[0] for _ in range(size[1])]
 
     def __getitem__(self, i):
         return self.tiles[i]
