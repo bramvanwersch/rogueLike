@@ -83,6 +83,10 @@ def build_map(size, **kwargs):
                 room = StartingRoom(pygame.Rect(x,y, int(utilities.DEFAULT_LEVEL_SIZE.width / 200 ),
                             int(utilities.DEFAULT_LEVEL_SIZE.height / 200)), value,
                             get_connecting_rooms(game_map, (x,y)),**kwargs)
+            elif value == -1:
+                room = BossRoom(pygame.Rect(x,y, int(utilities.DEFAULT_LEVEL_SIZE.width / 100),
+                            int(utilities.DEFAULT_LEVEL_SIZE.height / 100)), value,
+                            get_connecting_rooms(game_map, (x,y)), **kwargs)
             else:
                 continue
             game_map[y][x] = room
@@ -146,9 +150,23 @@ class Room:
 class StartingRoom(Room):
     def __init__(self, rect, room_type, connections, **kwargs):
         #change anything about the kwargs
-        kwargs["room_layout"] =self.__get_room_layout(rect)
+        kwargs["room_layout"] = self.__get_room_layout(rect)
         Room.__init__(self, rect, room_type, connections, **kwargs)
+        #kind of cheaty way of doing this. --> resetting the enemies to empty
         self.enemies = []
+
+    def __get_room_layout(self, rect):
+        layout = [[0] * rect.width for _ in range(rect.height)]
+        for y in range(rect.height):
+            for x in range(rect.width ):
+                if y == 0 or y == rect.height - 1 or x == 0 or x == rect.width - 1:
+                    layout[y][x] = 1
+        return layout
+
+class BossRoom(Room):
+    def __init__(self, rect, room_type, connections, **kwargs):
+        kwargs["room_layout"] = self.__get_room_layout(rect)
+        Room.__init__(self, rect, room_type, connections, **kwargs)
 
     def __get_room_layout(self, rect):
         layout = [[0] * rect.width for _ in range(rect.height)]

@@ -163,11 +163,12 @@ class Player(LivingEntity):
             self.right_arm.flip()
             self.left_arm.flip()
 
-    def die(self):
+    def _die(self):
         """
         Function repeaditly called when the player is dead.
         :return: None
         """
+        super()._die()
         for p in self.right_arm.projectiles:
             p.dead = True
         self.dead_animation.update()

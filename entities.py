@@ -144,7 +144,7 @@ class LivingEntity(Entity):
 
     def _dead_sequence(self):
         if self.dead and hasattr(self,"dead_animation"):
-            if not self.dead_animation.cycles == 0:
+            if self.dead_animation.cycles > 0:
                 self.kill()
         elif self.dead and hasattr(self, "dead_timer"):
             self.dead_timer -= 1
