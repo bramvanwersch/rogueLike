@@ -326,10 +326,10 @@ class RightArm(GenericArm):
         ir = image.get_rect()
         rotated_arm = pygame.transform.rotate(self.arm, 40)
         ra = rotated_arm.get_rect()
-        print(ra, ir)
+        #make the surface fit the biggest size either arm or the weapon
         if ra.width + 25 > ir.width and ra.height + 20 > ir.height:
             image = pygame.Surface((ra.width + 25, ra.height + 20))
-        elif ra.width + 25> ir.width:
+        elif ra.width + 25 > ir.width:
             image = pygame.Surface((ra.width + 25, ir.height))
         elif ra.height + 20 > ir.height:
             image = pygame.Surface((ir.width, ra.height + 20))
@@ -344,6 +344,8 @@ class RightArm(GenericArm):
         self.orig_image = self.image
         self.rect = self.image.get_rect(center = self.rect.center)
         self.damage = weapon.damage
+        self.offset = pygame.Vector2(self.rect.width * 0.5 - 25, -5)
+
 
 class Inventory:
     def __init__(self):
