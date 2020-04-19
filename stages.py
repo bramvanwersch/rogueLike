@@ -82,7 +82,7 @@ class BasicStage:
                     entities.InteractingEntity(topleft, self.player, self.updater, self.transition_group, self.interacting_group,
                                action=self.action, visible = [True, True], image = self.animation_images[0][0],
                                interactable=False, trigger_cooldown=[30,30],
-                               animation=utilities.Animation(*self.animation_images, repetition=1, speed = 10))
+                               animation=utilities.Animation(*self.animation_images, repetition=1, speed = 7))
             elif utilities.WARNINGS:
                 print("Interacting tile with no interaction specified!!!")
         if not utilities.PEACEFULL and not self.current_room.finished:

@@ -59,6 +59,8 @@ class Weapon:
             reload_speed = 0.1
         if fire_rate > 50:
             fire_rate = 50
+        elif fire_rate < 1:
+            fire_rate = 1
         if accuracy > 100:
             accuracy = 100
         elif accuracy < 1:

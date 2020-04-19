@@ -17,7 +17,7 @@ def get_manufacturer(name):
 class AbstractManufactorer:
     def __init__(self):
         self.reload_speed = 2 #seconds
-        self.fire_rate = 5 # per second
+        self.fire_rate = 2 # per second
         self._base_damage = 5 #per bulet is more for
         self._accuracy = 60 #means that 60% of the shots are on target
         self.magazine_size = 50 # not relevant for melee weapons

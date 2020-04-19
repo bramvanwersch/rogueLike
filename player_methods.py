@@ -72,10 +72,10 @@ class Player(LivingEntity):
         self.handle_user_input()
         #move arms witht the body
         if self.flipped:
-            self.right_arm.move_arm((self.rect.centerx , self.rect.centery + 5))
-            self.left_arm.move_arm((self.rect.centerx - 5, self.rect.centery +14))
+            self.right_arm.update_arm((self.rect.centerx , self.rect.centery + 5))
+            self.left_arm.update_arm((self.rect.centerx - 5, self.rect.centery +14))
         elif not self.flipped:
-            self.right_arm.move_arm((self.rect.centerx + 3, self.rect.centery + 7))
+            self.right_arm.update_arm((self.rect.centerx + 3, self.rect.centery + 7))
         for p in self.right_arm.projectiles:
             if p.dead:
                 self.right_arm.projectiles.remove(p)
@@ -126,7 +126,6 @@ class Player(LivingEntity):
 #attacking
         if self.pressed_keys["mouse1"]:
             self.right_arm.do_attack(self.tiles)
-
 
     def __dodge(self):
         #TODO not finished yet
@@ -228,6 +227,9 @@ class GenericArm(entities.Entity):
         else:
             super().groups()[0].change_layer(self,utilities.PLAYER_LAYER2)
 
+    def update_arm(self, *args):
+        self.move_arm(*args)
+
 class LeftArm(GenericArm):
     def __init__(self, pos, **kwargs):
         GenericArm.__init__(self, pos, **kwargs)
@@ -246,7 +248,7 @@ class LeftArm(GenericArm):
             self.visible = [False, False]
             super().groups()[0].change_layer(self,utilities.BOTTOM_LAYER)
 
-    def move_arm(self, pos):
+    def move_arm(self, *pos):
         self.rect.center = pos
 
 class RightArm(GenericArm):
@@ -260,6 +262,11 @@ class RightArm(GenericArm):
         self.projectiles = []
         self.offset = pygame.Vector2(20,-5)
         self.bullet = sheets["weapons"].image_at((160,0), size = (32,16), color_key = (255,255,255))
+
+    def update_arm(self, *args):
+        super().update_arm(*args)
+        if self.attack_cooldown > 0:
+            self.attack_cooldown -= utilities.GAME_TIME.get_time() / 1000
 
     def move_arm(self, pos):
         """
@@ -281,7 +288,6 @@ class RightArm(GenericArm):
         spawn a bullet of the center of the player in the direction of the mouse pointer
         """
         if self.attack_cooldown > 0:
-            self.attack_cooldown -= utilities.GAME_TIME.get_time() / 1000
             return
         bullet_image = pygame.transform.scale(self.bullet, (20,20))
         self.projectiles.append(entities.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
