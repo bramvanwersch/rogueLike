@@ -1,6 +1,9 @@
-name         ,part type,manufacturer,reload speed,damage,fire rate,accuracy,magazine size,bullets per shot,bullet patern,weight,element,contactN,contactE,contactS,contactW,rect
-test_body    ,body     ,Jenkins     ,            ,5     ,2        ,10      ,             ,                ,             ,      ,       ,15-26   ,8-18    ,14-29   ,9-19    ,0-0-48-32
-test_barrel  ,barrel   ,Jenkins     ,            ,5     ,-1       ,        ,             ,                ,linear       ,      ,       ,        ,        ,        ,9-22    ,48-0-32-32
-test_stock   ,stock    ,Jenkins     ,            ,-2    ,         ,25      ,             ,                ,             ,      ,       ,        ,10-20   ,        ,        ,80-0-32-32
-test_magazine,magazine ,Jenkins     ,1           ,      ,         ,        ,10           ,1               ,             ,      ,       ,2-15    ,        ,        ,        ,112-0-16-16
-test_accesory,accesory ,Jenkins     ,            ,      ,         ,5       ,             ,                ,             ,      ,       ,        ,        ,2-28    ,        ,128-0-32-16
+name             ,part type,manufacturer,reload speed,damage,fire rate,accuracy,magazine size,bullets per shot,bullet patern,weight,element,contactN,contactE,contactS,contactW,rect
+test_body        ,body     ,Jenkins     ,            ,5     ,2        ,8       ,             ,                ,             ,      ,       ,15-26   ,8-18    ,14-29   ,9-19    ,0-0-48-32
+test_barrel      ,barrel   ,Jenkins     ,            ,5     ,-1       ,        ,             ,                ,linear       ,      ,       ,        ,        ,        ,9-22    ,48-0-32-32
+test_stock       ,stock    ,Jenkins     ,            ,-2    ,         ,2       ,             ,                ,             ,      ,       ,        ,10-20   ,        ,        ,80-0-32-32
+test_magazine    ,magazine ,Jenkins     ,1           ,      ,         ,        ,10           ,1               ,             ,      ,       ,2-15    ,        ,        ,        ,112-0-16-16
+test_accesory    ,accesory ,Jenkins     ,            ,      ,         ,5       ,             ,                ,             ,      ,       ,        ,        ,2-28    ,        ,128-0-32-16
+straigh_barrel   ,barrel   ,Jenkins     ,            ,1     ,10       ,        ,             ,                ,             ,      ,       ,        ,        ,        ,12-20   ,192-0-32-32
+round_barrel     ,barrel   ,Jenkins     ,            ,15    ,-5       ,-10     ,             ,                ,             ,      ,       ,        ,        ,        ,8-22    ,224-0-32-32
+small_wooden_body,body     ,Jenkins     ,            ,5     ,-3       ,25      ,             ,                ,             ,      ,       ,8-15    ,1-7     ,4-10    ,6-14    ,0-32-48-16

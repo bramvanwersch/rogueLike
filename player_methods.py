@@ -324,11 +324,19 @@ class RightArm(GenericArm):
         # weapon_image = pygame.transform.flip(weapon_image, True, False)
         image = pygame.Surface((weapon_image.get_rect().width, weapon_image.get_rect().height))
         ir = image.get_rect()
+        rotated_arm = pygame.transform.rotate(self.arm, 40)
+        ra = rotated_arm.get_rect()
+        print(ra, ir)
+        if ra.width + 25 > ir.width and ra.height + 20 > ir.height:
+            image = pygame.Surface((ra.width + 25, ra.height + 20))
+        elif ra.width + 25> ir.width:
+            image = pygame.Surface((ra.width + 25, ir.height))
+        elif ra.height + 20 > ir.height:
+            image = pygame.Surface((ir.width, ra.height + 20))
         image.fill((255,255,255))
 
         image.blit(weapon_image, (0, image.get_rect().height - weapon_image.get_rect().height), weapon_image.get_rect())
         image = pygame.transform.scale(image, (round(0.8*image.get_rect().width), round(0.8*image.get_rect().height)))
-        rotated_arm = pygame.transform.rotate(self.arm, 40)
         image.blit(rotated_arm,(25,20), rotated_arm.get_rect())
         image.set_colorkey((255,255,255), pygame.RLEACCEL)
         image = image.convert_alpha()
