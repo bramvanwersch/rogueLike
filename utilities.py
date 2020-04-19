@@ -123,22 +123,20 @@ def load_sound(name):
     return sound
 
 class Animation:
-    def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0), repetition = "continuous", start_frame = 0):
+    def __init__(self, *images, speed = 10, color = (255, 255, 255), scale = (0, 0), repetition ="continuous", start_frame = 0):
         """
         Stores an animation to be progressed when calling the update of the animation
-        :param image_names: list of all the images to be played in sequence
+        :param images: list of all the images to be played in sequence
         :param speed: the amount of updates needed before the next image is saved
         :param color: the color of the images that need to be transparant
         :param scale: a scale factor to apply to all the animation images
         :param start_frame: the frame to start on or the keyword 'random' to start at a random frame
         """
-        if not isinstance(image_names[0], pygame.Surface):
-            animation_images = [pygame.transform.scale(load_image(name, color), scale) for name in image_names]
-            flipped_images = [pygame.transform.flip(img, True, False) for img in animation_images]
-            self.animation_images = list(zip(animation_images,flipped_images))
+        if isinstance(images[0], tuple):
+            self.animation_images = images
         else:
-            flipped_images = [pygame.transform.flip(img, True, False) for img in image_names]
-            self.animation_images = list(zip(image_names,flipped_images))
+            flipped_images = [pygame.transform.flip(img, True, False) for img in images]
+            self.animation_images = list(zip(images, flipped_images))
         self.frame_count = 0
         if isinstance(speed, list):
             assert len(speed) == len(self.animation_images)
@@ -184,12 +182,12 @@ class Animation:
         self.finished = False
 
 class MarkedAnimation(Animation):
-    def __init__(self, *image_names, speed = 10, color = (255,255,255), scale = (0,0), start_frame = 0, marked_frames = []):
+    def __init__(self, *images, speed = 10, color = (255, 255, 255), scale = (0, 0), start_frame = 0, marked_frames = []):
         """
         allows some marked frames that then can be tracked by the marked property
         :param marked_frames: a list of integers of marked frames
         """
-        Animation.__init__(self, *image_names, speed = speed, color = color, scale = scale, start_frame=start_frame)
+        Animation.__init__(self, *images, speed = speed, color = color, scale = scale, start_frame=start_frame)
         #list of frames that can be tracked by the special property
         self.marked_frames = marked_frames
         self.marked = False
