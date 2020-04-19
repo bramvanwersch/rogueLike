@@ -28,6 +28,8 @@ class Entity(pygame.sprite.Sprite):
             self.collision = kwargs["collision"]
         self.bounding_box = self._get_bounding_box()
         self.flipped = False
+        #variable that can be flipped to kill the entity to make sure the entity dies before executing
+        self.dead = False
         #varaible that tracks if the previous
         self.message_cooldown = 60
 
@@ -37,7 +39,13 @@ class Entity(pygame.sprite.Sprite):
         :return:
         """
         super().update(*args)
+        if self.dead:
+            self._die()
+            return
         self.bounding_box = self._get_bounding_box()
+
+    def _die(self):
+        self.kill()
 
     def _get_bounding_box(self):
         """
@@ -73,6 +81,8 @@ class InteractingEntity(Entity):
 
     def update(self, *args):
         super().update(*args)
+        if self.dead:
+            return
         if self.action_function and self.interactable and self.player.pressed_keys[constants.INTERACT] and \
                 self.trigger_cooldown[0] <= 0:
             if self.rect.colliderect(self.player.rect):
@@ -95,8 +105,6 @@ class InteractingEntity(Entity):
             if self.interactable and not self.animation.finished:
                 self.run_animation()
 
-
-
 class LivingEntity(Entity):
     def __init__(self, pos, *groups, health = 100, damage = 10, health_regen = 1, speed = 10, tiles = [], xp = 100, **kwargs):
         """
@@ -112,7 +120,6 @@ class LivingEntity(Entity):
         self.health_regen = health_regen
         self._layer = utilities.PLAYER_LAYER1
         self.text_values = []
-        self.dead = False
         self.immune = [False,0]
         self.flipped_image = pygame.transform.flip(self.image, True, False)
         self.damage_color = "red"
@@ -123,7 +130,6 @@ class LivingEntity(Entity):
     def update(self, *args):
         super().update(*args)
         if self.dead:
-            self._dead_sequence()
             return
         self.move()
         self.do_flip()
@@ -138,9 +144,7 @@ class LivingEntity(Entity):
 
     def _dead_sequence(self):
         if self.dead and hasattr(self,"dead_animation"):
-            if self.dead_animation.cycles == 0:
-                self.die()
-            else:
+            if not self.dead_animation.cycles == 0:
                 self.kill()
         elif self.dead and hasattr(self, "dead_timer"):
             self.dead_timer -= 1
@@ -176,7 +180,7 @@ class LivingEntity(Entity):
         if self.health[0] > self.health[1]:
             self.health[0] = self.health[1]
         if self.health[0] <= 0:
-            self._die()
+            self.dead = True
 
     def move(self):
         if self.speedx > self.max_speed:
@@ -238,7 +242,7 @@ class LivingEntity(Entity):
         self.text_values.append(TextSprite(text, self.rect.midtop, super().groups()[0], **kwargs))
 
     def _die(self):
-        self.dead = True
+        self._dead_sequence()
 
 class Enemy(LivingEntity):
     def __init__(self, pos, player, *groups, **kwargs):
@@ -479,11 +483,11 @@ class Projectile(LivingEntity):
             if isinstance(sprite, Enemy) and not sprite.immune[0] and sprite != self:
                 if sprite.rect.colliderect(self.rect):
                     sprite.change_health(- self.damage)
-                    self._die()
+                    self.dead = True
 
     def move(self):
         if any(self._check_collision(sprites = False)):
-            self._die()
+            self.dead = True
         self.rect.topleft += pygame.Vector2(self.trajectory.speedx,self.trajectory.speedy)
 
     def _configure_trajectory(self, start_pos, end_pos):
@@ -534,7 +538,7 @@ class EnemyProjectile(Projectile):
         if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
             self.player.change_health(-self.damage)
             self.player.set_immune()
-            self._die()
+            self.dead = True
 
 class TextSprite(Entity):
     def __init__(self,text, pos, *groups, **kwargs):
