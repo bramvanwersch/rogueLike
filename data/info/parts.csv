@@ -8,3 +8,5 @@ straigh_barrel   ,barrel   ,Jenkins     ,            ,1     ,10       ,        ,
 round_barrel     ,barrel   ,Jenkins     ,            ,15    ,-5       ,-10     ,             ,                ,             ,      ,       ,        ,        ,        ,8-22    ,224-0-32-32
 small_wooden_body,body     ,Jenkins     ,            ,5     ,-3       ,25      ,             ,                ,             ,      ,       ,8-15    ,1-7     ,4-10    ,6-14    ,0-32-48-16
 revolver_body    ,body     ,Jenkins     ,            ,2     ,5        ,5       ,             ,                ,             ,      ,       ,6-13    ,1-17    ,0-10    ,8-17    ,112-16-32-32
+hook_stock       ,stock    ,Jenkins     ,            ,-2    ,15       ,10      ,             ,                ,             ,      ,       ,        ,19-29   ,        ,        ,144-16-32-32
+round_magazine   ,magazine ,Jenkins     ,-1          ,      ,         ,        ,15           ,1               ,             ,      ,       ,9-22    ,        ,        ,        ,176-32-32-32

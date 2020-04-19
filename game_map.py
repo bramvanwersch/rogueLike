@@ -130,10 +130,10 @@ class Room:
         #for convenience
         self.tiles = self.room_layout.tiles
         self.connections = self.room_layout.connections
-        self.enemies = self.__choose_enemies(kwargs["enemies"], kwargs["spawn_weights"],kwargs["spawn_amnt_range"])
+        self.enemies = self._choose_enemies(kwargs["enemies"], kwargs["spawn_weights"],kwargs["spawn_amnt_range"])
         self.finished = False
 
-    def __choose_enemies(self, enemies, spawn_weights, spawn_amnt_range):
+    def _choose_enemies(self, enemies, spawn_weights, spawn_amnt_range):
         enemie_choices = utilities.get_wheighted_array(enemies, spawn_weights)
         enemies = []
         for _ in range(random.randint(*spawn_amnt_range)):
@@ -166,6 +166,7 @@ class StartingRoom(Room):
 class BossRoom(Room):
     def __init__(self, rect, room_type, connections, **kwargs):
         kwargs["room_layout"] = self.__get_room_layout(rect)
+        kwargs["spawn_amnt_range"] = [kwargs["spawn_amnt_range"][0] + 10, kwargs["spawn_amnt_range"][1] + 10]
         Room.__init__(self, rect, room_type, connections, **kwargs)
 
     def __get_room_layout(self, rect):

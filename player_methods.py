@@ -221,7 +221,6 @@ class GenericArm(entities.Entity):
         between hands
         """
         self.flipped = not self.flipped
-        self.image = pygame.transform.flip(self.image, True, False)
         if self.flipped:
             super().groups()[0].change_layer(self,utilities.PLAYER_LAYER1)
         else:
@@ -299,7 +298,10 @@ class RightArm(GenericArm):
         """
         Rotate an image and calculate a new position based on a offset and an angle.
         """
-        self.image = pygame.transform.rotozoom(self.orig_image, - self.angle, 1)
+        if self.flipped:
+            self.image = pygame.transform.rotozoom(self.orig_flipped_image, - self.angle, 1)
+        else:
+            self.image = pygame.transform.rotozoom(self.orig_image, - self.angle, 1)
         offset_rotated = self.offset.rotate(self.angle)
         #weapon offset rotated
         if not self.flipped:
@@ -311,7 +313,10 @@ class RightArm(GenericArm):
 
     def flip(self):
         super().flip()
-        self.orig_image = pygame.transform.flip(self.orig_image, True, False)
+        if self.flipped:
+            self.image = self.orig_flipped_image
+        else:
+            self.image = self.orig_image
 
     def equip(self, weapon):
         """
@@ -322,30 +327,43 @@ class RightArm(GenericArm):
         weapon_image = self.weapon.image
         # weapon_image = pygame.transform.rotate(weapon_image, 90)
         # weapon_image = pygame.transform.flip(weapon_image, True, False)
+        weapon_image = pygame.transform.scale(weapon_image, (round(0.8*weapon_image.get_rect().width), round(0.8*weapon_image.get_rect().height)))
+        weapon_image.set_colorkey((255,255,255), pygame.RLEACCEL)
         image = pygame.Surface((weapon_image.get_rect().width, weapon_image.get_rect().height))
+        flipped_image = pygame.Surface((weapon_image.get_rect().width, weapon_image.get_rect().height))
         ir = image.get_rect()
         rotated_arm = pygame.transform.rotate(self.arm, 40)
         ra = rotated_arm.get_rect()
         #make the surface fit the biggest size either arm or the weapon
         if ra.width + 25 > ir.width and ra.height + 20 > ir.height:
             image = pygame.Surface((ra.width + 25, ra.height + 20))
+            flipped_image = pygame.Surface((ra.width + 25, ra.height + 20))
         elif ra.width + 25 > ir.width:
             image = pygame.Surface((ra.width + 25, ir.height))
+            flipped_image = pygame.Surface((ra.width + 25, ir.height))
         elif ra.height + 20 > ir.height:
             image = pygame.Surface((ir.width, ra.height + 20))
+            flipped_image = pygame.Surface((ir.width, ra.height + 20))
         image.fill((255,255,255))
+        flipped_image.fill((255,255,255))
 
         image.blit(weapon_image, (0, image.get_rect().height - weapon_image.get_rect().height), weapon_image.get_rect())
-        image = pygame.transform.scale(image, (round(0.8*image.get_rect().width), round(0.8*image.get_rect().height)))
         image.blit(rotated_arm,(25,20), rotated_arm.get_rect())
         image.set_colorkey((255,255,255), pygame.RLEACCEL)
+        flipped_image.blit(rotated_arm,(25,20), rotated_arm.get_rect())
+        flipped_image.blit(weapon_image, (0, image.get_rect().height - weapon_image.get_rect().height), weapon_image.get_rect())
+        flipped_image.set_colorkey((255,255,255), pygame.RLEACCEL)
+
         image = image.convert_alpha()
+        flipped_image = pygame.transform.flip(flipped_image, True, False)
+        flipped_image = flipped_image.convert_alpha()
+
         self.image = image#self.__create_weapon_arm(weapon_image)
+        self.orig_flipped_image = flipped_image
         self.orig_image = self.image
         self.rect = self.image.get_rect(center = self.rect.center)
         self.damage = weapon.damage
         self.offset = pygame.Vector2(self.rect.width * 0.5 - 25, -5)
-
 
 class Inventory:
     def __init__(self):
