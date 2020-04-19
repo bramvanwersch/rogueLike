@@ -139,7 +139,7 @@ class Room:
             while collide:
                 test_rect = pygame.Rect(random.randint(0,self.rect.width * 100), random.randint(0,self.rect.height * 100),
                                         *enemie_choice[1])
-                collide = self.tiles.solid_collide(test_rect)
+                collide = self.tiles.solid_collide(test_rect, False)
             enemies.append([enemie_choice[0], test_rect.topleft])
         return enemies
 

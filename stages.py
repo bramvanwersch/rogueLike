@@ -48,7 +48,6 @@ class BasicStage:
         elif pr.y < 0.25 * cr.height * constants.TILE_SIZE[1]:
             room = self.stage_rooms_map[cr[1] - 1][cr[0]]
             self.player.rect.topleft = (room.connections[2][0] * constants.TILE_SIZE[0], room.rect.height * constants.TILE_SIZE[1] - 110 - self.player.rect.height)
-        print(room)
         self.set_room(room)
 
     def set_room(self, room):
