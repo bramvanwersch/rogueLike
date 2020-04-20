@@ -36,7 +36,8 @@ class Weapon:
         image.blit(self.parts["barrel"].image, (self.parts["stock"].rect.width + self.parts["body"].rect.width, barrel_loc))
         magazine_loc = self.parts["stock"].rect.width + self.parts["body"].contact_points[2] - self.parts["magazine"].contact_points[0]
         image.blit(self.parts["magazine"].image, (magazine_loc, self.parts["accesory"].rect.height + self.parts["body"].rect.height))
-        image = image.convert()
+        image.set_colorkey((255,255,255), RLEACCEL)
+        image = image.convert_alpha()
         return image
 
     def __calculate_stats(self):
@@ -73,7 +74,7 @@ class Weapon:
 
     def __create_inventory_text(self):
         text_surface = pygame.Surface((900,600))
-        text_surface.fill(utilities.BACKGROUND_COLOR)
+        text_surface.fill((165,103,10))
 
         name = self.font25.render("Damage:", True, (0,0,0))
         value = self.font25.render(str(self.damage), True, (0,0,0))

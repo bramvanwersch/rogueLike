@@ -145,7 +145,7 @@ def get_player_relative_screen_coordinate(player, coord):
         y = coord[1]
     return (x,y)
 
-def draw_player_interface(player, interface_image):
+def draw_player_interface(player, interface_image, *dynamic_images):
     """
     Draws the interface for the player that changes based on the players current stats.
     :param player: the player object of the game
@@ -155,7 +155,11 @@ def draw_player_interface(player, interface_image):
     fraction_xp = player.xp[0] / player.xp[1]
     pygame.draw.rect(screen, (255,0,0), (160, sr.height - 100, int((sr.width - 600 - 160) * fraction_health), 50))
     pygame.draw.rect(screen, (55, 255, 0), (160, sr.height - 40, int((sr.width - 600 - 160) * fraction_xp), 25))
+    for widget in dynamic_images:
+        widget.update()
+        screen.blit(widget.image, widget.rect.topleft)
     screen.blit(interface_image,(0, sr.height  - 150))
+
 
 def get_inventory_frame():
     """
@@ -198,7 +202,7 @@ screen.set_alpha(None)
 sr = screen.get_rect()
 game_images.load()
 
-pygame.display.set_caption("Welcome to the forest")
+pygame.display.set_caption("Playing a game are we now?")
 pygame.mouse.set_visible(True)
 
 #load all the parts at the start of the game
@@ -295,6 +299,7 @@ class MainScene(Scene):
         Scene.__init__(self, sprites, event_sprite)
         self.nr_loaded_sprites = 0
         self.inventory_frame = get_inventory_frame()
+        self.weapon_display = menu_methods.WeaponDisplay(pygame.Rect(sr.width - 140, sr.height - 145,135,135), event_sprite.right_arm.weapon)
 
     def update(self):
         super().update()
@@ -326,7 +331,7 @@ class MainScene(Scene):
             ve = FONT.render(str(self.nr_loaded_sprites), True, pygame.Color('black'))
             screen.blit(ve, (10, 25))
         if not self.event_sprite.dead:
-            draw_player_interface(self.event_sprite, self.inventory_frame)
+            draw_player_interface(self.event_sprite, self.inventory_frame, self.weapon_display)
             if utilities.BOUNDING_BOXES:
                 draw_bounding_boxes(self.event_sprite)
             if utilities.ENTITY_PATHS:

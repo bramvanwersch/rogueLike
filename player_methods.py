@@ -301,12 +301,12 @@ class RightArm(GenericArm):
         if self.attack_cooldown > 0 or self.weapon.magazine <= 0:
             if self.weapon.magazine <= 0 and not self.weapon.reloading:
                 self.weapon.reload()
-            return
-        self.projectiles.append(entities.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
-                            tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
-                            image = self.bullet_image))
-        self.weapon.magazine -= 1
-        self.attack_cooldown = 1 / self.weapon.fire_rate
+        else:
+            self.projectiles.append(entities.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
+                                tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
+                                image = self.bullet_image))
+            self.weapon.magazine -= 1
+            self.attack_cooldown = 1 / self.weapon.fire_rate
 
     def rotate(self):
         """
@@ -378,7 +378,7 @@ class RightArm(GenericArm):
         self.rect = self.image.get_rect(center = self.rect.center)
 
         #load th bullet
-        self.bullet_image = pygame.transform.scale(self.orig_bullet, (20,20))
+        self.bullet_image = pygame.transform.scale(self.orig_bullet, (30,20))
 
         #set values for the weapon
         self.damage = weapon.damage

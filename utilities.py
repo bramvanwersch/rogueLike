@@ -15,7 +15,6 @@ PEACEFULL = False
 #some global constants
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
 DATA_DIR = os.path.join(MAIN_DIR, "data")
-BACKGROUND_COLOR = (165,103,10)
 
 TILE_NAMES = ["bottom_left_corner","bottom_left_icorner",
                "bottom_right_corner","bottom_right_icorner",

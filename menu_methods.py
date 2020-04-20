@@ -1,11 +1,10 @@
 import pygame, utilities
-from utilities import BACKGROUND_COLOR
 from pygame.locals import *
 
-
 class Widget(pygame.sprite.Sprite):
-    def __init__(self, *groups):
+    def __init__(self, *groups, background_color = (165,103,10), **kwargs):
         pygame.sprite.Sprite.__init__(self, *groups)
+        self.background_color = background_color
         self.font30 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 30)
         self.font25 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 25)
         self.font20 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 20)
@@ -144,9 +143,9 @@ class Button(Widget):
     def __init__(self, text = "", text_color = (0,0,0), highlight_color = (252, 151, 0)):
         Widget.__init__(self)
         #create a selected and unselected image to swich between
-        text = self.font30.render(text, True, text_color, BACKGROUND_COLOR)
+        text = self.font30.render(text, True, text_color, self.background_color)
         unselected_surface = pygame.Surface((text.get_rect().width + 14, text.get_rect().height + 14))
-        unselected_surface.fill(BACKGROUND_COLOR)
+        unselected_surface.fill(self.background_color)
         self.rect = unselected_surface.blit(text, (text.get_rect().x + 7, text.get_rect().y + 7))
         self.unselected_image = unselected_surface
 
@@ -183,7 +182,7 @@ class WeaponListDisplay(MenuPane):
         #force an update when the sprite is updated if at creation weapons are put into the inventory
         self.items = []
         self.image = pygame.Surface(self.rect.size)
-        self.image.fill(BACKGROUND_COLOR)
+        self.image.fill(self.background_color)
         #functions to be assigned to selectable objects made in this pane.
         self.list_functions = {}
         if title:
@@ -218,14 +217,14 @@ class WeaponListDisplay(MenuPane):
                 lbl.set_action(self.list_functions[key], key)
 
 class Label(Widget):
-    def __init__(self, size):
+    def __init__(self, size, *group, **kwargs):
         """
         Container class for holdign an image. The default is an image given by the default background color
         :param size: the size of the image. The new image has to be as big or bigger
         """
-        Widget.__init__(self)
+        Widget.__init__(self, *group, **kwargs)
         self.image = pygame.Surface(size)
-        self.image.fill(BACKGROUND_COLOR)
+        self.image.fill(self.background_color)
         self.rect = self.image.get_rect()
 
     def set_image(self, image):
@@ -259,7 +258,7 @@ class SelectableLabel(Label):
         image = pygame.transform.scale(image, (int(1.4* image.get_rect().width),int(1.4* image.get_rect().height)))
 
         img = pygame.Surface(size)
-        img.fill(BACKGROUND_COLOR)
+        img.fill(self.background_color)
         ir = image.get_rect()
 
         #get topleft x and y coordiante that give a centered image
@@ -300,3 +299,34 @@ class WeaponItemLabel(SelectableLabel):
                 elif event.key in self.action_functions:
                     self.action_functions[event.key]()
 
+#methods for images that have a set location but change theire appearance over time.
+#pretty much a chiller sprite
+class DynamicSurface:
+    def __init__(self, rect, background_color = (165,103,10), **kwargs):
+        self.font20 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 20)
+        self.rect = rect
+        self.background_color = background_color
+        self.image = self._get_image()
+
+    def update(self):
+        self.image = self._get_image()
+
+    def _get_image(self):
+        image = pygame.Surface((self.rect.size))
+        image.fill(self.background_color)
+        return image
+
+class WeaponDisplay(DynamicSurface):
+    def __init__(self, rect, weapon):
+        self.weapon = weapon
+        DynamicSurface.__init__(self, rect)
+
+    def _get_image(self):
+        image = super()._get_image()
+        if self.weapon:
+            ammo = self.font20.render("{} | {}".format(self.weapon.magazine, self.weapon.magazine_size) , True, (0, 0, 0))
+            a_size = ammo.get_size()
+            image.blit(self.weapon.image, (10,10))
+            image.blit(ammo, (self.rect.width - a_size[0] - 10, self.rect.height - a_size[1] - 10))
+        image = image.convert()
+        return image
