@@ -14,6 +14,8 @@ class Weapon:
         self.font25 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 25)
         self.damage, self.reload_speed, self.fire_rate, self.weight, self.accuracy, self.magazine_size = self.__calculate_stats()
         self.inventory_text = self.__create_inventory_text()
+        self.magazine = self.magazine_size
+        self.reloading = False
 
     def __create_weapon_image(self):
         """
@@ -110,6 +112,14 @@ class Weapon:
             name = self.font25.render(" - {} ({})".format(self.parts[part].name, self.parts[part].manufacturer), True, (0,0,0))
             text_surface.blit(name, (0,350 + 50 * i))
         return text_surface
+
+    def reload(self, start = True):
+        if start:
+            if self.magazine_size > self.magazine:
+                self.reloading = True
+        else:
+            self.magazine = self.magazine_size
+            self.reloading = False
 
 class WeaponPart:
     def __init__(self, data):

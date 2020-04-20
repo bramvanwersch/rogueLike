@@ -20,7 +20,7 @@ class AbstractManufactorer:
         self.fire_rate = 2 # per second
         self._base_damage = 5 #per bulet is more for
         self._accuracy = 60 #means that 60% of the shots are on target
-        self.magazine_size = 50 # not relevant for melee weapons
+        self.magazine_size = 10 # not relevant for melee weapons
         self.weight = 10 #kgs
         self.level = 1 # get player level. Means nothing at the moment
 

@@ -126,6 +126,8 @@ class Player(LivingEntity):
 #attacking
         if self.pressed_keys["mouse1"]:
             self.right_arm.do_attack(self.tiles)
+        if self.pressed_keys[RELOAD] and self.right_arm.weapon:
+            self.right_arm.weapon.reload()
 
     def __dodge(self):
         #TODO not finished yet
@@ -260,12 +262,21 @@ class RightArm(GenericArm):
         self.attack_cooldown = 0
         self.projectiles = []
         self.offset = pygame.Vector2(20,-5)
-        self.bullet = sheets["weapons"].image_at((160,0), size = (32,16), color_key = (255,255,255))
+        self.orig_bullet = sheets["weapons"].image_at((160,0), size = (32,16), color_key = (255,255,255))
+        self.bullet_image = self.orig_bullet
+        self.weapon = None
 
     def update_arm(self, *args):
         super().update_arm(*args)
         if self.attack_cooldown > 0:
             self.attack_cooldown -= utilities.GAME_TIME.get_time() / 1000
+        if self.weapon:
+            if self.weapon.reloading and self.reload_cooldown <= 0:
+                self.weapon.reload(start = False)
+            elif self.weapon.reloading:
+                self.reload_cooldown -= utilities.GAME_TIME.get_time() / 1000
+            else:
+                self.reload_cooldown = self.weapon.reload_speed
 
     def move_arm(self, pos):
         """
@@ -286,12 +297,15 @@ class RightArm(GenericArm):
         """
         spawn a bullet of the center of the player in the direction of the mouse pointer
         """
-        if self.attack_cooldown > 0:
+        #dont fire when any of these actions are happening
+        if self.attack_cooldown > 0 or self.weapon.magazine <= 0:
+            if self.weapon.magazine <= 0 and not self.weapon.reloading:
+                self.weapon.reload()
             return
-        bullet_image = pygame.transform.scale(self.bullet, (20,20))
         self.projectiles.append(entities.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
                             tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
-                            image = self.bullet))
+                            image = self.bullet_image))
+        self.weapon.magazine -= 1
         self.attack_cooldown = 1 / self.weapon.fire_rate
 
     def rotate(self):
@@ -362,7 +376,13 @@ class RightArm(GenericArm):
         self.orig_flipped_image = flipped_image
         self.orig_image = self.image
         self.rect = self.image.get_rect(center = self.rect.center)
+
+        #load th bullet
+        self.bullet_image = pygame.transform.scale(self.orig_bullet, (20,20))
+
+        #set values for the weapon
         self.damage = weapon.damage
+        self.reload_cooldown = self.weapon.reload_speed
         self.offset = pygame.Vector2(self.rect.width * 0.5 - 25, -5)
 
 class Inventory:
