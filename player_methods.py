@@ -21,7 +21,7 @@ class Player(LivingEntity):
                                                      walking_images[4],walking_images[3])
         self.idle_animation = utilities.MarkedAnimation(idle_images[0],idle_images[1],idle_images[2],idle_images[3],
                                                         idle_images[3],idle_images[2],idle_images[1],idle_images[0],
-                                                        speed = 40, marked_frames=[2,3,4,5])
+                                                        speed = 40, marked_frames=[2,3,4,5], repetition = 1)
         self.dead_animation = utilities.MarkedAnimation(*dead_images, marked_frames=[3,4,5,6,7,8,9,10])
         self.events = []
         self.inventory = Inventory()
@@ -99,11 +99,6 @@ class Player(LivingEntity):
                 self.pressed_keys["mouse1"] = True
             elif event.type == MOUSEBUTTONUP:
                 self.pressed_keys["mouse1"] = False
-#dodge
-        if self.pressed_keys[DODGE] and self.dodge_cd <= 0:
-            self.__dodge()
-        else:
-            self.dodge_cd -= 1
 #moving
         if self.pressed_keys[RIGHT] and self.pressed_keys[LEFT]:
             self.speedx = 0
@@ -128,22 +123,6 @@ class Player(LivingEntity):
             self.right_arm.do_attack(self.tiles)
         if self.pressed_keys[RELOAD] and self.right_arm.weapon:
             self.right_arm.weapon.reload()
-
-    def __dodge(self):
-        #TODO not finished yet
-        dd = 250
-        m_r = self.rect
-        if self.pressed_keys[LEFT]:
-            m_r = m_r.move(-dd,0)
-        if self.pressed_keys[RIGHT]:
-            m_r = m_r.move(dd, 0)
-        if self.pressed_keys[UP]:
-            m_r = m_r.move(0, -dd)
-        if self.pressed_keys[DOWN]:
-            m_r = m_r.move(0, dd)
-        if not self.tiles.solid_collide(m_r):
-            self.rect = m_r
-        self.dodge_cd = 50
 
     def do_flip(self):
         """
@@ -190,7 +169,11 @@ class Player(LivingEntity):
         else:
             #idle animation plays at random every 500 frames of inactivity
             self.walking_animation.reset()
-            if self.idle_animation.cycles == 0:
+            #while shooting do not idle
+            if self.pressed_keys["mouse1"]:
+                self.idle_animation.cycles = 1
+                return
+            if not self.idle_animation.finished:
                 self.idle_animation.update()
                 if self.idle_animation.marked:
                     self.right_arm.visible = [False, True]
@@ -386,7 +369,7 @@ class RightArm(GenericArm):
         #set values for the weapon
         self.damage = weapon.damage
         self.reload_cooldown = self.weapon.reload_speed
-        self.offset = pygame.Vector2(self.rect.width * 0.5 - 25, -5)
+        self.offset = pygame.Vector2(self.rect.width * 0.5 - 30, -6)
 
 class Inventory:
     def __init__(self):

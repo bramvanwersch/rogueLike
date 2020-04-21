@@ -181,12 +181,12 @@ class Animation:
         self.finished = False
 
 class MarkedAnimation(Animation):
-    def __init__(self, *images, speed = 10, color = (255, 255, 255), scale = (0, 0), start_frame = 0, marked_frames = []):
+    def __init__(self, *images, marked_frames = [], **kwargs):
         """
         allows some marked frames that then can be tracked by the marked property
         :param marked_frames: a list of integers of marked frames
         """
-        Animation.__init__(self, *images, speed = speed, color = color, scale = scale, start_frame=start_frame)
+        Animation.__init__(self, *images, **kwargs)
         #list of frames that can be tracked by the special property
         self.marked_frames = marked_frames
         self.marked = False
