@@ -543,6 +543,8 @@ class EnemyProjectile(Projectile):
 class TextSprite(Entity):
     def __init__(self,text, pos, *groups, **kwargs):
         image = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 20).render(str(text), True, pygame.Color(kwargs["color"]))
+        #give a bit of random offset
+        pos = (random.randint(pos[0] -5, pos[0] + 5), random.randint(pos[1] -5, pos[1] + 5))
         Entity.__init__(self, pos, *groups, image = image)
         #current, maximum in ms
         self.lifespan = [0,1000]

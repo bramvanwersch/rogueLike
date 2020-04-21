@@ -13,6 +13,8 @@ class Weapon:
         self.image = self.__create_weapon_image()
         self.font25 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 25)
         self.damage, self.reload_speed, self.fire_rate, self.weight, self.accuracy, self.magazine_size = self.__calculate_stats()
+        self.bullets_per_shot = max(part.bullets_per_shot for part in list(self.parts.values()))
+
         self.inventory_text = self.__create_inventory_text()
         self.magazine = self.magazine_size
         self.reloading = False
@@ -77,7 +79,10 @@ class Weapon:
         text_surface.fill((165,103,10))
 
         name = self.font25.render("Damage:", True, (0,0,0))
-        value = self.font25.render(str(self.damage), True, (0,0,0))
+        if self.bullets_per_shot > 1:
+            value = self.font25.render("{}*{}".format(self.damage, self.bullets_per_shot), True, (0,0,0))
+        else:
+            value = self.font25.render("{}".format(self.damage), True, (0, 0, 0))
         text_surface.blit(name, (0,0))
         text_surface.blit(value, (250, 0))
 
@@ -133,6 +138,9 @@ class WeaponPart:
         self.image = sheets["weapons"].image_at((loc[0],loc[1]), color_key= (255,255,255), size = (loc[2], loc[3]))
         self.rect = self.image.get_rect()
         self.__set_data_values(data)
+        self.bullets_per_shot = 1
+        if "bullets per shot" in data:
+            self.bullets_per_shot = int(data["bullets per shot"])
 
         #order of NESW
         self.contact_points = [None,None,None,None]
@@ -142,13 +150,13 @@ class WeaponPart:
         if "damage" in data:
             self.damage = int(data["damage"])
         if "reload speed" in data:
-            self.reload_speed = int(data["reload speed"])
+            self.reload_speed = float(data["reload speed"])
         if "fire rate" in data:
-            self.fire_rate = int(data["fire rate"])
+            self.fire_rate = float(data["fire rate"])
         if "weight" in data:
-            self.weight = int(data["weight"])
+            self.weight = float(data["weight"])
         if "accuracy" in data:
-            self.accuracy = int(data["accuracy"])
+            self.accuracy = float(data["accuracy"])
         if "magazine size" in data:
             self.magazine_size = int(data["magazine size"])
         if "element" in data:

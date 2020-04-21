@@ -285,9 +285,10 @@ class RightArm(GenericArm):
             if self.weapon.magazine <= 0 and not self.weapon.reloading:
                 self.weapon.reload()
         else:
-            self.projectiles.append(entities.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
-                                tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
-                                image = self.bullet_image))
+            for _ in range(self.weapon.bullets_per_shot):
+                self.projectiles.append(entities.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
+                                    tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
+                                    image = self.bullet_image))
             self.weapon.magazine -= 1
             self.attack_cooldown = 1 / self.weapon.fire_rate
             if self.weapon.reloading:
