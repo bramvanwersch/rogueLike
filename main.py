@@ -299,7 +299,7 @@ class MainScene(Scene):
         Scene.__init__(self, sprites, event_sprite)
         self.nr_loaded_sprites = 0
         self.inventory_frame = get_inventory_frame()
-        self.weapon_display = menu_methods.WeaponDisplay(pygame.Rect(sr.width - 140, sr.height - 145,135,135), event_sprite.right_arm.weapon)
+        self.weapon_display = menu_methods.WeaponDisplay(pygame.Rect(sr.width - 140, sr.height - 145,135,135), event_sprite)
 
     def update(self):
         super().update()

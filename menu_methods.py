@@ -303,7 +303,7 @@ class WeaponItemLabel(SelectableLabel):
 #pretty much a chiller sprite
 class DynamicSurface:
     def __init__(self, rect, background_color = (165,103,10), **kwargs):
-        self.font20 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 20)
+        self.font18 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 18)
         self.rect = rect
         self.background_color = background_color
         self.image = self._get_image()
@@ -317,16 +317,22 @@ class DynamicSurface:
         return image
 
 class WeaponDisplay(DynamicSurface):
-    def __init__(self, rect, weapon):
-        self.weapon = weapon
+    def __init__(self, rect, player):
+        self.player = player
+        self.weapon = self.player.right_arm.weapon
         DynamicSurface.__init__(self, rect)
 
     def _get_image(self):
         image = super()._get_image()
         if self.weapon:
-            ammo = self.font20.render("{} | {}".format(self.weapon.magazine, self.weapon.magazine_size) , True, (0, 0, 0))
+            ammo = self.font18.render("{} | {}".format(self.weapon.magazine, self.weapon.magazine_size) , True, (0, 0, 0))
             a_size = ammo.get_size()
-            image.blit(self.weapon.image, (10,10))
-            image.blit(ammo, (self.rect.width - a_size[0] - 10, self.rect.height - a_size[1] - 10))
+            image.blit(self.weapon.image, (self.rect.width * 0.5 - self.weapon.image.get_rect().width * 0.5 ,0))
+            image.blit(ammo, (self.rect.width * 0.5 - a_size[0] * 0.5, self.rect.height - a_size[1] - 10))
+            if self.weapon.reloading:
+                reloaded_progeress = round((1 - self.player.right_arm.reload_cooldown / self.weapon.reload_speed) * 9)
+                reloading_text = self.font18.render(">" * reloaded_progeress ,True, (0,255,0))
+                rts = reloading_text.get_size()
+                image.blit(reloading_text,(self.rect.width * 0.5 - rts[0] * 0.5, self.rect.height - a_size[1] - rts[1] - 15))
         image = image.convert()
         return image
