@@ -8,6 +8,7 @@ class Trajectory:
         self.accuracy = kwargs["accuracy"]
 
 class LinearTrajectory(Trajectory):
+    MAX_INACCURACY = 0.2 * math.pi #90 degrees
     def __init__(self, start_pos, dest_pos, rect, image, *groups, max_speed = 10, **kwargs):
         Trajectory.__init__(self, start_pos, rect, image, *groups, **kwargs)
         self.projectile_offset = pygame.Vector2(0,0)
@@ -22,14 +23,18 @@ class LinearTrajectory(Trajectory):
 
     def __configure_trajectory(self):
         inacuracy = 100 - self.accuracy
+        delta_x = (self.dest[0] - self.start[0])
+        delta_y = (self.dest[1] - self.start[1])
+        diagonal = math.sqrt(delta_x**2 + delta_y**2)
+        rad = math.atan(delta_y / delta_x)
+        change = self.MAX_INACCURACY * (random.randint(0, inacuracy) / 100)
         if random.randint(1,2) == 1:
-            self.dest[0] += random.randint(0, inacuracy)
-            self.dest[1] += random.randint(0, inacuracy)
-        else:
-            self.dest[0] -= random.randint(0, inacuracy)
-            self.dest[1] -= random.randint(0, inacuracy)
+            change *= -1
+        new_rad = rad + change
+        new_delta_x = abs(math.cos(new_rad) * diagonal)
+        new_delta_y = math.sin(new_rad) * diagonal
         try:
-            a = (self.dest[1] - self.start[1]) / (self.dest[0] - self.start[0])
+            a = new_delta_y / new_delta_x
         except ZeroDivisionError:
             #rare case where delta x = 0
             #make a sufficiently large so it goes straight up or down
