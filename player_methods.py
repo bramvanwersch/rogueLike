@@ -289,7 +289,7 @@ class RightArm(GenericArm):
                 self.projectiles.append(entities.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
                                     tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
                                     image = self.bullet_image))
-            self.weapon.magazine -= 1
+            self.weapon.magazine -= self.weapon.bullets_per_shot
             self.attack_cooldown = 1 / self.weapon.fire_rate
             if self.weapon.reloading:
                 self.reload_cooldown = self.weapon.reload_speed

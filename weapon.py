@@ -87,12 +87,12 @@ class Weapon:
         text_surface.blit(value, (250, 0))
 
         name = self.font25.render("Reload speed:", True, (0,0,0))
-        value = self.font25.render(str(self.reload_speed), True, (0,0,0))
+        value = self.font25.render("{:.2f}".format(self.reload_speed), True, (0,0,0))
         text_surface.blit(name, (0,50))
         text_surface.blit(value, (250, 50))
 
         name = self.font25.render("Fire rate:", True, (0,0,0))
-        value = self.font25.render("{} / second:".format(self.fire_rate), True, (0,0,0))
+        value = self.font25.render("{:.2f} / second:".format(self.fire_rate), True, (0,0,0))
         text_surface.blit(name, (0,100))
         text_surface.blit(value, (250, 100))
 
@@ -156,7 +156,7 @@ class WeaponPart:
         if "weight" in data:
             self.weight = float(data["weight"])
         if "accuracy" in data:
-            self.accuracy = float(data["accuracy"])
+            self.accuracy = int(data["accuracy"])
         if "magazine size" in data:
             self.magazine_size = int(data["magazine size"])
         if "element" in data:
