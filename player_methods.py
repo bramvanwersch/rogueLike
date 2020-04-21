@@ -298,7 +298,7 @@ class RightArm(GenericArm):
         spawn a bullet of the center of the player in the direction of the mouse pointer
         """
         #dont fire when any of these actions are happening
-        if self.attack_cooldown > 0 or self.weapon.magazine <= 0:
+        if self.attack_cooldown > 0 or self.weapon.magazine <= 0 or (self.weapon.magazine <= 0 and self.weapon.reloading):
             if self.weapon.magazine <= 0 and not self.weapon.reloading:
                 self.weapon.reload()
         else:
@@ -307,6 +307,9 @@ class RightArm(GenericArm):
                                 image = self.bullet_image))
             self.weapon.magazine -= 1
             self.attack_cooldown = 1 / self.weapon.fire_rate
+            if self.weapon.reloading:
+                self.reload_cooldown = self.weapon.reload_speed
+                self.weapon.reloading = False
 
     def rotate(self):
         """
