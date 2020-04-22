@@ -23,7 +23,6 @@ class LinearTrajectory(Trajectory):
 
     def __configure_trajectory(self):
         inacuracy = 100 - self.accuracy
-        print(self.start, self.dest)
         delta_x = (self.dest[0] - self.start[0])
         delta_y = (self.dest[1] - self.start[1])
         try:
@@ -36,20 +35,8 @@ class LinearTrajectory(Trajectory):
         new_rad = rad + change
         new_delta_x = math.cos(new_rad) * self.max_speed
         new_delta_y = math.sin(new_rad) * self.max_speed
-        print(new_delta_x, new_delta_y)
-        # try:
-        #     a = new_delta_y / new_delta_x
-        # except ZeroDivisionError:
-        #     #rare case where delta x = 0
-        #     #make a sufficiently large so it goes straight up or down
-        #     if self.dest[1] - self.start[1] > 0:
-        #         a = 10000
-        #     else:
-        #         a = -10000
-        # print(a)
-        #https://math.stackexchange.com/questions/656500/given-a-point-slope-and-a-distance-along-that-slope-easily-find-a-second-p
-        self.speedx = new_delta_x #self.max_speed * 1 / math.sqrt(1 + a**2)
-        self.speedy = new_delta_y #self.max_speed * a / math.sqrt(1 + a**2)
+        self.speedx = new_delta_x
+        self.speedy = new_delta_y
         self.projectile_offset = pygame.Vector2(- self.rect.width * 0.5, self.rect.height * 0.25)
         if self.max_speed < 0:
             self.image = pygame.transform.flip(self.image, True, False)

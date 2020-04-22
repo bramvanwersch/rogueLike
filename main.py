@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os, pygame, random
-import weapon, utilities, entities, stages, camera, player_methods, menu_methods, game_images
+import weapon, utilities, entities, stages, camera, player_methods, menu_methods, game_images, console
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -293,10 +293,14 @@ def setup_board():
     inventory_menu.add_widget((100,100), item_list, center = False)
     inventory_menu.add_widget((400,150), text_lbl, center = False)
 
+    #Console menu
+    con = console.Console(pygame.Rect(0,0,sr.width,int(sr.height * 0.6)))
+
     global scenes
     scenes = {"Main": MainScene(game_sprites,player),
               "Pause": PauseScene(pause_sprites, pause_menu),
-              "Inventory": InventoryScene(inventory_sprites, inventory_menu)}
+              "Inventory": InventoryScene(inventory_sprites, inventory_menu),
+              "Console": ConsoleScene(None, con)}
 
 class Scene():
     def __init__(self, sprites, event_sprite):
@@ -332,9 +336,10 @@ class MainScene(Scene):
                 utilities.going = False
             elif event.type == KEYDOWN and event.key == K_ESCAPE:
                 utilities.scene_name = "Pause"
-                #go to pause scene
             elif event.type == KEYDOWN and event.key == K_i:
                 utilities.scene_name = "Inventory"
+            elif event.type == KEYDOWN and event.key == K_BACKQUOTE:
+                utilities.scene_name = "Console"
             else:
                 player_events.append(event)
         self.event_sprite.events = player_events
@@ -390,6 +395,29 @@ class InventoryScene(Scene):
             else:
                 inventory_events.append(event)
         self.event_sprite.events = inventory_events
+
+class ConsoleScene(Scene):
+    def __init__(self, sprites, event_sprite):
+        Scene.__init__(self, sprites, event_sprite)
+
+    def update(self):
+        self.event_sprite.update()
+
+    def handle_events(self, events):
+        console_events = []
+        for event in events:
+            if event.type == QUIT:
+                utilities.going = False
+            elif event.type == KEYDOWN and event.key == K_ESCAPE:
+                utilities.scene_name = "Main"
+            elif event.type == KEYDOWN and event.key == K_BACKQUOTE:
+                utilities.scene_name = "Main"
+            else:
+                console_events.append(event)
+        self.event_sprite.events = console_events
+
+    def draw(self):
+        screen.blit(self.event_sprite.image, self.event_sprite.rect)
 
 def run():
     # Main Loop
