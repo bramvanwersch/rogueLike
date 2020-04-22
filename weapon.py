@@ -130,7 +130,7 @@ class Weapon:
 class WeaponPart:
     def __init__(self, data):
         self.damage,self.reload_speed,self.fire_rate,self.weight, self.accuracy, self.magazine_size = 0,0,0,0,0,0
-        self.element, self.bullet_pattern, self.bullets_per_shot = None, None, None
+        self.element, self.bullet_pattern, self.bullets_per_shot = None, None, 1
         self.type = data["part type"]
         self.name = data["name"]
         self.manufacturer = data["manufacturer"]
@@ -138,7 +138,6 @@ class WeaponPart:
         self.image = sheets["weapons"].image_at((loc[0],loc[1]), color_key= (255,255,255), size = (loc[2], loc[3]))
         self.rect = self.image.get_rect()
         self.__set_data_values(data)
-        self.bullets_per_shot = 1
         if "bullets per shot" in data:
             self.bullets_per_shot = int(data["bullets per shot"])
 

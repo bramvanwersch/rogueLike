@@ -32,6 +32,7 @@ class Entity(pygame.sprite.Sprite):
         self.dead = False
         #varaible that tracks if the previous
         self.message_cooldown = 60
+        #need to track this to make sure that movement is float accurate
 
     def update(self, *args):
         """
@@ -194,9 +195,9 @@ class LivingEntity(Entity):
         xcol, ycol = self._check_collision(height = False)
 
         if not xcol:
-            self.rect.x += self.speedx
+            self.rect.centerx += self.speedx
         if not ycol:
-            self.rect.y += self.speedy
+            self.rect.centery += self.speedy
 
     def _check_collision(self, height = True, sprites = True):
         """
@@ -466,6 +467,7 @@ class Projectile(LivingEntity):
     def __init__(self, start_pos, end_pos, *groups, accuracy = 80, **kwargs):
         LivingEntity.__init__(self, start_pos, *groups, **kwargs)
         self.rect.center = start_pos
+        self.pos = list(self.rect.center)
         self.accuracy = accuracy
         self.trajectory = self._configure_trajectory(start_pos, end_pos)
         if "bounding_size" in kwargs:
@@ -480,7 +482,7 @@ class Projectile(LivingEntity):
 
     def _check_hit(self):
         for sprite in super().groups()[0].sprites():
-            if isinstance(sprite, Enemy) and not sprite.immune[0] and sprite != self:
+            if isinstance(sprite, Enemy) and not sprite.immune[0] and sprite != self and not self.dead:
                 if sprite.rect.colliderect(self.rect):
                     sprite.change_health(- self.damage)
                     self.dead = True
@@ -488,13 +490,16 @@ class Projectile(LivingEntity):
     def move(self):
         if any(self._check_collision(sprites = False)):
             self.dead = True
-        self.rect.topleft += pygame.Vector2(self.trajectory.speedx,self.trajectory.speedy)
+        self.pos[0] += self.trajectory.speedx
+        self.pos[1] += self.trajectory.speedy
+        self.rect.center = self.pos
 
     def _configure_trajectory(self, start_pos, end_pos):
         trajectory = trajectories.LinearTrajectory(start_pos, end_pos, self.rect, self.image, super().groups()[0],
                                                    max_speed=self.max_speed, accuracy = self.accuracy)
         self.image = trajectory.image
         self.rect = trajectory.rect
+        self.pos = list(self.rect.center)
         return trajectory
 
 class PlayerProjectile(Projectile):
@@ -511,6 +516,7 @@ class PlayerProjectile(Projectile):
                                                    self.image, super().groups()[0],max_speed=self.max_speed, accuracy = self.accuracy)
         self.image = trajectory.image
         self.rect = trajectory.rect
+        self.pos = list(self.rect.center)
         return trajectory
 
 class EnemyProjectile(Projectile):
