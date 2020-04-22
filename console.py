@@ -16,9 +16,11 @@ class Console:
     def update(self):
         for event in self.events:
             if event.type == KEYDOWN:
-                text_key = pygame.key.name(event.key)
-                if len(text_key) == 1:
-                    self.text += text_key
+                if event.key == K_BACKSPACE:
+                    if len(self.text) > 1:
+                        self.text = self.text[:-1]
+                else:
+                    self.text += event.unicode
                 if event.key == K_RETURN:
                     self.text_log.append(self.text)
                     self.text = ">"
