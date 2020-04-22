@@ -11,6 +11,7 @@ FPS = True
 ENTITY_PATHS = False
 VISION_LINE = False
 PEACEFULL = False
+AIM_LINE = False
 
 #some global constants
 MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]

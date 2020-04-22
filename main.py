@@ -14,10 +14,20 @@ def get_random_weapon(parts):
     :return: an instance of a weapon class.
     """
     weapon_parts = {"body":None,"barrel":None,"stock":None,"magazine":None,"accesory":None}
-    for part in parts.keys():
-        part_dict = parts[part]
-        weapon_parts[part] = random.choice(part_dict)
+    for part_group in parts.keys():
+        part_list = parts[part_group]
+        weapon_parts[part_group] = random.choice(part_list)
     return weapon.Weapon(weapon_parts)
+
+def get_weapon_by_parts(parts, part_names):
+    weapon_parts = {"body":None,"barrel":None,"stock":None,"magazine":None,"accesory":None}
+    for part_group in parts.keys():
+        part_list = parts[part_group]
+        for part in part_list:
+            if part.name.strip() == part_names[part_group]:
+                weapon_parts[part_group] = part
+    return weapon.Weapon(weapon_parts)
+
 
 def load_parts():
     """
@@ -122,6 +132,15 @@ def draw_vision_line(player):
                 center_points.append((int(x), int(y)))
             pygame.draw.lines(screen, sprite.debug_color, False, center_points, 4)
 
+
+def draw_shoot_line(player):
+    sprites = player.groups()[0].sprites()
+    path_sprites = [sprite for sprite in sprites if hasattr(sprite, "vision_line")]
+    c = player.rect.center
+    start_point = get_player_relative_screen_coordinate(player, player.right_arm.rect.center)
+    end_point = pygame.mouse.get_pos()
+    pygame.draw.lines(screen, (0,0,0), False, (start_point, end_point), 4)
+
 def get_player_relative_screen_coordinate(player, coord):
     """
     Calculate a coordinate that is relative to the player position on the current dimensions of the screen. This helps
@@ -212,8 +231,9 @@ weaponparts = load_parts()
 def setup_board():
     #generate 20 random weapons
     weapons = [get_random_weapon(weaponparts) for _ in range(20)]
+    start_weapon = get_weapon_by_parts(weaponparts,{"body":"test_body","barrel":"less_big_boy_barrel","stock":"hook_stock","magazine":"round_magazine","accesory":"big_scope_accesory"})
 
-    player = player_methods.Player((150, 500), get_random_weapon(weaponparts))
+    player = player_methods.Player((150, 500), start_weapon)
     game_sprites = camera.CameraAwareLayeredUpdates(player, utilities.DEFAULT_LEVEL_SIZE)
     player.right_arm.add(game_sprites)
     player.left_arm.add(game_sprites)
@@ -338,6 +358,8 @@ class MainScene(Scene):
                 draw_path(self.event_sprite)
             if utilities.VISION_LINE:
                 draw_vision_line(self.event_sprite)
+            if utilities.AIM_LINE:
+                draw_shoot_line(self.event_sprite)
 
 class PauseScene(Scene):
     def __init__(self, sprites, event_sprite):
