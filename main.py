@@ -92,12 +92,12 @@ class MainWindow:
         inventory_menu.add_widget((400, 150), text_lbl, center=False)
 
         # Console menu
-        # con = console.Console(pygame.Rect(0, 0, sr.width, int(sr.height * 0.6)))
+        con = menu_methods.ConsoleWindow(pygame.Rect(0, 0, self.rect.width, int(self.rect.height * 0.6)))
 
         scenes = {"Main": MainScene(self.game_sprites, self.player, self.rect),
                   "Pause": PauseScene(pause_sprites, pause_menu, pause_menu.rect),
                   "Inventory": InventoryScene(inventory_sprites, inventory_menu, inventory_menu.rect),
-                  "Console": ConsoleScene(None, None,None)}
+                  "Console": ConsoleScene(None, con, con.rect)}
         return scenes
 
 class Scene():

@@ -343,3 +343,39 @@ class WeaponDisplay(DynamicSurface):
                 image.blit(reloading_text,(self.rect.width * 0.5 - rts[0] * 0.5, self.rect.height - a_size[1] - rts[1] - 15))
         image = image.convert()
         return image
+
+class ConsoleWindow(DynamicSurface):
+    def __init__(self, rect, **kwargs):
+        self.text_log = []
+        self.text = ">"
+        DynamicSurface.__init__(self, rect, background_color = (48, 48, 48), **kwargs)
+        self.events = []
+
+    def update(self):
+        super().update()
+        for event in self.events:
+            if event.type == KEYDOWN:
+                if event.key == K_BACKSPACE:
+                    if len(self.text) > 1:
+                        self.text = self.text[:-1]
+                else:
+                    self.text += event.unicode
+                if event.key == K_RETURN:
+                    self.text_log.append(self.text)
+                    self.__process_line(self.text)
+                    self.text = ">"
+
+    def _get_image(self):
+        image = super()._get_image()
+        text = self.font18.render(self.text, False, (0,255,0))
+        image.blit(text, (10, self.rect.height - text.get_size()[1]))
+        for i, line in enumerate(reversed(self.text_log)):
+            if self.rect.height - text.get_size()[1] * (i + 2) < 0:
+                break
+            text = self.font18.render(line, False, (0,255,0))
+            image.blit(text, (10, self.rect.height - text.get_size()[1] * (i + 2)))
+        return image.convert()
+
+    def __process_line(self, text):
+        #remove start
+        text = text[1:]

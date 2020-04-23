@@ -73,44 +73,6 @@ class Console:
                     weapon_parts[part_group] = part
         return weapon.Weapon(weapon_parts)
 
-# class Console:
-#     def __init__(self,rect):
-#         background_image = pygame.Surface(rect.size)
-#         background_image.fill((48, 48, 48))
-#         self.image = background_image
-#         self.rect = rect
-#         self.events = []
-#         self.text_log = []
-#         self.text = ">"
-#         self.font20 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 20)
-#
-#     def update(self):
-#         for event in self.events:
-#             if event.type == KEYDOWN:
-#                 if event.key == K_BACKSPACE:
-#                     if len(self.text) > 1:
-#                         self.text = self.text[:-1]
-#                 else:
-#                     self.text += event.unicode
-#                 if event.key == K_RETURN:
-#                     self.text_log.append(self.text)
-#                     self.__process_line(self.text)
-#                     self.text = ">"
-#         self.image = pygame.Surface(self.rect.size)
-#         self.image.fill((48, 48, 48))
-#         text = self.font20.render(self.text, False, (0,255,0))
-#         self.image.blit(text, (10, self.rect.height - text.get_size()[1]))
-#         for i, line in enumerate(reversed(self.text_log)):
-#             if self.rect.height - text.get_size()[1] * (i + 2) < 0:
-#                 break
-#             text = self.font20.render(line, False, (0,255,0))
-#             self.image.blit(text, (10, self.rect.height - text.get_size()[1] * (i + 2)))
-#
-#     def __process_line(self, text):
-#         #remove start
-#         text = text[1:]
-#
-
 
 if __name__ == "__main__":
     c = Console()
