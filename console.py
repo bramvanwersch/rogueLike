@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import os, pygame, random
 
-import constants
+from constants import game_rules, GAME_TIME, DATA_DIR, SCREEN_SIZE
 import main, utilities, stages, weapon, game_images
 from pygame.locals import *
 from pygame.compat import geterror
@@ -11,7 +11,7 @@ class Console:
         random.seed(utilities.seed)
         pygame.init()
 
-        self.screen = main.MainWindow(constants.SCREEN_SIZE.size)
+        self.screen = main.MainWindow(SCREEN_SIZE.size)
         self.stage = stages.ForestStage(self.screen.game_sprites, self.screen.player)
         self.weapon_parts = self.__load_parts()
         start_weapon = self.get_weapon_by_parts({"body": "test_body", "barrel": "less_big_boy_barrel",
@@ -20,6 +20,8 @@ class Console:
         self.screen.player.equip(start_weapon)
         self.screen.player.inventory.add(start_weapon)
 
+        self.main_sprite = self.screen.scene.event_sprite
+
         #last thing to execute no response after this
         self.run()
 
@@ -27,11 +29,12 @@ class Console:
         # Main Loop
         while utilities.going:
             self.screen.scene = self.screen.scenes[utilities.scene_name]
+            self.main_sprite = self.screen.scene.event_sprite
             #if a new line is commited in the command window and it is not processed, process it.
-            if self.screen.scene == "Console" and not self.screen.scene.event_sprite.processed:
-                self.__process_commands(self.screen.scene.event_sprite.process_line)
+            if utilities.scene_name == "Console" and not self.main_sprite.processed:
+                self.__process_commands(self.main_sprite.process_line)
                 self.screen.scene.event_sprite.processed = True
-            constants.GAME_TIME.tick(60)
+            GAME_TIME.tick(60)
             self.screen.scene.handle_events(pygame.event.get())
             self.screen.scene.update()
             self.stage.update()
@@ -43,11 +46,44 @@ class Console:
         text = text[2:]
         commands = text.split(" ")
         #SET
-
-        #CREATE
-        #DELETE
+        if commands[0] == "SET":
+            self.__process_set(commands[1:])
+        elif commands[0] == "CREATE":
+            self.__process_create(commands[1:])
+        elif commands[0] == "DELETE":
+            self.__process_delete(commands[1:])
+        else:
+            self.main_sprite.add_error_message("No valid command choose one of the following: SET, CREATE, DELETE.")
         #MOVE
         #PRINT
+
+    def __process_set(self, commands):
+        if len(commands) < 3:
+            self.main_sprite.add_error_message("Expected al least 3 arguments to SET command [FROM, NAME, VALUE].")
+            return
+        if commands[0].lower() == "game_rule":
+            if hasattr(game_rules, commands[1]):
+                setattr(game_rules, commands[1], commands[2])
+                print(getattr(game_rules, commands[1]))
+                self.main_sprite.add_conformation_message("{} are set to {}".format(commands[1], commands[2]))
+            else:
+                self.main_sprite.add_error_message("game_rule has no attribute {}.".format(commands[1]))
+        elif commands[0].lower() == "player":
+            pass
+        elif commands[0].lower() == "enemys":
+            pass
+        elif commands[0].lower() == "entities":
+            pass
+        elif commands[0].lower() == "stage":
+            pass
+        else:
+            self.main_sprite.add_error_message("Unknown FROM location. Choose one of the following: game_rule, player, enemys, entities, stage")
+
+
+    def __process_create(self, commands):
+        pass
+
+    def __process_delete(self, commands):
         pass
 
     def __load_parts(self):
@@ -55,7 +91,7 @@ class Console:
         Pre loads the immages defined for the weapon parts
         :return: return a dictionary of parts containing a list of dictionaries with an entry for each part.
         """
-        partsfile = os.path.join(constants.DATA_DIR, "info//parts.csv")
+        partsfile = os.path.join(DATA_DIR, "info//parts.csv")
         f = open(partsfile, "r")
         lines = f.readlines()
         f.close()

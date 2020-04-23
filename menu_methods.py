@@ -366,7 +366,7 @@ class ConsoleWindow(DynamicSurface):
                 else:
                     self.text += event.unicode
                 if event.key == K_RETURN:
-                    self.text_log.append(self.text[2:])
+                    self.text_log.append((self.text[2:], (0,255,0)))
                     self.process_line = self.text
                     self.processed = False
                     self.text = ">:"
@@ -378,6 +378,13 @@ class ConsoleWindow(DynamicSurface):
         for i, line in enumerate(reversed(self.text_log)):
             if self.rect.height - text.get_size()[1] * (i + 2) < 0:
                 break
-            text = self.font18.render(line, True, (0,255,0))
+            text = self.font18.render(line[0], True, line[1])
             image.blit(text, (10, self.rect.height - text.get_size()[1] * (i + 2)))
         return image.convert()
+
+    def add_error_message(self, text):
+        message = "ERROR: "
+        self.text_log.append((message + text, (163, 28, 23)))
+
+    def add_conformation_message(self, text):
+        self.text_log.append((text, (25, 118, 168)))

@@ -415,7 +415,7 @@ class Archer(Enemy):
 
     def _use_brain(self):
         #manhaten distance lower then 600 stand still and shoot and also check if there is a direct line of sight
-        if utilities.VISION_LINE:
+        if constants.game_rules.VISION_LINE:
             self.vision_line = self.tiles.line_of_sight(self.bounding_box.center, self.player.bounding_box.center)[1]
         if abs(self.rect.x - self.player.rect.x) + abs(self.rect.y - self.player.rect.y) < self.shot_player_distance and\
             self.tiles.line_of_sight(self.bounding_box.center, self.player.bounding_box.center)[0]:

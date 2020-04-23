@@ -206,14 +206,14 @@ class MainScene(Scene):
         for sprite in sprites:
             if sprite.visible:
                 bb = sprite.bounding_box
-                x, y = get_player_relative_screen_coordinate(bb.topleft)
+                x, y = self.get_player_relative_screen_coordinate(bb.topleft)
                 if hasattr(sprite, "debug_color"):
                     pygame.draw.rect(screen, sprite.debug_color, (int(x), int(y), bb.width, bb.height), 5)
                 else:
                     pygame.draw.rect(screen, (0, 0, 0), (int(x), int(y), bb.width, bb.height), 5)
         for tile in self.event_sprite.tiles.solid_tiles:
             bb = tile
-            x, y = get_player_relative_screen_coordinate(tile.topleft)
+            x, y = self.get_player_relative_screen_coordinate(tile.topleft)
             pygame.draw.rect(screen, (0, 0, 0), (int(x), int(y), tile.width, tile.height), 5)
 
     def draw_path(self):
@@ -229,7 +229,7 @@ class MainScene(Scene):
                 center_points = []
                 enemy_tile = sprite.tiles[int(sprite.rect.centery / 100)][int(sprite.rect.centerx / 100)]
                 for tile in sprite.path + [enemy_tile]:
-                    x, y = get_player_relative_screen_coordinate(tile.center)
+                    x, y = self.get_player_relative_screen_coordinate(tile.center)
                     center_points.append((int(x), int(y)))
                 pygame.draw.lines(screen, sprite.debug_color, False, center_points, 4)
 
@@ -245,7 +245,7 @@ class MainScene(Scene):
             if len(sprite.vision_line) > 1:
                 center_points = []
                 for point in sprite.vision_line:
-                    x, y = get_player_relative_screen_coordinate(point)
+                    x, y = self.get_player_relative_screen_coordinate(point)
                     center_points.append((int(x), int(y)))
                 pygame.draw.lines(screen, sprite.debug_color, False, center_points, 4)
 
@@ -253,7 +253,7 @@ class MainScene(Scene):
         sprites = player.groups()[0].sprites()
         path_sprites = [sprite for sprite in sprites if hasattr(sprite, "vision_line")]
         c = self.event_sprite.rect.center
-        start_point = get_player_relative_screen_coordinate(self.event_sprite.right_arm.rect.center)
+        start_point = self.get_player_relative_screen_coordinate(self.event_sprite.right_arm.rect.center)
         end_point = pygame.mouse.get_pos()
         pygame.draw.lines(screen, (0, 0, 0), False, (start_point, end_point), 4)
 
