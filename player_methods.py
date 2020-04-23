@@ -7,7 +7,7 @@ from constants import *
 from entities import LivingEntity
 
 class Player(LivingEntity):
-    def __init__(self, pos, start_weapon, *groups):
+    def __init__(self, pos, *groups):
         idle_image = sheets["player"].image_at((0,0), color_key = (255,255,255), scale = (60,120))
         LivingEntity.__init__(self, pos,damage=5, image = idle_image)
         walking_images = sheets["player"].images_at((0,0),(224,0),(240,0),(0,32),(16,32),
@@ -26,10 +26,8 @@ class Player(LivingEntity):
         self.events = []
         self.inventory = Inventory()
         self._layer = utilities.PLAYER_LAYER2
-        self.inventory.add(start_weapon)
         arm = sheets["player"].image_at((32,32) ,scale = (15,35))
         self.right_arm = RightArm((self.rect.centerx - 8, self.rect.centery - 8), image = arm)
-        self.equip(start_weapon)
         self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8), image = arm)
         l = [KEYDOWN, KEYUP, KMOD_ALT, KMOD_CAPS, KMOD_CTRL, KMOD_LALT, KMOD_LCTRL, KMOD_LMETA, KMOD_LSHIFT, KMOD_META,
              KMOD_MODE, KMOD_NONE, KMOD_NUM, KMOD_RALT, KMOD_RCTRL, KMOD_RMETA, KMOD_RSHIFT, KMOD_SHIFT, K_0, K_1, K_2,

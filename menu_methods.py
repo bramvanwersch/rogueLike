@@ -319,8 +319,15 @@ class DynamicSurface:
 class WeaponDisplay(DynamicSurface):
     def __init__(self, rect, player):
         self.player = player
-        self.weapon = self.player.right_arm.weapon
+        self.equiped = self.player.inventory.equiped
+        self.weapon = self.equiped
         DynamicSurface.__init__(self, rect)
+
+    def update(self):
+        super().update()
+        if self.player.inventory.equiped != self.equiped:
+            self.equiped = self.player.inventory.equiped
+            self.weapon = self.equiped
 
     def _get_image(self):
         image = super()._get_image()
