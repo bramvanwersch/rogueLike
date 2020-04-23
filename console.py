@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import os, pygame, random
+
+import constants
 import main, utilities, stages, weapon, game_images
 from pygame.locals import *
 from pygame.compat import geterror
@@ -9,7 +11,7 @@ class Console:
         random.seed(utilities.seed)
         pygame.init()
 
-        self.screen = main.MainWindow(utilities.SCREEN_SIZE.size)
+        self.screen = main.MainWindow(constants.SCREEN_SIZE.size)
         self.stage = stages.ForestStage(self.screen.game_sprites, self.screen.player)
         self.weapon_parts = self.__load_parts()
         start_weapon = self.get_weapon_by_parts({"body": "test_body", "barrel": "less_big_boy_barrel",
@@ -17,13 +19,19 @@ class Console:
                                                         "accesory": "big_scope_accesory"})
         self.screen.player.equip(start_weapon)
         self.screen.player.inventory.add(start_weapon)
+
+        #last thing to execute no response after this
         self.run()
 
     def run(self):
         # Main Loop
         while utilities.going:
             self.screen.scene = self.screen.scenes[utilities.scene_name]
-            utilities.GAME_TIME.tick(60)
+            #if a new line is commited in the command window and it is not processed, process it.
+            if self.screen.scene == "Console" and not self.screen.scene.event_sprite.processed:
+                self.__process_commands(self.screen.scene.event_sprite.process_line)
+                self.screen.scene.event_sprite.processed = True
+            constants.GAME_TIME.tick(60)
             self.screen.scene.handle_events(pygame.event.get())
             self.screen.scene.update()
             self.stage.update()
@@ -31,12 +39,23 @@ class Console:
             pygame.display.update()
         pygame.quit()
 
+    def __process_commands(self, text):
+        text = text[2:]
+        commands = text.split(" ")
+        #SET
+
+        #CREATE
+        #DELETE
+        #MOVE
+        #PRINT
+        pass
+
     def __load_parts(self):
         """
         Pre loads the immages defined for the weapon parts
         :return: return a dictionary of parts containing a list of dictionaries with an entry for each part.
         """
-        partsfile = os.path.join(utilities.DATA_DIR, "info//parts.csv")
+        partsfile = os.path.join(constants.DATA_DIR, "info//parts.csv")
         f = open(partsfile, "r")
         lines = f.readlines()
         f.close()

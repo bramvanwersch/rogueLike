@@ -119,7 +119,7 @@ class LivingEntity(Entity):
         #second regen
         self.xp = xp
         self.health_regen = health_regen
-        self._layer = utilities.PLAYER_LAYER1
+        self._layer = constants.PLAYER_LAYER1
         self.text_values = []
         self.immune = [False,0]
         self.flipped_image = pygame.transform.flip(self.image, True, False)
@@ -136,7 +136,7 @@ class LivingEntity(Entity):
         self.do_flip()
         # regen health
         if self.health[0] < self.health[1]:
-            self.change_health((utilities.GAME_TIME.get_time() / 1000) * self.health_regen)
+            self.change_health((constants.GAME_TIME.get_time() / 1000) * self.health_regen)
         #regulate i frames
         if self.immune[0] and self.immune[1] <= 0:
             self.immune[0] = False
@@ -548,18 +548,18 @@ class EnemyProjectile(Projectile):
 
 class TextSprite(Entity):
     def __init__(self,text, pos, *groups, **kwargs):
-        image = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 20).render(str(text), True, pygame.Color(kwargs["color"]))
+        image = pygame.font.Font(constants.DATA_DIR + "//Menu//font//manaspc.ttf", 20).render(str(text), True, pygame.Color(kwargs["color"]))
         #give a bit of random offset
         pos = (random.randint(pos[0] -5, pos[0] + 5), random.randint(pos[1] -5, pos[1] + 5))
         Entity.__init__(self, pos, *groups, image = image)
         #current, maximum in ms
         self.lifespan = [0,1000]
         self.destroy = False
-        self._layer = utilities.TEXT_LAYER
+        self._layer = constants.TEXT_LAYER
 
     def update(self,*args):
         super().update(*args)
-        self.lifespan[0] += utilities.GAME_TIME.get_time()
+        self.lifespan[0] += constants.GAME_TIME.get_time()
         if self.lifespan[0] >= self.lifespan[1]:
             self.kill()
         self.rect.y -= 2

@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # Import Modules
 import pygame
+
+import constants
 import utilities, entities, manufacturers
 from game_images import sheets
 from pygame.locals import *
@@ -11,7 +13,7 @@ class Weapon:
         #default pos will need to be assigned when relevant
         self.parts = parts
         self.image = self.__create_weapon_image()
-        self.font25 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 25)
+        self.font25 = pygame.font.Font(constants.DATA_DIR + "//Menu//font//manaspc.ttf", 25)
         self.damage, self.reload_speed, self.fire_rate, self.weight, self.accuracy, self.magazine_size = self.__calculate_stats()
         self.bullets_per_shot = max(part.bullets_per_shot for part in list(self.parts.values()))
 

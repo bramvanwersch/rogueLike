@@ -1,6 +1,7 @@
 import pygame, random
 from pygame.locals import *
 import utilities, entities, game_map, prop_entities, constants
+from constants import game_rules
 from game_images import sheets
 
 class BasicStage:
@@ -83,9 +84,9 @@ class BasicStage:
                                action=self.action, visible = [True, True], image = self.animation_images[0][0],
                                interactable=False, trigger_cooldown=[30,30],
                                animation=utilities.Animation(*self.animation_images, repetition=1, speed = 7))
-            elif utilities.WARNINGS:
+            elif game_rules.WARNINGS:
                 print("Interacting tile with no interaction specified!!!")
-        if not utilities.PEACEFULL and not self.current_room.finished:
+        if not game_rules.PEACEFULL and not self.current_room.finished:
             for enemie in self.current_room.enemies:
                 self.add_enemy(*enemie)
 
@@ -124,9 +125,9 @@ class ForestStage(BasicStage):
         forest_images = sheets["forest"].images_at_rectangle((0,0,256,16), (0,16,208,16), (32,80,112,16), scale = (100,100))
         lake_images = sheets["forest"].images_at_rectangle((0,48,256,16), (0,64,208,16), (144,80,112,16), scale = (100,100))
         path_images = sheets["forest"].images_at_rectangle((0,96,240,16), scale = (100,100))
-        fd = {name + "_forest": forest_images[i] for i, name in enumerate(utilities.TILE_NAMES)}
-        ld = {name + "_lake": lake_images[i] for i, name in enumerate(utilities.TILE_NAMES)}
-        pd = {name + "_path": path_images[i] for i, name in enumerate(utilities.PATH_NAMES)}
+        fd = {name + "_forest": forest_images[i] for i, name in enumerate(constants.TILE_NAMES)}
+        ld = {name + "_lake": lake_images[i] for i, name in enumerate(constants.TILE_NAMES)}
+        pd = {name + "_path": path_images[i] for i, name in enumerate(constants.PATH_NAMES)}
         tile_images = {**fd, **ld, **pd}
         props = sheets["forest"].images_at_rectangle((16,32,160,16), scale = (100,100))
         imgs = sheets["forest"].images_at_rectangle((0,112,256,32), size = (32,32), scale = (130,130), color_key= (255,255,255))

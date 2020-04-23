@@ -1,13 +1,16 @@
 import pygame, utilities
 from pygame.locals import *
 
+import constants
+
+
 class Widget(pygame.sprite.Sprite):
     def __init__(self, *groups, background_color = (165,103,10), **kwargs):
         pygame.sprite.Sprite.__init__(self, *groups)
         self.background_color = background_color
-        self.font30 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 30)
-        self.font25 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 25)
-        self.font20 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 20)
+        self.font30 = pygame.font.Font(constants.DATA_DIR + "//Menu//font//manaspc.ttf", 30)
+        self.font25 = pygame.font.Font(constants.DATA_DIR + "//Menu//font//manaspc.ttf", 25)
+        self.font20 = pygame.font.Font(constants.DATA_DIR + "//Menu//font//manaspc.ttf", 20)
         self.action_functions = {}
         self.selectable = False
 
@@ -59,7 +62,7 @@ class MenuPane(Widget):
         self.selectable_widgets = []
         self.selected_widget = 0
         self.events = []
-        self._layer = utilities.BOTTOM_LAYER
+        self._layer = constants.BOTTOM_LAYER
         if title:
             self._set_title(title)
 
@@ -303,7 +306,7 @@ class WeaponItemLabel(SelectableLabel):
 #pretty much a chiller sprite
 class DynamicSurface:
     def __init__(self, rect, background_color = (165,103,10), **kwargs):
-        self.font18 = pygame.font.Font(utilities.DATA_DIR +"//Menu//font//manaspc.ttf", 18)
+        self.font18 = pygame.font.Font(constants.DATA_DIR + "//Menu//font//manaspc.ttf", 18)
         self.rect = rect
         self.background_color = background_color
         self.image = self._get_image()
@@ -347,9 +350,11 @@ class WeaponDisplay(DynamicSurface):
 class ConsoleWindow(DynamicSurface):
     def __init__(self, rect, **kwargs):
         self.text_log = []
-        self.text = ">"
+        self.text = ">:"
         DynamicSurface.__init__(self, rect, background_color = (48, 48, 48), **kwargs)
         self.events = []
+        self.processed = True
+        self.process_line = self.text
 
     def update(self):
         super().update()
@@ -361,21 +366,18 @@ class ConsoleWindow(DynamicSurface):
                 else:
                     self.text += event.unicode
                 if event.key == K_RETURN:
-                    self.text_log.append(self.text)
-                    self.__process_line(self.text)
-                    self.text = ">"
+                    self.text_log.append(self.text[2:])
+                    self.process_line = self.text
+                    self.processed = False
+                    self.text = ">:"
 
     def _get_image(self):
         image = super()._get_image()
-        text = self.font18.render(self.text, False, (0,255,0))
+        text = self.font18.render(self.text, True, (0,255,0))
         image.blit(text, (10, self.rect.height - text.get_size()[1]))
         for i, line in enumerate(reversed(self.text_log)):
             if self.rect.height - text.get_size()[1] * (i + 2) < 0:
                 break
-            text = self.font18.render(line, False, (0,255,0))
+            text = self.font18.render(line, True, (0,255,0))
             image.blit(text, (10, self.rect.height - text.get_size()[1] * (i + 2)))
         return image.convert()
-
-    def __process_line(self, text):
-        #remove start
-        text = text[1:]

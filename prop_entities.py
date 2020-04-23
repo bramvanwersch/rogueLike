@@ -1,4 +1,6 @@
 import pygame, random
+
+import constants
 from game_images import sheets
 import entities, utilities
 
@@ -12,7 +14,7 @@ class Chest(entities.InteractingEntity):
                 self.open = True
         entities.InteractingEntity.__init__(self, pos, player, *groups, image = image, action = action)
         self.open_image = sheets["forest"].image_at((16,80), scale = (80,80), color_key = (255,255,255))
-        self._layer = utilities.MIDDLE_LAYER
+        self._layer = constants.MIDDLE_LAYER
         #list of loot in a chest
         self.loot = loot
         self.cooldown = 0
@@ -47,7 +49,7 @@ class LootableWeapon(entities.InteractingEntity):
         self.orig_rect = self.rect
         self.xchange = random.randint(-16,16) / 10
         self.ychange = random.randint(-16, 16)
-        self._layer = utilities.PLAYER_LAYER1
+        self._layer = constants.PLAYER_LAYER1
         #current waiting time the time to wait.
         self.cooldown_timer = [0, 30]
         self.lootable = False

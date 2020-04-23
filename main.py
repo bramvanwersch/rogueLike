@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 import os, pygame, random
-import weapon, utilities, entities, stages, camera, player_methods, menu_methods, game_images, console
+
+from constants import game_rules, DEFAULT_LEVEL_SIZE, DATA_DIR, SCREEN_SIZE, GAME_TIME
+import weapon, utilities, entities, camera, player_methods, menu_methods, game_images
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -19,7 +21,7 @@ class MainWindow:
 
         #player setup
         self.player = player_methods.Player((150, 500))
-        self.game_sprites = camera.CameraAwareLayeredUpdates(self.player, utilities.DEFAULT_LEVEL_SIZE)
+        self.game_sprites = camera.CameraAwareLayeredUpdates(self.player, DEFAULT_LEVEL_SIZE)
 
         self.scenes = self.setup_scenes()
         self.scene = self.scenes["Main"]
@@ -122,7 +124,7 @@ class MainScene(Scene):
         Scene.__init__(self, sprites, event_sprite, rect)
         self.nr_loaded_sprites = 0
         self.inventory_frame = self.get_inventory_frame()
-        self.font20 = pygame.font.Font(utilities.DATA_DIR + "//Menu//font//manaspc.ttf", 20)
+        self.font20 = pygame.font.Font(DATA_DIR + "//Menu//font//manaspc.ttf", 20)
         self.dynamic_images = [menu_methods.WeaponDisplay(pygame.Rect(self.rect.width - 140, self.rect.height - 145,135,135), event_sprite)]
 
     def handle_events(self, events):
@@ -145,21 +147,21 @@ class MainScene(Scene):
     def draw(self):
         screen.fill([0, 0, 0])
         super().draw()
-        if utilities.FPS:
-            fps = self.font20.render(str(int(utilities.GAME_TIME.get_fps())), True, pygame.Color('black'))
+        if game_rules.FPS:
+            fps = self.font20.render(str(int(GAME_TIME.get_fps())), True, pygame.Color('black'))
             screen.blit(fps, (10, 10))
-        if utilities.NR_ENTITIES:
+        if game_rules.NR_ENTITIES:
             ve = self.font20.render(str(self.nr_loaded_sprites), True, pygame.Color('black'))
             screen.blit(ve, (10, 25))
         if not self.event_sprite.dead:
             self.draw_player_interface()
-            if utilities.BOUNDING_BOXES:
+            if game_rules.BOUNDING_BOXES:
                 self.draw_bounding_boxes()
-            if utilities.ENTITY_PATHS:
+            if game_rules.ENTITY_PATHS:
                 self.draw_path()
-            if utilities.VISION_LINE:
+            if game_rules.VISION_LINE:
                 self.draw_vision_line()
-            if utilities.AIM_LINE:
+            if game_rules.AIM_LINE:
                 self.draw_shoot_line()
 
     def load_unload_sprites(self):
@@ -169,19 +171,19 @@ class MainScene(Scene):
         """
         sprites = self.event_sprite.groups()[0].sprites()
         c = self.event_sprite.rect.center
-        if c[0] + self.rect.width / 2 - utilities.DEFAULT_LEVEL_SIZE.width > 0:
-            x = 1 + (c[0] + self.rect.width / 2 - utilities.DEFAULT_LEVEL_SIZE.width) / (self.rect.width / 2)
+        if c[0] + self.rect.width / 2 - DEFAULT_LEVEL_SIZE.width > 0:
+            x = 1 + (c[0] + self.rect.width / 2 - DEFAULT_LEVEL_SIZE.width) / (self.rect.width / 2)
         elif self.rect.width / 2 - c[0] > 0:
             x = 1 + (self.rect.width / 2 - c[0]) / (self.rect.width / 2)
         else:
             x = 1
-        if c[1] + self.rect.height / 2 - utilities.DEFAULT_LEVEL_SIZE.height > 0:
-            y = 1 + (c[1] + self.rect.height / 2 - utilities.DEFAULT_LEVEL_SIZE.width) / (self.rect.height / 2)
+        if c[1] + self.rect.height / 2 - DEFAULT_LEVEL_SIZE.height > 0:
+            y = 1 + (c[1] + self.rect.height / 2 - DEFAULT_LEVEL_SIZE.width) / (self.rect.height / 2)
         elif self.rect.height / 2 - c[1] > 0:
             y = 1 + (self.rect.height / 2 - c[1]) / (self.rect.height / 2)
         else:
             y = 1
-        range_rect = pygame.Rect(0, 0, int(utilities.SCREEN_SIZE.width * x), int(utilities.SCREEN_SIZE.height * y))
+        range_rect = pygame.Rect(0, 0, int(SCREEN_SIZE.width * x), int(SCREEN_SIZE.height * y))
         range_rect.center = self.event_sprite.rect.center
         visible_ents = 0
         for i, sprite in enumerate(sprites):
@@ -264,14 +266,14 @@ class MainScene(Scene):
         :return: a coordinate relative to the player on the current screen.
         """
         c = self.event_sprite.rect.center
-        if utilities.DEFAULT_LEVEL_SIZE.width - c[0] - self.rect.width / 2 < 0:
-            x = self.rect.width - (utilities.DEFAULT_LEVEL_SIZE.width - coord[0])
+        if DEFAULT_LEVEL_SIZE.width - c[0] - self.rect.width / 2 < 0:
+            x = self.rect.width - (DEFAULT_LEVEL_SIZE.width - coord[0])
         elif c[0] - self.rect.width / 2 > 0:
             x = coord[0] - (c[0] - self.rect.width / 2)
         else:
             x = coord[0]
-        if utilities.DEFAULT_LEVEL_SIZE.height - c[1] - self.rect.height / 2 + 150 < 0:
-            y = self.rect.height - (utilities.DEFAULT_LEVEL_SIZE.height - coord[1]) - 150
+        if DEFAULT_LEVEL_SIZE.height - c[1] - self.rect.height / 2 + 150 < 0:
+            y = self.rect.height - (DEFAULT_LEVEL_SIZE.height - coord[1]) - 150
         elif c[1] - self.rect.height / 2 > 0:
             y = coord[1] - (c[1] - self.rect.height / 2)
         else:

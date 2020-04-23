@@ -1,9 +1,23 @@
 import pygame, os
 from pygame.constants import *
 
-#global constants
-MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
-DATA_DIR = os.path.join(MAIN_DIR, "data//sprite_sheets")
+
+class GameRules:
+    """
+    Simple class for defining game_rule variables that can be changed from the console
+    """
+    def __init__(self):
+        self.WARNINGS = True
+        self.BOUNDING_BOXES = False
+        self.NR_ENTITIES = True
+        self.FPS = True
+        self.ENTITY_PATHS = False
+        self.VISION_LINE = False
+        self.PEACEFULL = False
+        self.AIM_LINE = False
+game_rules = GameRules()
+
+
 DISTINCT_COLORS = [(0,0,0), (255,255,255), (255,0,0), (0,255,0), (0,0,255), (255,255,0), (0,255,255), (255,0,255),
                    (192,192,192), (128,128,128), (128,0,0), (128,128,0), (0,128,0), (128,0,128), (0,128,128), (0,0,128),
                    (128,0,0), (139,0,0), (165,42,42), (178,34,34), (220,20,60), (255,0,0), (255,99,71), (255,127,80),
@@ -36,3 +50,34 @@ A_RIGHT = K_RIGHT
 INTERACT = K_e
 RELOAD = K_r
 
+height = 1000
+SCREEN_SIZE = pygame.Rect(0,0,int(height /9 * 17), height)
+TEXT_LAYER = 4 # one above the top layer
+PLAYER_LAYER2 = 3
+PLAYER_LAYER1 = 2
+MIDDLE_LAYER = 1
+BOTTOM_LAYER = -1
+DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2000,2000)
+MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
+DATA_DIR = os.path.join(MAIN_DIR, "data")
+TILE_NAMES = ["bottom_left_corner","bottom_left_icorner",
+               "bottom_right_corner","bottom_right_icorner",
+               "top_right_corner", "top_right_icorner",
+               "top_left_corner","top_left_icorner",
+               "right_straight1","right_straight2",
+               "left_straight1","left_straight2",
+               "top_straight1","top_straight2",
+               "bottom_straight1","bottom_straight2",
+               "middle1","middle2","middle3",
+               "diagonal_top_bottom","diagonal_bottom_top",
+               "bottom_top_left_corner","bottom_top_right_corner",
+               "right_top_left_corner","right_bottom_left_corner",
+               "left_top_right_corner","left_bottom_right_corner",
+               "top_bottom_left_corner","top_bottom_right_corner",
+               "single", "only_top", "only_right", "only_bottom", "only_left",
+               "left_right_open","bottom_top_open"]
+PATH_NAMES = ["only_left","only_bottom","only_top","only_right",
+              "bottom_left_corner","bottom_right_corner","top_right_corner","top_left_corner",
+              "bottom_top_open", "left_right_open","middle",
+              "left_straight","right_straight","top_straight", "bottom_straight"]
+GAME_TIME = pygame.time.Clock()

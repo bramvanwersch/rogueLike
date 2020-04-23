@@ -1,53 +1,7 @@
 import os,pygame, random
 from pygame.locals import *
 from pygame.compat import geterror
-import game_map
-
-#test constant
-WARNINGS = True
-BOUNDING_BOXES = False
-NR_ENTITIES = True
-FPS = True
-ENTITY_PATHS = False
-VISION_LINE = False
-PEACEFULL = False
-AIM_LINE = False
-
-#some global constants
-MAIN_DIR = os.path.split(os.path.abspath(__file__))[0]
-DATA_DIR = os.path.join(MAIN_DIR, "data")
-
-TILE_NAMES = ["bottom_left_corner","bottom_left_icorner",
-               "bottom_right_corner","bottom_right_icorner",
-               "top_right_corner", "top_right_icorner",
-               "top_left_corner","top_left_icorner",
-               "right_straight1","right_straight2",
-               "left_straight1","left_straight2",
-               "top_straight1","top_straight2",
-               "bottom_straight1","bottom_straight2",
-               "middle1","middle2","middle3",
-               "diagonal_top_bottom","diagonal_bottom_top",
-               "bottom_top_left_corner","bottom_top_right_corner",
-               "right_top_left_corner","right_bottom_left_corner",
-               "left_top_right_corner","left_bottom_right_corner",
-               "top_bottom_left_corner","top_bottom_right_corner",
-               "single", "only_top", "only_right", "only_bottom", "only_left",
-               "left_right_open","bottom_top_open"]
-PATH_NAMES = ["only_left","only_bottom","only_top","only_right",
-              "bottom_left_corner","bottom_right_corner","top_right_corner","top_left_corner",
-              "bottom_top_open", "left_right_open","middle",
-              "left_straight","right_straight","top_straight", "bottom_straight"]
-height = 1000
-GAME_TIME = pygame.time.Clock()
-
-#drawing methods
-SCREEN_SIZE = pygame.Rect(0,0,int(height /9 * 17), height)
-TEXT_LAYER = 4 # one above the top layer
-PLAYER_LAYER2 = 3
-PLAYER_LAYER1 = 2
-MIDDLE_LAYER = 1
-BOTTOM_LAYER = -1
-DEFAULT_LEVEL_SIZE = pygame.Rect(0,0, 2000,2000)
+from constants import SCREEN_SIZE, DEFAULT_LEVEL_SIZE, DATA_DIR
 
 #game settings
 seed = random.randint(0,1000)
@@ -67,13 +21,13 @@ def fancy_matrix_print(matrix):
 
 def get_screen_relative_coordinate(coord):
     if (DEFAULT_LEVEL_SIZE.width - SCREEN_SIZE[2] / 2) - coord[0] < 0:
-        screen_player_x = SCREEN_SIZE[2] / 2 - 1 * ( DEFAULT_LEVEL_SIZE.width - SCREEN_SIZE[2] / 2 - coord[0])
+        screen_player_x = SCREEN_SIZE[2] / 2 - 1 * (DEFAULT_LEVEL_SIZE.width - SCREEN_SIZE[2] / 2 - coord[0])
     elif coord[0] - SCREEN_SIZE[2] / 2 > 0:
         screen_player_x = SCREEN_SIZE[2] / 2
     else:
         screen_player_x = coord[0]
     if (DEFAULT_LEVEL_SIZE.height - SCREEN_SIZE[3] / 2) - coord[1] + 150 < 0:
-        screen_player_y = SCREEN_SIZE[3] / 2 - 1 * ( DEFAULT_LEVEL_SIZE.height - SCREEN_SIZE[3] / 2 - coord[1]) - 150
+        screen_player_y = SCREEN_SIZE[3] / 2 - 1 * (DEFAULT_LEVEL_SIZE.height - SCREEN_SIZE[3] / 2 - coord[1]) - 150
     elif coord[1] - SCREEN_SIZE[3] / 2 > 0:
         screen_player_y = SCREEN_SIZE[3] / 2
     else:

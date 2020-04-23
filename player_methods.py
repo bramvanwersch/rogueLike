@@ -25,7 +25,7 @@ class Player(LivingEntity):
         self.dead_animation = utilities.MarkedAnimation(*dead_images, marked_frames=[3,4,5,6,7,8,9,10])
         self.events = []
         self.inventory = Inventory()
-        self._layer = utilities.PLAYER_LAYER2
+        self._layer = constants.PLAYER_LAYER2
         arm = sheets["player"].image_at((32,32) ,scale = (15,35))
         self.right_arm = RightArm((self.rect.centerx - 8, self.rect.centery - 8), image = arm)
         self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8), image = arm)
@@ -196,7 +196,7 @@ class GenericArm(entities.Entity):
         self.arm = kwargs["image"]
         entities.Entity.__init__(self, pos, **kwargs)
         self.image.set_colorkey((255, 255, 255), RLEACCEL)
-        self._layer = utilities.PLAYER_LAYER2
+        self._layer = constants.PLAYER_LAYER2
 
     def flip(self):
         """
@@ -205,9 +205,9 @@ class GenericArm(entities.Entity):
         """
         self.flipped = not self.flipped
         if self.flipped:
-            super().groups()[0].change_layer(self,utilities.PLAYER_LAYER1)
+            super().groups()[0].change_layer(self, constants.PLAYER_LAYER1)
         else:
-            super().groups()[0].change_layer(self,utilities.PLAYER_LAYER2)
+            super().groups()[0].change_layer(self, constants.PLAYER_LAYER2)
 
     def update_arm(self, *args):
         self.move_arm(*args)
@@ -215,7 +215,7 @@ class GenericArm(entities.Entity):
 class LeftArm(GenericArm):
     def __init__(self, pos, **kwargs):
         GenericArm.__init__(self, pos, **kwargs)
-        self._layer = utilities.PLAYER_LAYER2
+        self._layer = constants.PLAYER_LAYER2
         self.visible = [False, False]
 
     def flip(self):
@@ -225,10 +225,10 @@ class LeftArm(GenericArm):
         self.flipped = not self.flipped
         if self.flipped:
             self.visible = [True, True]
-            super().groups()[0].change_layer(self,utilities.PLAYER_LAYER2)
+            super().groups()[0].change_layer(self, constants.PLAYER_LAYER2)
         else:
             self.visible = [False, False]
-            super().groups()[0].change_layer(self,utilities.BOTTOM_LAYER)
+            super().groups()[0].change_layer(self, constants.BOTTOM_LAYER)
 
     def move_arm(self, *pos):
         self.rect.center = pos
@@ -250,12 +250,12 @@ class RightArm(GenericArm):
     def update_arm(self, *args):
         super().update_arm(*args)
         if self.attack_cooldown > 0:
-            self.attack_cooldown -= utilities.GAME_TIME.get_time() / 1000
+            self.attack_cooldown -= constants.GAME_TIME.get_time() / 1000
         if self.weapon:
             if self.weapon.reloading and self.reload_cooldown <= 0:
                 self.weapon.reload(start = False)
             elif self.weapon.reloading:
-                self.reload_cooldown -= utilities.GAME_TIME.get_time() / 1000
+                self.reload_cooldown -= constants.GAME_TIME.get_time() / 1000
             else:
                 self.reload_cooldown = self.weapon.reload_speed
 

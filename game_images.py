@@ -12,10 +12,10 @@ def load():
     :return:
     """
     global sheets
-    sheets["player"] = Spritesheet("player_sprite_sheet.bmp",(16,32))
-    sheets["forest"] = Spritesheet("forest_stage_sprite_sheet.bmp", (16,16))
-    sheets["enemies"] = Spritesheet("enemy_sprite_sheet.bmp", (16,16))
-    sheets["weapons"] = Spritesheet("weapons_sprite_sheet.bmp", (16,16))
+    sheets["player"] = Spritesheet("sprite_sheets\\player_sprite_sheet.bmp",(16,32))
+    sheets["forest"] = Spritesheet("sprite_sheets\\forest_stage_sprite_sheet.bmp", (16,16))
+    sheets["enemies"] = Spritesheet("sprite_sheets\\enemy_sprite_sheet.bmp", (16,16))
+    sheets["weapons"] = Spritesheet("sprite_sheets\\weapons_sprite_sheet.bmp", (16,16))
 
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)

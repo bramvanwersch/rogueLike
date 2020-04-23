@@ -76,17 +76,17 @@ def build_map(size, **kwargs):
     for y, row in enumerate(game_map):
         for x, value in enumerate(row):
             if value == 1:
-                room = Room(pygame.Rect(x,y, int(utilities.DEFAULT_LEVEL_SIZE.width / 100),
-                            int(utilities.DEFAULT_LEVEL_SIZE.height / 100)), value,
+                room = Room(pygame.Rect(x, y, int(constants.DEFAULT_LEVEL_SIZE.width / 100),
+                                        int(constants.DEFAULT_LEVEL_SIZE.height / 100)), value,
                             get_connecting_rooms(game_map, (x,y)), **kwargs)
             elif value == 2:
-                room = StartingRoom(pygame.Rect(x,y, int(utilities.DEFAULT_LEVEL_SIZE.width / 200 ),
-                            int(utilities.DEFAULT_LEVEL_SIZE.height / 200)), value,
-                            get_connecting_rooms(game_map, (x,y)),**kwargs)
+                room = StartingRoom(pygame.Rect(x, y, int(constants.DEFAULT_LEVEL_SIZE.width / 200),
+                                                int(constants.DEFAULT_LEVEL_SIZE.height / 200)), value,
+                                    get_connecting_rooms(game_map, (x,y)), **kwargs)
             elif value == -1:
-                room = BossRoom(pygame.Rect(x,y, int(utilities.DEFAULT_LEVEL_SIZE.width / 100),
-                            int(utilities.DEFAULT_LEVEL_SIZE.height / 100)), value,
-                            get_connecting_rooms(game_map, (x,y)), **kwargs)
+                room = BossRoom(pygame.Rect(x, y, int(constants.DEFAULT_LEVEL_SIZE.width / 100),
+                                            int(constants.DEFAULT_LEVEL_SIZE.height / 100)), value,
+                                get_connecting_rooms(game_map, (x,y)), **kwargs)
             else:
                 continue
             game_map[y][x] = room
