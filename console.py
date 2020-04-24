@@ -45,12 +45,14 @@ class Console:
     def __process_commands(self, text):
         text = text[2:]
         commands = text.split(" ")
+        commands = list(command.lower() for command in commands)
+        print(commands)
         #SET
-        if commands[0] == "SET":
+        if commands[0] == "set":
             self.__process_set(commands[1:])
-        elif commands[0] == "CREATE":
+        elif commands[0] == "create":
             self.__process_create(commands[1:])
-        elif commands[0] == "DELETE":
+        elif commands[0] == "delete":
             self.__process_delete(commands[1:])
         else:
             self.main_sprite.add_error_message("No valid command choose one of the following: SET, CREATE, DELETE.")
@@ -61,24 +63,36 @@ class Console:
         if len(commands) < 3:
             self.main_sprite.add_error_message("Expected al least 3 arguments to SET command [FROM, NAME, VALUE].")
             return
-        if commands[0].lower() == "game_rule":
-            if hasattr(game_rules, commands[1]):
-                setattr(game_rules, commands[1], commands[2])
-                print(getattr(game_rules, commands[1]))
-                self.main_sprite.add_conformation_message("{} are set to {}".format(commands[1], commands[2]))
-            else:
-                self.main_sprite.add_error_message("game_rule has no attribute {}.".format(commands[1]))
-        elif commands[0].lower() == "player":
+        if commands[0] == "game_rule":
+            try:
+                self.__execute(game_rules, [commands[1], self.__string_to_bool(commands[2])])
+            except ValueError:
+                self.main_sprite.add_error_message("{} is not a valid value for {}".format(commands[2], commands[1]))
+        elif commands[0] == "player":
             pass
-        elif commands[0].lower() == "enemys":
+        elif commands[0] == "enemys":
             pass
-        elif commands[0].lower() == "entities":
+        elif commands[0] == "entities":
             pass
-        elif commands[0].lower() == "stage":
+        elif commands[0] == "stage":
             pass
         else:
             self.main_sprite.add_error_message("Unknown FROM location. Choose one of the following: game_rule, player, enemys, entities, stage")
 
+    def __execute(self, target, commands):
+        if hasattr(target, str(commands[0])):
+            setattr(target, commands[0], commands[1])
+            self.main_sprite.add_conformation_message("{} are set to {}".format(commands[0], commands[1]))
+        else:
+            self.main_sprite.add_error_message("target has no attribute {}.".format(commands[0]))
+
+    def __string_to_bool(self, value):
+        if value == "true" or value == "t":
+            return True
+        elif value == "false" or value == "f":
+            return False
+        else:
+            raise(ValueError)
 
     def __process_create(self, commands):
         pass

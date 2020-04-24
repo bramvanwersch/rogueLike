@@ -7,14 +7,15 @@ class GameRules:
     Simple class for defining game_rule variables that can be changed from the console
     """
     def __init__(self):
-        self.WARNINGS = True
-        self.BOUNDING_BOXES = False
-        self.NR_ENTITIES = True
-        self.FPS = True
-        self.ENTITY_PATHS = False
-        self.VISION_LINE = False
-        self.PEACEFULL = False
-        self.AIM_LINE = False
+        self.warnings = True
+        self.bounding_boxes = False
+        self.nr_entities = True
+        self.fps = True
+        self.entity_paths = False
+        self.vision_line = False
+        self.peacefull = False
+        self.aim_line = False
+
 game_rules = GameRules()
 
 

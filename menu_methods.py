@@ -351,7 +351,7 @@ class ConsoleWindow(DynamicSurface):
     def __init__(self, rect, **kwargs):
         self.text_log = []
         self.text = ">:"
-        DynamicSurface.__init__(self, rect, background_color = (48, 48, 48), **kwargs)
+        DynamicSurface.__init__(self, rect, background_color = (75, 75, 75), **kwargs)
         self.events = []
         self.processed = True
         self.process_line = self.text
@@ -361,15 +361,15 @@ class ConsoleWindow(DynamicSurface):
         for event in self.events:
             if event.type == KEYDOWN:
                 if event.key == K_BACKSPACE:
-                    if len(self.text) > 1:
+                    if len(self.text) > 2:
                         self.text = self.text[:-1]
-                else:
-                    self.text += event.unicode
-                if event.key == K_RETURN:
+                elif event.key == K_RETURN:
                     self.text_log.append((self.text[2:], (0,255,0)))
                     self.process_line = self.text
                     self.processed = False
                     self.text = ">:"
+                else:
+                    self.text += event.unicode
 
     def _get_image(self):
         image = super()._get_image()

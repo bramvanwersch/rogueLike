@@ -84,9 +84,9 @@ class BasicStage:
                                action=self.action, visible = [True, True], image = self.animation_images[0][0],
                                interactable=False, trigger_cooldown=[30,30],
                                animation=utilities.Animation(*self.animation_images, repetition=1, speed = 7))
-            elif game_rules.WARNINGS:
+            elif game_rules.warnings:
                 print("Interacting tile with no interaction specified!!!")
-        if not game_rules.PEACEFULL and not self.current_room.finished:
+        if not game_rules.peacefull and not self.current_room.finished:
             for enemie in self.current_room.enemies:
                 self.add_enemy(*enemie)
 

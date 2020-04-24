@@ -48,7 +48,7 @@ class MainWindow:
         pause_menu.add_widget(("c", 150), buttonRestart)
 
         def restart_action():
-            # if utilities.WARNINGS:
+            # if utilities.warnings:
             #     print("restart is disabled because of a memory bug at the moment")
             utilities.scene_name = "Main"
             setup_board()
@@ -147,21 +147,21 @@ class MainScene(Scene):
     def draw(self):
         screen.fill([0, 0, 0])
         super().draw()
-        if game_rules.FPS:
+        if game_rules.fps:
             fps = self.font20.render(str(int(GAME_TIME.get_fps())), True, pygame.Color('black'))
             screen.blit(fps, (10, 10))
-        if game_rules.NR_ENTITIES:
+        if game_rules.nr_entities:
             ve = self.font20.render(str(self.nr_loaded_sprites), True, pygame.Color('black'))
             screen.blit(ve, (10, 25))
         if not self.event_sprite.dead:
             self.draw_player_interface()
-            if game_rules.BOUNDING_BOXES:
+            if game_rules.bounding_boxes:
                 self.draw_bounding_boxes()
-            if game_rules.ENTITY_PATHS:
+            if game_rules.entity_paths:
                 self.draw_path()
-            if game_rules.VISION_LINE:
+            if game_rules.vision_line:
                 self.draw_vision_line()
-            if game_rules.AIM_LINE:
+            if game_rules.aim_line:
                 self.draw_shoot_line()
 
     def load_unload_sprites(self):

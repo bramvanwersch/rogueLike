@@ -90,7 +90,7 @@ def build_map(size, **kwargs):
             else:
                 continue
             game_map[y][x] = room
-    # if utilities.WARNINGS:
+    # if utilities.warnings:
     #     print("Room with value -1 is not handled yet.")
     return game_map
 
