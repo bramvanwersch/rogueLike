@@ -69,7 +69,7 @@ class MenuPane(Widget):
     def _set_title(self, title, font = 30):
         """
         Sets a title at the top of the menupane
-        :param title: the text to be displayed as title
+        :param title: the current_line to be displayed as title
         """
         if font == 30:
             title = self.font30.render(title, True, (0,0,0))
@@ -204,7 +204,7 @@ class WeaponListDisplay(MenuPane):
 
     def __make_list_display(self):
         """
-        Adds a weapon image for each weapon in the inventory including a text that displays some stats about the image
+        Adds a weapon image for each weapon in the inventory including a current_line that displays some stats about the image
         """
         self.widgets = []
         self.selectable_widgets = []
@@ -309,7 +309,7 @@ class DynamicSurface:
         self.font18 = pygame.font.Font(constants.DATA_DIR + "//Menu//font//manaspc.ttf", 18)
         self.rect = rect
         self.background_color = background_color
-        self.image = self._get_image()
+        self.image = None
 
     def update(self):
         self.image = self._get_image()
@@ -349,42 +349,130 @@ class WeaponDisplay(DynamicSurface):
 
 class ConsoleWindow(DynamicSurface):
     def __init__(self, rect, **kwargs):
-        self.text_log = []
-        self.text = ">:"
         DynamicSurface.__init__(self, rect, background_color = (75, 75, 75), **kwargs)
+        self.text_log = TextLog()
+        self.current_line = Line()
+        self.blinker_speed = 500
+        self.blinker_visible = [True, self.blinker_speed]
         self.events = []
         self.processed = True
-        self.process_line = self.text
+        self.process_line = self.current_line
 
     def update(self):
         super().update()
+        self.blinker_visible[1] -= constants.GAME_TIME.get_time()
+        if self.blinker_visible[1] <= 0:
+            self.blinker_visible = [not self.blinker_visible[0], self.blinker_speed]
         for event in self.events:
             if event.type == KEYDOWN:
                 if event.key == K_BACKSPACE:
-                    if len(self.text) > 2:
-                        self.text = self.text[:-1]
+                    if len(self.current_line) > 0:
+                        self.current_line.delete()
                 elif event.key == K_RETURN:
-                    self.text_log.append((self.text[2:], (0,255,0)))
-                    self.process_line = self.text
+                    self.text_log.append(self.current_line)
+                    self.process_line = self.current_line
                     self.processed = False
-                    self.text = ">:"
+                    self.current_line = Line()
+                    self.text_log.location = 0
+                elif event.key == K_UP:
+                    self.current_line = self.text_log.line_up()
+                elif event.key == K_DOWN:
+                    self.current_line = self.text_log.line_down()
+                elif event.key == K_LEFT:
+                    self.current_line - 1
+                elif event.key == K_RIGHT:
+                    self.current_line + 1
                 else:
-                    self.text += event.unicode
+                    self.current_line.append(event.unicode)
 
     def _get_image(self):
         image = super()._get_image()
-        text = self.font18.render(self.text, True, (0,255,0))
+        if self.blinker_visible[0]:
+            t = ">:{}_{}".format(str(self.current_line)[:self.current_line.line_location],str(self.current_line)[self.current_line.line_location + 1:])
+            text = self.font18.render(t, True, self.current_line.color)
+        else:
+            text = self.font18.render(">:{}".format(str(self.current_line)), True, self.current_line.color)
         image.blit(text, (10, self.rect.height - text.get_size()[1]))
-        for i, line in enumerate(reversed(self.text_log)):
+        for i, line in enumerate(iter(self.text_log)):
             if self.rect.height - text.get_size()[1] * (i + 2) < 0:
                 break
-            text = self.font18.render(line[0], True, line[1])
+            text = self.font18.render(str(line), True, line.color)
             image.blit(text, (10, self.rect.height - text.get_size()[1] * (i + 2)))
         return image.convert()
 
     def add_error_message(self, text):
         message = "ERROR: "
-        self.text_log.append((message + text, (163, 28, 23)))
+        self.text_log.append_um(Line(text = message + text, color = (163, 28, 23)))
 
     def add_conformation_message(self, text):
-        self.text_log.append((text, (25, 118, 168)))
+        self.text_log.append_um(Line(text = text, color = (25, 118, 168)))
+
+class TextLog:
+    def __init__(self):
+        self.user_log = {}
+        self.warning_log = {}
+        self.location = 0
+
+    def __getitem__(self, key):
+        return self.user_log[len(self.user_log) - key]
+
+    def __len__(self):
+        return len(self.user_log)
+
+    def __iter__(self):
+        combined_keys = list(self.user_log.keys()) + list(self.warning_log.keys())
+        combined_keys.sort()
+        combined = {**self.user_log, **self.warning_log}
+        sorted_lines = reversed(list(combined[key] for key in combined_keys))
+        return iter(sorted_lines)
+
+    def append(self, value):
+        self.user_log[len(self.user_log) + len(self.warning_log)] = value
+
+    def append_um(self, value):
+        #append user messages like warnings and conformations
+        self.warning_log[len(self.user_log) + len(self.warning_log)] = value
+
+    def line_up(self):
+        if self.location < len(self.user_log):
+            self.location += 1
+        return list(self.user_log.values())[-self.location].copy()
+
+    def line_down(self):
+        if self.location > 0:
+            self.location -= 1
+        if self.location == 0:
+            return Line()
+        return list(self.user_log.values())[-self.location].copy()
+
+class Line:
+    def __init__(self, text = "", color = (0,255,0)):
+        self.color = color
+        self.text = text
+        self.line_location = len(self.text)
+
+    def __str__(self):
+        return self.text
+
+    def __len__(self):
+        return len(self.text)
+
+    def __add__(self, other):
+        if self.line_location + other <= len(self.text):
+            self.line_location += other
+
+    def __sub__(self, other):
+        if self.line_location - other >= 0:
+            self.line_location -= other
+
+    def append(self, value):
+        self.text = self.text[:self.line_location] + value + self.text[self.line_location:]
+        self.line_location += 1
+
+    def delete(self):
+        self.line_location -= 1
+        self.text = self.text[:self.line_location] + self.text[self.line_location + 1:]
+
+    def copy(self):
+        return Line(text=self.text, color=self.color)
+        

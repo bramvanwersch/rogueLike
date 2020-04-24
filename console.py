@@ -32,7 +32,7 @@ class Console:
             self.main_sprite = self.screen.scene.event_sprite
             #if a new line is commited in the command window and it is not processed, process it.
             if utilities.scene_name == "Console" and not self.main_sprite.processed:
-                self.__process_commands(self.main_sprite.process_line)
+                self.__process_commands(str(self.main_sprite.process_line))
                 self.screen.scene.event_sprite.processed = True
             GAME_TIME.tick(60)
             self.screen.scene.handle_events(pygame.event.get())
@@ -43,10 +43,8 @@ class Console:
         pygame.quit()
 
     def __process_commands(self, text):
-        text = text[2:]
         commands = text.split(" ")
         commands = list(command.lower() for command in commands)
-        print(commands)
         #SET
         if commands[0] == "set":
             self.__process_set(commands[1:])

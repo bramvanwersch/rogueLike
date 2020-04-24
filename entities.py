@@ -236,9 +236,9 @@ class LivingEntity(Entity):
 
     def create_text(self, text, **kwargs):
         """
-        Create text above the enitiy often signifying damage or similar effects
-        :param text: the text to be displayed
-        :param **kwargs: can contain a color to color the text
+        Create current_line above the enitiy often signifying damage or similar effects
+        :param text: the current_line to be displayed
+        :param **kwargs: can contain a color to color the current_line
         """
         self.text_values.append(TextSprite(text, self.rect.midtop, super().groups()[0], **kwargs))
 
