@@ -54,9 +54,8 @@ class Console:
         tree = {}
         for atr in attributes:
             try:
-                new_atributes = getattr(target, atr).attributes()
                 new_target = getattr(target, atr)
-                tree[atr] = self.create_attribute_tree(new_target, new_atributes)
+                tree[atr] = self.__create_attribute_tree(new_target, new_target.attributes())
             except AttributeError:
                 tree[atr] = False
         return tree
@@ -102,10 +101,10 @@ class Console:
                     try:
                         value = self.__convert_to_type(type(getattr(target, name)), commands[-1])
                     except ValueError:
-                        self.main_sprite.add_error_message("{} is not a valid value for {}".format(commands[-1], commands[1]))
+                        self.main_sprite.add_error_message("wrong type for {}.{} expected type: {}".format(str(target)[1:-1], commands[0], str(type(getattr(target, name)))[1:-1]))
                         return
                     setattr(target, name, value)
-                    self.main_sprite.add_conformation_message("{} are set to {}".format(commands[-2], commands[-1]))
+                    self.main_sprite.add_conformation_message("{}.{} are set to {}".format(target, commands[-2], commands[-1]))
                     #not neccesairy but should not continue after EVER
                     break
             else:
@@ -116,6 +115,8 @@ class Console:
         try:
             if type is bool:
                 return self.__string_to_bool(s)
+            elif game_rules.warnings:
+                print("No case for value of type {}".format(type))
         except ValueError:
             raise ValueError
         raise ValueError

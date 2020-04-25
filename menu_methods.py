@@ -417,7 +417,6 @@ class ConsoleWindow(DynamicSurface):
             message = m2.format(*possible_commands)
             self.text_log.append_um(Line(text=message, color = (0,0,255)))
 
-
     def _get_image(self):
         image = super()._get_image()
         if self.blinker_visible[0]:
