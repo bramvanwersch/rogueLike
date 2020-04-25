@@ -101,10 +101,10 @@ class Console:
                     try:
                         value = self.__convert_to_type(type(getattr(target, name)), commands[-1])
                     except ValueError:
-                        self.main_sprite.add_error_message("wrong type for {}.{} expected type: {}".format(str(target)[1:-1], commands[0], str(type(getattr(target, name)))[1:-1]))
+                        self.main_sprite.add_error_message("wrong type for {}.{} expected type: {}".format(str(target), commands[0], str(type(getattr(target, name)))))
                         return
                     setattr(target, name, value)
-                    self.main_sprite.add_conformation_message("{}.{} are set to {}".format(target, commands[-2], commands[-1]))
+                    self.main_sprite.add_conformation_message("{}.{} is/are set to {}".format(target, commands[-2], commands[-1]))
                     #not neccesairy but should not continue after EVER
                     break
             else:
@@ -115,6 +115,12 @@ class Console:
         try:
             if type is bool:
                 return self.__string_to_bool(s)
+            elif type is int:
+                return int(s)
+            elif type is float:
+                return float(s)
+            elif type is list:
+                return self.__string_to_list(s)
             elif game_rules.warnings:
                 print("No case for value of type {}".format(type))
         except ValueError:
@@ -128,6 +134,14 @@ class Console:
             return False
         else:
             raise(ValueError)
+
+    def __string_to_list(self, value):
+        """
+        only a one dimensional list is expected
+        """
+        value = value.replace("[","").replace("]","")
+        the_list = [val.strip() for val in value.split(",")]
+        return the_list
 
     def __process_create(self, commands):
         pass

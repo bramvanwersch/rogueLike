@@ -419,17 +419,15 @@ class ConsoleWindow(DynamicSurface):
 
     def _get_image(self):
         image = super()._get_image()
-        if self.blinker_visible[0]:
-            t = ">:{}_{}".format(str(self.current_line)[:self.current_line.line_location],str(self.current_line)[self.current_line.line_location + 1:])
-            text = self.font18.render(t, True, self.current_line.color)
-        else:
-            text = self.font18.render(">:{}".format(str(self.current_line)), True, self.current_line.color)
+        text = self.current_line.render_str(blinker = self.blinker_visible[0], header = ">:")
         image.blit(text, (10, self.rect.height - text.get_size()[1]))
+        prev_line_heigth = text.get_size()[1]
         for i, line in enumerate(iter(self.text_log)):
-            if self.rect.height - text.get_size()[1] * (i + 2) < 0:
+            if self.rect.height - prev_line_heigth < 0:
                 break
-            text = self.font18.render(str(line), True, line.color)
-            image.blit(text, (10, self.rect.height - text.get_size()[1] * (i + 2)))
+            text = line.render_str()
+            prev_line_heigth += text.get_size()[1]
+            image.blit(text, (10, self.rect.height - prev_line_heigth))
         return image.convert()
 
     def add_error_message(self, text):
@@ -478,19 +476,55 @@ class TextLog:
         return list(self.user_log.values())[-self.location].copy()
 
 class Line:
+    MAX_LINE_SIZE = 155
+    BACKGROUND_COLOR = (75, 75, 75)
     def __init__(self, text = "", color = (0,255,0)):
         self.color = color
         self.text = text
         self.line_location = len(self.text)
+        self.font18 = pygame.font.Font(constants.DATA_DIR + "//Menu//font//manaspc.ttf", 18)
 
     def __str__(self):
         return self.text
+
+    def render_str(self, blinker = False, header = ""):
+        if blinker:
+            t = "{}{}_{}".format(header, self.text[:self.line_location + len(header)],self.text[self.line_location + len(header) + 1:])
+        else:
+            t = "{}{}".format(header, self.text)
+        #if line is bigger then max of screen seperate the words and put them on separate lines
+        size = [utilities.SCREEN_SIZE.size[0],0]
+        line_heigth = self.font18.size("k")[1]
+        if len(t) > self.MAX_LINE_SIZE:
+            words = t.split(" ")
+            text = [""]
+            l = 0
+            for word in words:
+                if l + len(word) < self.MAX_LINE_SIZE:
+                    text[len(text) - 1] += word + " "
+                    l += len(word) + 1
+                else:
+                    s = self.font18.size(text[len(text) - 1])
+                    size[1] += line_heigth
+                    l = 0
+                    text.append("")
+            size[1] += line_heigth
+        else:
+            text = [t]
+            size = self.font18.size(t)
+        surf = pygame.Surface((size[0] + 2, size[1] + 2))
+
+        surf.fill(self.BACKGROUND_COLOR)
+        for i, line in enumerate(text):
+            rt = self.font18.render(line, True, self.color)
+            surf.blit(rt, (0, rt.get_size()[1] * i))
+        return surf
 
     def __len__(self):
         return len(self.text)
 
     def __add__(self, other):
-        if self.line_location + other <=         len(self.text):
+        if self.line_location + other <= len(self.text):
             self.line_location += other
 
     def __sub__(self, other):
