@@ -357,6 +357,7 @@ class ConsoleWindow(DynamicSurface):
         self.events = []
         self.processed = True
         self.process_line = self.current_line
+        self.command_tree = None
 
     def update(self):
         super().update()
@@ -382,8 +383,40 @@ class ConsoleWindow(DynamicSurface):
                     self.current_line - 1
                 elif event.key == K_RIGHT:
                     self.current_line + 1
+                elif event.key == K_TAB:
+                    self.__create_tab_information()
                 else:
                     self.current_line.append(event.unicode)
+
+    def __create_tab_information(self):
+        commands = str(self.current_line).lower().split(" ")
+        possible_commands_dict = self.command_tree
+        for command in commands[:-1]:
+            try:
+                if possible_commands_dict[command]:
+                    possible_commands_dict = possible_commands_dict[command]
+                #hit the end of the tree so simply return nothing
+                else:
+                    return
+            except KeyError:
+                return
+        if commands[-1] == "":
+            possible_commands = list(possible_commands_dict.keys())
+        #if it ends on a perfect command simply add a space to the line
+        elif commands[-1] in possible_commands_dict.keys():
+            self.current_line.append(" ")
+            return
+        else:
+            possible_commands = [key for key in possible_commands_dict.keys() if key.startswith(commands[-1])]
+        if len(possible_commands) == 1:
+            self.current_line = Line(text = " ".join(commands[:-1] + possible_commands), color = self.current_line.color)
+        elif len(possible_commands) > 0:
+            mcl = max(len(command) for command in possible_commands)
+            m1 = "{:<" + str(mcl + 2) + "}"
+            m2 = m1 * len(possible_commands)
+            message = m2.format(*possible_commands)
+            self.text_log.append_um(Line(text=message, color = (0,0,255)))
+
 
     def _get_image(self):
         image = super()._get_image()
@@ -458,7 +491,7 @@ class Line:
         return len(self.text)
 
     def __add__(self, other):
-        if self.line_location + other <= len(self.text):
+        if self.line_location + other <=         len(self.text):
             self.line_location += other
 
     def __sub__(self, other):

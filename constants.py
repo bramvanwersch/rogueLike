@@ -1,7 +1,6 @@
 import pygame, os
 from pygame.constants import *
 
-
 class GameRules:
     """
     Simple class for defining game_rule variables that can be changed from the console
@@ -16,8 +15,10 @@ class GameRules:
         self.peacefull = False
         self.aim_line = False
 
-game_rules = GameRules()
+    def attributes(self):
+        return list(vars(self).keys())
 
+game_rules = GameRules()
 
 DISTINCT_COLORS = [(0,0,0), (255,255,255), (255,0,0), (0,255,0), (0,0,255), (255,255,0), (0,255,255), (255,0,255),
                    (192,192,192), (128,128,128), (128,0,0), (128,128,0), (0,128,0), (128,0,128), (0,128,128), (0,0,128),

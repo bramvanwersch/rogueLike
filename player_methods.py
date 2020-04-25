@@ -188,8 +188,11 @@ class Player(LivingEntity):
         :param weapon:
         """
         self.right_arm.equip(weapon)
-        self.speed = 10 *(1- self.right_arm.weapon.weight / 250)
         self.inventory.equiped = weapon
+
+    def attributes(self):
+        ats = super().attributes()
+        return ats + ['inventory', 'right_arm', 'left_arm','level', 'xp']
 
 class GenericArm(entities.Entity):
     def __init__(self, pos, **kwargs):
@@ -370,6 +373,10 @@ class RightArm(GenericArm):
         self.reload_cooldown = self.weapon.reload_speed
         self.offset = pygame.Vector2(self.rect.width * 0.5 - 30, -6)
 
+    def attributes(self):
+        ats = super().attributes()
+        return ats + ['damage','reload_cooldown']
+
 class Inventory:
     def __init__(self):
         self.size = 16
@@ -385,3 +392,6 @@ class Inventory:
     def remove(self, item):
         self.items.remove(item)
         self.weight -= item.weight
+
+    def attributes(self):
+        return ['size','wheight']

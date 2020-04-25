@@ -66,6 +66,12 @@ class Entity(pygame.sprite.Sprite):
         self.animation.update()
         self.change_image(self.animation.image)
 
+    def attributes(self):
+        """
+        List of attributes that can be changed trought the console at runtime. At least a list that makes sense
+        """
+        return ['visible', 'bounding_box','dead']
+
 class InteractingEntity(Entity):
     def __init__(self, pos, player, *groups, action = None, interactable = True, trigger_cooldown = [0,0], animation = None, **kwargs):
         """
@@ -244,6 +250,10 @@ class LivingEntity(Entity):
 
     def _die(self):
         self._dead_sequence()
+
+    def attributes(self):
+        ats = super().attributes()
+        return ats + ['max_speed', 'health','health_regen','immune','damage_color', 'healing_color']
 
 class Enemy(LivingEntity):
     def __init__(self, pos, player, *groups, **kwargs):

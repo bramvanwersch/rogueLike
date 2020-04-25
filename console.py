@@ -21,7 +21,8 @@ class Console:
         self.screen.player.inventory.add(start_weapon)
 
         self.main_sprite = self.screen.scene.event_sprite
-
+        self.command_tree = {"set":self.__create_set_tree(),"create":{}, "delete":{}}
+        self.screen.scenes["Console"].event_sprite.command_tree = self.command_tree
         #last thing to execute no response after this
         self.run()
 
@@ -41,6 +42,24 @@ class Console:
             self.screen.scene.draw()
             pygame.display.update()
         pygame.quit()
+
+
+    def __create_set_tree(self):
+        tree = {}
+        tree["game_rule"] = self.__create_attribute_tree(game_rules, game_rules.attributes())
+        tree["player"] = self.__create_attribute_tree(self.screen.player, self.screen.player.attributes())
+        return tree
+
+    def __create_attribute_tree(self,target, attributes):
+        tree = {}
+        for atr in attributes:
+            try:
+                new_atributes = getattr(target, atr).attributes()
+                new_target = getattr(target, atr)
+                tree[atr] = self.create_attribute_tree(new_target, new_atributes)
+            except AttributeError:
+                tree[atr] = False
+        return tree
 
     def __process_commands(self, text):
         commands = text.split(" ")
@@ -62,12 +81,9 @@ class Console:
             self.main_sprite.add_error_message("Expected al least 3 arguments to SET command [FROM, NAME, VALUE].")
             return
         if commands[0] == "game_rule":
-            try:
-                self.__execute(game_rules, [commands[1], self.__string_to_bool(commands[2])])
-            except ValueError:
-                self.main_sprite.add_error_message("{} is not a valid value for {}".format(commands[2], commands[1]))
+            self.__execute(game_rules, commands[1:])
         elif commands[0] == "player":
-            pass
+            self.__execute(self.screen.player, commands[1:])
         elif commands[0] == "enemys":
             pass
         elif commands[0] == "entities":
@@ -78,11 +94,31 @@ class Console:
             self.main_sprite.add_error_message("Unknown FROM location. Choose one of the following: game_rule, player, enemys, entities, stage")
 
     def __execute(self, target, commands):
-        if hasattr(target, str(commands[0])):
-            setattr(target, commands[0], commands[1])
-            self.main_sprite.add_conformation_message("{} are set to {}".format(commands[0], commands[1]))
-        else:
-            self.main_sprite.add_error_message("target has no attribute {}.".format(commands[0]))
+        for i, name in enumerate(commands[:-1]):
+            if hasattr(target, name):
+                if i < len(commands[:-1]) - 1:
+                    target = getattr(target, name)
+                else:
+                    try:
+                        value = self.__convert_to_type(type(getattr(target, name)), commands[-1])
+                    except ValueError:
+                        self.main_sprite.add_error_message("{} is not a valid value for {}".format(commands[-1], commands[1]))
+                        return
+                    setattr(target, name, value)
+                    self.main_sprite.add_conformation_message("{} are set to {}".format(commands[-2], commands[-1]))
+                    #not neccesairy but should not continue after EVER
+                    break
+            else:
+                self.main_sprite.add_error_message("{} has no attribute {}.".format(target, name))
+                break
+
+    def __convert_to_type(self, type, s):
+        try:
+            if type is bool:
+                return self.__string_to_bool(s)
+        except ValueError:
+            raise ValueError
+        raise ValueError
 
     def __string_to_bool(self, value):
         if value == "true" or value == "t":
@@ -139,7 +175,6 @@ class Console:
                 if part.name.strip() == part_names[part_group]:
                     weapon_parts[part_group] = part
         return weapon.Weapon(weapon_parts)
-
 
 if __name__ == "__main__":
     c = Console()
