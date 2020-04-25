@@ -458,10 +458,12 @@ class TextLog:
 
     def append(self, value):
         self.user_log[len(self.user_log) + len(self.warning_log)] = value
+        value.rendered_str = value.rendered_str
 
     def append_um(self, value):
         #append user messages like warnings and conformations
         self.warning_log[len(self.user_log) + len(self.warning_log)] = value
+        value.rendered_str = value.rendered_str
 
     def line_up(self):
         if self.location < len(self.user_log):
@@ -482,12 +484,19 @@ class Line:
         self.color = color
         self.text = text
         self.line_location = len(self.text)
+        self.rendered_str = None
         self.font18 = pygame.font.Font(constants.DATA_DIR + "//Menu//font//manaspc.ttf", 18)
 
     def __str__(self):
         return self.text
 
     def render_str(self, blinker = False, header = ""):
+        if self.rendered_str:
+            return self.rendered_str
+        else:
+            return self.__get_render_str(blinker, header)
+
+    def __get_render_str(self, blinker, header):
         if blinker:
             t = "{}{}_{}".format(header, self.text[:self.line_location + len(header)],self.text[self.line_location + len(header) + 1:])
         else:
