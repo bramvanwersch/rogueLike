@@ -106,7 +106,6 @@ class Console:
             self.__execute(self.screen.player, commands[1:])
         elif commands[0] == "enemies":
             for e in self.stage.enemy_sprite_group.sprites():
-                print(str(e), commands[1])
                 if str(e) == commands[1]:
                     enemie = e
                     break

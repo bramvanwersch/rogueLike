@@ -416,6 +416,15 @@ class ConsoleWindow(DynamicSurface):
             m2 = m1 * len(possible_commands)
             message = m2.format(*possible_commands)
             self.text_log.append_um(Line(text=message, color = (0,0,255)))
+            lpc = max(possible_commands, key = len)
+            letters = ""
+            for letter in lpc:
+                letters += letter
+                if not all(c.startswith(letters) for c in possible_commands):
+                    letters = letters[:-1]
+                    break
+            self.current_line = Line(text=" ".join(commands[:-1] + [letters]), color=self.current_line.color)
+
 
     def _get_image(self):
         image = super()._get_image()
