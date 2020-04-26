@@ -389,7 +389,7 @@ class ConsoleWindow(DynamicSurface):
                     self.current_line.append(event.unicode)
 
     def __create_tab_information(self):
-        commands = str(self.current_line).lower().split(" ")
+        commands = str(self.current_line).split(" ")
         possible_commands_dict = self.command_tree
         for command in commands[:-1]:
             try:

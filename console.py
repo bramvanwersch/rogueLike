@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-import os, pygame, random
+import os, pygame, random, inspect
 
 from constants import game_rules, GAME_TIME, DATA_DIR, SCREEN_SIZE
-import main, utilities, stages, weapon, game_images
+import main, utilities, stages, weapon, game_images, entities
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -51,13 +51,23 @@ class Console:
 
     def __update_tree(self):
         #function for things in the tree that need updating. Mostly enemies that change per room.
-        self.command_tree["set"]["enemies"] = {str(enemie).lower(): self.__create_attribute_tree(enemie, enemie.attributes()) for enemie in self.stage.enemy_sprite_group.sprites()}
+        self.command_tree["set"]["enemies"] = {str(enemie): self.__create_attribute_tree(enemie, enemie.attributes()) for enemie in self.stage.enemy_sprite_group.sprites()}
 
     def __create_set_tree(self):
         tree = {}
         tree["game_rule"] = self.__create_attribute_tree(game_rules, game_rules.attributes())
         tree["player"] = self.__create_attribute_tree(self.screen.player, self.screen.player.attributes())
-        tree["enemies"] = {str(enemie).lower(): self.__create_attribute_tree(enemie, enemie.attributes()) for enemie in self.stage.enemy_sprite_group.sprites()}
+        tree["enemies"] = {str(enemie): self.__create_attribute_tree(enemie, enemie.attributes()) for enemie in self.stage.enemy_sprite_group.sprites()}
+        #assumes all class variables are upper case and no methods are.
+        ent_dict = {}
+        for name in inspect.getmembers(entities, inspect.isclass):
+            class_varaibles = {}
+            for val in dir(name[1]):
+                if val.isupper():
+                    class_varaibles[val] = False
+            if len(class_varaibles) > 0:
+                ent_dict[name[0]] = class_varaibles
+        tree["entities"] = ent_dict
         return tree
 
     def __create_attribute_tree(self,target, attributes):
@@ -72,7 +82,6 @@ class Console:
 
     def __process_commands(self, text):
         commands = text.split(" ")
-        commands = list(command.lower() for command in commands)
         #SET
         if commands[0] == "set":
             self.__process_set(commands[1:])
@@ -97,11 +106,17 @@ class Console:
             self.__execute(self.screen.player, commands[1:])
         elif commands[0] == "enemies":
             for e in self.stage.enemy_sprite_group.sprites():
+                print(str(e), commands[1])
                 if str(e) == commands[1]:
+                    enemie = e
                     break
-            self.__execute(e, commands[2:])
+            self.__execute(enemie, commands[2:])
         elif commands[0] == "entities":
-            pass
+            for c in inspect.getmembers(entities, inspect.isclass):
+                if c[0] == commands[1]:
+                    correct_class = c[1]
+                    break
+            self.__execute(correct_class, commands[2:])
         elif commands[0] == "stage":
             pass
         else:

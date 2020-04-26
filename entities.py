@@ -316,7 +316,8 @@ class RedSquare(Enemy):
     def _use_brain(self):
         #no movement stay in the same spot
         if not self.move_tile:
-            self.destination_coord = self.bounding_box.center
+            self.destination_coord = self.player.bounding_box.center
+
         else:
             self.destination_coord = self.move_tile.center
         super()._use_brain()
@@ -432,7 +433,7 @@ class Archer(Enemy):
 
     def _use_brain(self):
         if not self.move_tile:
-            self.destination_coord = self.bounding_box.center
+            self.destination_coord =  self.player.bounding_box.center
         else:
             self.destination_coord = self.move_tile.center
         super()._use_brain()
@@ -487,7 +488,6 @@ class BushMan(Enemy):
         self.passed_frames = random.randint(0, self.PATHING_RECALCULATING_SPEED)
         self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
         self.move_tile = self.path.pop(-1)
-        self.collision = True
 
     def update(self):
         super().update()
@@ -502,6 +502,7 @@ class BushMan(Enemy):
             self.sleeping = True
             self.speedy, self.speedx = 0,0
             self.wake_up_animation.reset()
+            self.change_image([self.orig_image, self.flipped_image])
         self.__run_animations()
 
     def __run_animations(self):
@@ -525,7 +526,7 @@ class BushMan(Enemy):
         if self.sleeping or not self.wake_up_animation.finished:
             return
         if not self.move_tile:
-            self.destination_coord = self.bounding_box.center
+            self.destination_coord = self.player.bounding_box.center
         else:
             self.destination_coord = self.move_tile.center
         super()._use_brain()
