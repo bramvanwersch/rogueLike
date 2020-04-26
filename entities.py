@@ -215,9 +215,9 @@ class LivingEntity(Entity):
         xcol, ycol = False, False
         #check for x and y collison as long as any of the two are false.
         while (not xcol or not ycol):
-            if (self.rect.left + self.speedx < 0 or self.rect.right + self.speedx > self.tiles.size[0] * constants.TILE_SIZE[0]):
+            if (self.bounding_box.left + self.speedx < 0 or self.bounding_box.right + self.speedx > self.tiles.size[0] * constants.TILE_SIZE[0]):
                 xcol = True
-            if (self.bounding_box.top + self.speedy < 0 or self.rect.bottom + self.speedy > self.tiles.size[1] * constants.TILE_SIZE[1]):
+            if (self.bounding_box.top + self.speedy < 0 or self.bounding_box.bottom + self.speedy > self.tiles.size[1] * constants.TILE_SIZE[1]):
                 ycol = True
             if self.speedx > 0:
                 x_rect = self.bounding_box.move((self.speedx + 1, 0))
@@ -386,14 +386,13 @@ class TestDummy(Enemy):
 
 class Archer(Enemy):
     SIZE = (60,120)
+    SHOOT_PLAYER_DISTANCE = 600
     def __init__(self, pos, player,tiles, *groups):
         image = sheets["enemies"].image_at((0,16), scale = (60,120), size = (16,32), color_key = (255,255,255))
         self.arrow = sheets["enemies"].image_at((0,0), scale =(50,25), color_key = (255,255,255))
         Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = 4, image = image)
-        self.shot_player_distance = 600
         #make sure path is calculated at start of creation
         self.passed_frames = random.randint(0,60)
-        # self.shooting_animation = utilities.Animation()
         self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
         self.move_tile = self.path.pop(-1)
         self.shooting = False
@@ -424,10 +423,10 @@ class Archer(Enemy):
             self.shooting_cooldown -= 1
 
     def _use_brain(self):
-        #manhaten distance lower then 600 stand still and shoot and also check if there is a direct line of sight
         if constants.game_rules.vision_line:
             self.vision_line = self.tiles.line_of_sight(self.bounding_box.center, self.player.bounding_box.center)[1]
-        if abs(self.rect.x - self.player.rect.x) + abs(self.rect.y - self.player.rect.y) < self.shot_player_distance and\
+        # eucledian distance lower then 600 stand still and shoot and also check if there is a direct line of sight
+        if math.sqrt((self.rect.x - self.player.rect.x)**2 + (self.rect.y - self.player.rect.y)**2) < self.SHOOT_PLAYER_DISTANCE and\
             self.tiles.line_of_sight(self.bounding_box.center, self.player.bounding_box.center)[0]:
             self.speedy, self.speedx = 0,0
             self.shooting = True
@@ -442,7 +441,7 @@ class Archer(Enemy):
         #if path is empty or there is no solution
         if not self.move_tile:
             return
-        if self.move_tile.coord == [int(self.bounding_box.x / 100), int(self.bounding_box.y / 100)]:
+        if self.move_tile.coord == [round(self.bounding_box.x / 100), round(self.bounding_box.y / 100)]:
             self.move_tile = self.path.pop(-1)
         if self.move_tile.centerx > self.bounding_box.centerx - self.max_speed * 2\
                 and self.move_tile.centerx < self.bounding_box.centerx + self.max_speed * 2:
@@ -455,7 +454,7 @@ class Archer(Enemy):
                 and self.move_tile.centery > self.bounding_box.centery - self.max_speed * 2:
             self.speedy = 0
         elif self.move_tile.centery < self.bounding_box.centery:
-            self.speedy -= self.max_speed
+            self.speedy -=  self.max_speed
         elif self.move_tile.centery > self.bounding_box.centery:
             self.speedy += self.max_speed
 
@@ -472,6 +471,73 @@ class Archer(Enemy):
         super()._die()
         for p in self.projectiles:
             p.dead = True
+
+class BushMan(Enemy):
+    SIZE = (100,100)
+    AWAKE_DISTNCE = 350
+    PATHING_RECALCULATING_SPEED = 30
+    def __init__(self, pos, player,tiles, *groups):
+        image = sheets["enemies"].image_at((0,80), scale = self.SIZE, size = (16,16), color_key = (255,255,255))
+        Enemy.__init__(self, pos, player, *groups, image = image, tiles=tiles, speed = 14)
+        self.sleeping = True
+        idle_imgs = sheets["enemies"].images_at_rectangle((16,80,96,16), scale = self.SIZE, size = (16,16), color_key = (255,255,255))
+        self.idle_animation = utilities.Animation(*idle_imgs, image, speed = [50,50,30,30,50,50,50], repetition=1)
+        self.idle_animation.finished = True
+
+    def update(self):
+        super().update()
+        #awake when the player moves within a certain distance
+        if self.sleeping and (math.sqrt((self.rect.x - self.player.rect.x)**2 + (self.rect.y - self.player.rect.y)**2)) < self.AWAKE_DISTNCE:
+            self.sleeping = False
+            self.passed_frames = random.randint(0, self.PATHING_RECALCULATING_SPEED)
+            self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
+            self.move_tile = self.path.pop(-1)
+        elif not self.sleeping and not self.visible[0]:
+            self.sleeping = True
+        self.__run_animations()
+
+    def __run_animations(self):
+        if self.sleeping:
+            if not self.idle_animation.finished:
+                self.idle_animation.update()
+                self.change_image(self.idle_animation.image)
+            elif random.randint(1, 500) == 1:
+                self.idle_animation.reset()
+            else:
+                self.change_image([self.image, self.flipped_image])
+
+    def _use_brain(self):
+        if self.sleeping:
+            return
+        if self.passed_frames <  self.PATHING_RECALCULATING_SPEED and self.path:
+            self.passed_frames += 1
+        else:
+            solid_sprite_coords = [sprite.rect.center for sprite in super().groups()[0].sprites() if sprite.collision]
+            self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box, solid_sprite_coords = solid_sprite_coords)
+            self.passed_frames = 0
+            self.move_tile = self.path.pop(-1)
+        #if path is empty or there is no solution
+        if not self.move_tile:
+            return
+        if self.move_tile.coord == [round(self.bounding_box.x / 100), round(self.bounding_box.y / 100)]:
+            self.move_tile = self.path.pop(-1)
+        if self.move_tile.centerx > self.bounding_box.centerx - self.max_speed * 2\
+                and self.move_tile.centerx < self.bounding_box.centerx + self.max_speed * 2:
+            self.speedx = 0
+        elif self.move_tile.centerx < self.bounding_box.centerx:
+            self.speedx -= 0.1 * self.max_speed
+        elif self.move_tile.centerx > self.bounding_box.centerx:
+            self.speedx += 0.1 * self.max_speed
+        if self.move_tile.centery < self.bounding_box.centery + self.max_speed * 2\
+                and self.move_tile.centery > self.bounding_box.centery - self.max_speed * 2:
+            self.speedy = 0
+        elif self.move_tile.centery < self.bounding_box.centery:
+            self.speedy -= 0.1 * self.max_speed
+        elif self.move_tile.centery > self.bounding_box.centery:
+            self.speedy += 0.1 * self.max_speed
+
+    def _get_bounding_box(self):
+        return self.rect.inflate(0.75, 0.75)
 
 class Projectile(LivingEntity):
     def __init__(self, start_pos, end_pos, *groups, accuracy = 80, **kwargs):

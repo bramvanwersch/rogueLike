@@ -158,7 +158,6 @@ class Player(LivingEntity):
     def animations(self):
         """
         Runs an animation based on the current actions of the player.
-        :return: None
         """
         if int(self.speedx) != 0 or int(self.speedy) != 0:
             self.walking_animation.update()
