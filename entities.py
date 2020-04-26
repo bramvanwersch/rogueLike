@@ -113,7 +113,14 @@ class InteractingEntity(Entity):
                 self.run_animation()
 
 class LivingEntity(Entity):
-    def __init__(self, pos, *groups, health = 100, damage = 10, health_regen = 1, speed = 10, tiles = [], xp = 100, **kwargs):
+    DAMAGE_COLOR = "red"
+    HEALING_COLOR = "green"
+    HEALTH = 100
+    DAMAGE = 10
+    HEALTH_REGEN = 1
+    SPEED = 10
+    XP = 100
+    def __init__(self, pos, *groups, health = HEALTH, damage = DAMAGE, health_regen = HEALTH_REGEN, speed = SPEED, tiles = [], xp = XP, **kwargs):
         """
         Collection of methods for enemies and player alike
         """
@@ -129,8 +136,6 @@ class LivingEntity(Entity):
         self.text_values = []
         self.immune = [False,0]
         self.flipped_image = pygame.transform.flip(self.image, True, False)
-        self.damage_color = "red"
-        self.healing_color = "green"
         self.tiles = tiles
         self.debug_color = random.choice(constants.DISTINCT_COLORS)
 
@@ -183,7 +188,7 @@ class LivingEntity(Entity):
         """
         self.health[0] += amnt
         if amnt < 0:
-            self.create_text(str(amnt), color = self.damage_color)
+            self.create_text(str(amnt), color = self.DAMAGE_COLOR)
         if self.health[0] > self.health[1]:
             self.health[0] = self.health[1]
         if self.health[0] <= 0:
@@ -253,13 +258,13 @@ class LivingEntity(Entity):
 
     def attributes(self):
         ats = super().attributes()
-        return ats + ['max_speed', 'health','health_regen','immune','damage_color', 'healing_color']
+        return ats + ['max_speed', 'health','health_regen','immune','DAMAGE_COLOR', 'HEALING_COLOR']
 
 class Enemy(LivingEntity):
+    DAMAGE_COLOR = "blue"
     def __init__(self, pos, player, *groups, **kwargs):
         LivingEntity.__init__(self, pos, *groups, **kwargs)
         self.player = player
-        self.damage_color = "blue"
         self.previous_acctack_cycle = 0
         self.destination_coord = self.player.bounding_box.center
 
@@ -296,9 +301,10 @@ class Enemy(LivingEntity):
 
 class RedSquare(Enemy):
     SIZE = (50,50)
+    SPEED = 5
     def __init__(self, pos, player, tiles, *groups):
-        image = sheets["enemies"].image_at((240,0), scale = (50,50))
-        Enemy.__init__(self, pos, player, *groups, speed = 5, tiles = tiles, image = image)
+        image = sheets["enemies"].image_at((240,0), scale = self.SIZE)
+        Enemy.__init__(self, pos, player, *groups, speed = self.SPEED, tiles = tiles, image = image)
         #make sure path is calculated at start of creation
         self.passed_frames = random.randint(0,60)
         self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
@@ -323,12 +329,13 @@ class RedSquare(Enemy):
 
 class BadBat(Enemy):
     SIZE = (100,50)
+    SPEED = 4
     def __init__(self, pos, player,tiles, *groups):
-        animation_images = sheets["enemies"].images_at_rectangle((16,0,224,16), scale = (100,50), size = (32,16),
+        animation_images = sheets["enemies"].images_at_rectangle((16,0,224,16), scale = self.SIZE, size = (32,16),
                                                                  color_key = (255,255,255))
         animation_sequence = animation_images + animation_images[::-1]
         self.animation = utilities.Animation(*animation_sequence, start_frame="random")
-        Enemy.__init__(self, pos, player, *groups, speed = 4,tiles = tiles, image = self.animation.image[0])
+        Enemy.__init__(self, pos, player, *groups, speed = self.SPEED, tiles = tiles, image = self.animation.image[0])
 
     def update(self, *args):
         super().update(*args)
@@ -373,17 +380,22 @@ class BadBat(Enemy):
 
 class TestDummy(Enemy):
     SIZE = (50,100)
+    HEALTH = 2000
+    HEALTH_REGEN = 1000
+    SPEED = 0
     def __init__(self, pos, player, tiles, *groups):
-        image = sheets["enemies"].image_at((0,48), scale = (50,100), size = (16,32), color_key = (255,255,255))
-        Enemy.__init__(self, pos, player, *groups, health = 2000, health_regen = 1000, speed = 0, tiles = tiles, image = image)
+        image = sheets["enemies"].image_at((0,48), scale = self.SIZE, size = (16,32), color_key = (255,255,255))
+        Enemy.__init__(self, pos, player, *groups, health = self.HEALTH, health_regen = self.HEALTH_REGEN, speed = self.SPEED, tiles = tiles, image = image)
 
 class Archer(Enemy):
     SIZE = (60,120)
+    PROJECTILE_SIZE = (50,25)
     SHOOT_PLAYER_DISTANCE = 600
+    SPEED = 4
     def __init__(self, pos, player,tiles, *groups):
-        image = sheets["enemies"].image_at((0,16), scale = (60,120), size = (16,32), color_key = (255,255,255))
-        self.arrow = sheets["enemies"].image_at((0,0), scale =(50,25), color_key = (255,255,255))
-        Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = 4, image = image)
+        image = sheets["enemies"].image_at((0,16), scale = self.SIZE, size = (16,32), color_key = (255,255,255))
+        self.arrow = sheets["enemies"].image_at((0,0), scale = self.PROJECTILE_SIZE, color_key = (255,255,255))
+        Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = self.SPEED, image = image)
         #make sure path is calculated at start of creation
         self.passed_frames = random.randint(0,60)
         self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
@@ -457,15 +469,16 @@ class BushMan(Enemy):
     SIZE = (100,100)
     AWAKE_DISTANCE = 400
     PATHING_RECALCULATING_SPEED = 30
+    SPEED = 14
     def __init__(self, pos, player,tiles, *groups):
         image = sheets["enemies"].image_at((0,80), scale = self.SIZE, size = (16,16), color_key = (255,255,255))
-        Enemy.__init__(self, pos, player, *groups, image = image, tiles=tiles, speed = 14)
+        Enemy.__init__(self, pos, player, *groups, image = image, tiles=tiles, speed = self.SPEED)
         self.sleeping = True
         idle_imgs = sheets["enemies"].images_at_rectangle((16,80,96,16), scale = self.SIZE, size = (16,16), color_key = (255,255,255))
         wake_imgs = sheets["enemies"].images_at_rectangle((112,80,48,16), scale = self.SIZE, size = (16,16),color_key = (255,255,255))
         walk_imgs = sheets["enemies"].images_at_rectangle((160,80,48,16), scale = self.SIZE, size = (16,16),color_key = (255,255,255))
         self.idle_animation = utilities.Animation(*idle_imgs[:4], idle_imgs[2], *idle_imgs[4:], image, speed = [50,50,30,30,30,50,50,50], repetition=1)
-        self.wake_up_animation = utilities.Animation(*idle_imgs[:3],*wake_imgs, speed = 20, repetition=1)
+        self.wake_up_animation = utilities.Animation(*idle_imgs[:3],*wake_imgs, speed = 10, repetition=1)
         self.walking_animation = utilities.Animation(walk_imgs[0], walk_imgs[1], walk_imgs[0], walk_imgs[2], speed = 10)
         self.idle_animation.finished = True
         self.passed_frames = random.randint(0, self.PATHING_RECALCULATING_SPEED)
@@ -526,7 +539,8 @@ class BushMan(Enemy):
         return self.rect.inflate(0.75, 0.75)
 
 class Projectile(LivingEntity):
-    def __init__(self, start_pos, end_pos, *groups, accuracy = 80, **kwargs):
+    ACCURACY = 80
+    def __init__(self, start_pos, end_pos, *groups, accuracy = ACCURACY, **kwargs):
         LivingEntity.__init__(self, start_pos, *groups, **kwargs)
         self.rect.center = start_pos
         self.pos = list(self.rect.center)

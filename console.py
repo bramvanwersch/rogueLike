@@ -43,7 +43,6 @@ class Console:
             pygame.display.update()
         pygame.quit()
 
-
     def __create_set_tree(self):
         tree = {}
         tree["game_rule"] = self.__create_attribute_tree(game_rules, game_rules.attributes())
@@ -70,6 +69,8 @@ class Console:
             self.__process_create(commands[1:])
         elif commands[0] == "delete":
             self.__process_delete(commands[1:])
+        elif commands[0] == "print":
+            self.__process_print(commands[1:])
         else:
             self.main_sprite.add_error_message("No valid command choose one of the following: SET, CREATE, DELETE.")
         #MOVE
@@ -84,13 +85,24 @@ class Console:
         elif commands[0] == "player":
             self.__execute(self.screen.player, commands[1:])
         elif commands[0] == "enemys":
-            pass
+            self.stage.enemy_sprite_group.sprites()
         elif commands[0] == "entities":
             pass
         elif commands[0] == "stage":
             pass
         else:
             self.main_sprite.add_error_message("Unknown FROM location. Choose one of the following: game_rule, player, enemys, entities, stage")
+
+    def __process_create(self, commands):
+        pass
+
+    def __process_delete(self, commands):
+        pass
+
+    def __process_print(self, commands):
+        if len(commands) < 3:
+            self.main_sprite.add_error_message("Expected al least 3 arguments to SET command [FROM, NAME, VALUE].")
+            return
 
     def __execute(self, target, commands):
         for i, name in enumerate(commands[:-1]):
@@ -144,12 +156,6 @@ class Console:
         value = value.replace("[","").replace("]","")
         the_list = [val.strip() for val in value.split(",")]
         return the_list
-
-    def __process_create(self, commands):
-        pass
-
-    def __process_delete(self, commands):
-        pass
 
     def __load_parts(self):
         """

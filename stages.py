@@ -118,7 +118,7 @@ class BasicStage:
             entities.Archer(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group)
         elif name == "bush man":
             entities.BushMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group)
-        else:
+        elif game_rules.warnings:
             print("Warning unknown enemy: "+ name)
 
 class ForestStage(BasicStage):
@@ -139,8 +139,7 @@ class ForestStage(BasicStage):
                                         tile_images = tile_images, props = props, solid_tile_names = ["forest", "lake"],
                                         enemies = [["red square", entities.RedSquare.SIZE], ["bad bat",entities.BadBat.SIZE],
                                                    ["archer",entities.Archer.SIZE],["bush man", entities.BushMan.SIZE]],
-                                                  spawn_weights = [1,2,1,4],
-                                        spawn_amnt_range = [0,5])
+                                        spawn_weights = [1,2,1,4],spawn_amnt_range = [1,5])
         BasicStage.__init__(self, updater, player, **kwargs)
 
 
