@@ -24,3 +24,5 @@ sharkfin_accesory      ,accesory ,Jenkins     ,            ,-1    ,-0.1     ,3  
 wooden_blocker_accesory,accesory ,Jenkins     ,-0.1        ,-3    ,-0.2     ,-8      ,             ,                ,             ,      ,       ,        ,        ,3-12    ,        ,240-48-16-16
 big_boy_barrel         ,barrel   ,Jenkins     ,            ,20    ,-2       ,30      ,-8           ,                ,             ,      ,       ,        ,        ,        ,2-13    ,16-64-48-16
 less_big_boy_barrel    ,barrel   ,Jenkins     ,            ,15    ,-1       ,35      ,-8           ,                ,             ,      ,       ,        ,        ,        ,4-11    ,64-64-48-16
+big_kablammer_body     ,body     ,Jenkins     ,-0.25       ,6     ,0.5      ,        ,             ,                ,             ,      ,       ,8-17    ,3-25    ,1-21    ,9-25    ,0-80-48-32
+mini_bad_body          ,body     ,Jenkins     ,0.5         ,-2    ,3.5      ,-2      ,             ,                ,             ,      ,       ,2-8     ,1-11    ,1-7     ,1-11    ,144-48-16-16

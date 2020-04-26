@@ -139,6 +139,8 @@ class Console:
         """
         only a one dimensional list is expected
         """
+        if not "[" in value or "(" in value:
+            raise ValueError
         value = value.replace("[","").replace("]","")
         the_list = [val.strip() for val in value.split(",")]
         return the_list
