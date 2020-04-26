@@ -455,28 +455,36 @@ class Archer(Enemy):
 
 class BushMan(Enemy):
     SIZE = (100,100)
-    AWAKE_DISTNCE = 350
+    AWAKE_DISTANCE = 400
     PATHING_RECALCULATING_SPEED = 30
     def __init__(self, pos, player,tiles, *groups):
         image = sheets["enemies"].image_at((0,80), scale = self.SIZE, size = (16,16), color_key = (255,255,255))
         Enemy.__init__(self, pos, player, *groups, image = image, tiles=tiles, speed = 14)
         self.sleeping = True
         idle_imgs = sheets["enemies"].images_at_rectangle((16,80,96,16), scale = self.SIZE, size = (16,16), color_key = (255,255,255))
+        wake_imgs = sheets["enemies"].images_at_rectangle((112,80,48,16), scale = self.SIZE, size = (16,16),color_key = (255,255,255))
+        walk_imgs = sheets["enemies"].images_at_rectangle((160,80,48,16), scale = self.SIZE, size = (16,16),color_key = (255,255,255))
         self.idle_animation = utilities.Animation(*idle_imgs[:4], idle_imgs[2], *idle_imgs[4:], image, speed = [50,50,30,30,30,50,50,50], repetition=1)
+        self.wake_up_animation = utilities.Animation(*idle_imgs[:3],*wake_imgs, speed = 20, repetition=1)
+        self.walking_animation = utilities.Animation(walk_imgs[0], walk_imgs[1], walk_imgs[0], walk_imgs[2], speed = 10)
         self.idle_animation.finished = True
+        self.passed_frames = random.randint(0, self.PATHING_RECALCULATING_SPEED)
         self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
         self.move_tile = self.path.pop(-1)
 
     def update(self):
         super().update()
         #awake when the player moves within a certain distance
-        if self.sleeping and (math.sqrt((self.rect.x - self.player.rect.x)**2 + (self.rect.y - self.player.rect.y)**2)) < self.AWAKE_DISTNCE:
+        if self.sleeping and (math.sqrt((self.rect.x - self.player.rect.x)**2 + (self.rect.y - self.player.rect.y)**2))\
+                < self.AWAKE_DISTANCE:
             self.sleeping = False
             self.passed_frames = random.randint(0, self.PATHING_RECALCULATING_SPEED)
             self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
             self.move_tile = self.path.pop(-1)
         elif not self.sleeping and not self.visible[0]:
             self.sleeping = True
+            self.speedy, self.speedx = 0,0
+            self.wake_up_animation.reset()
         self.__run_animations()
 
     def __run_animations(self):
@@ -488,9 +496,16 @@ class BushMan(Enemy):
                 self.idle_animation.reset()
             else:
                 self.change_image([self.image, self.flipped_image])
+        else:
+            if not self.wake_up_animation.finished:
+                self.wake_up_animation.update()
+                self.change_image(self.wake_up_animation.image)
+            elif self.speedx != 0 or self.speedy != 0:
+                self.walking_animation.update()
+                self.change_image(self.walking_animation.image)
 
     def _use_brain(self):
-        if self.sleeping:
+        if self.sleeping or not self.wake_up_animation.finished:
             return
         if not self.move_tile:
             self.destination_coord = self.bounding_box.center
