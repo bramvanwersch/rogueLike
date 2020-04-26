@@ -261,9 +261,11 @@ class Enemy(LivingEntity):
         self.player = player
         self.damage_color = "blue"
         self.previous_acctack_cycle = 0
+        self.destination_coord = self.player.bounding_box.center
 
     def update(self,*args):
         super().update(*args)
+        self.destination_coord = self.player.bounding_box.center
         if not self.dead:
             self._use_brain()
             self._check_player_hit()
@@ -273,18 +275,19 @@ class Enemy(LivingEntity):
         self.player.xp[0] += self.xp
 
     def _use_brain(self):
-        if self.player.bounding_box.right < self.bounding_box.left:
+        if self.destination_coord[0] > self.bounding_box.centerx - self.max_speed and self.destination_coord[0] < self.bounding_box.centerx + self.max_speed:
+            self.speedx = 0.9
+        elif self.destination_coord[0] < self.bounding_box.centerx:
             self.speedx -= 0.1 * self.max_speed
-        elif self.player.bounding_box.left > self.bounding_box.right:
+        elif self.destination_coord[0] > self.bounding_box.centerx:
             self.speedx += 0.1 * self.max_speed
-        else:
-            self.speedx *= 0.9
-        if self.player.bounding_box.bottom < self.bounding_box.top:
-            self.speedy -= 0.1 * self.max_speed
-        elif self.player.bounding_box.top > self.bounding_box.bottom:
-            self.speedy += 0.1 * self.max_speed
-        else:
+
+        if self.destination_coord[1] < self.bounding_box.centery + self.max_speed and self.destination_coord[1] > self.bounding_box.centery - self.max_speed:
             self.speedy *= 0.9
+        elif self.destination_coord[1] < self.bounding_box.centery:
+            self.speedy -= 0.1 * self.max_speed
+        elif self.destination_coord[1] > self.bounding_box.centery:
+            self.speedy += 0.1 * self.max_speed
 
     def _check_player_hit(self):
         if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
@@ -302,7 +305,12 @@ class RedSquare(Enemy):
         self.move_tile = self.path.pop(-1)
 
     def _use_brain(self):
-        #update every per second
+        #no movement stay in the same spot
+        if not self.move_tile:
+            self.destination_coord = self.bounding_box.center
+        else:
+            self.destination_coord = self.move_tile.center
+        super()._use_brain()
         if self.passed_frames < 60 and self.path:
             self.passed_frames += 1
         else:
@@ -310,23 +318,8 @@ class RedSquare(Enemy):
             self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box, solid_sprite_coords = solid_sprite_coords)
             self.passed_frames = 0
             self.move_tile = self.path.pop(-1)
-        #if path is empty or there is no solution
-        if not self.move_tile:
-            return
-        if self.move_tile.coord == [int(self.bounding_box.x / 100), int(self.bounding_box.y / 100)]:
+        if self.move_tile and self.move_tile.coord == [int(self.bounding_box.x / 100), int(self.bounding_box.y / 100)]:
             self.move_tile = self.path.pop(-1)
-        if self.move_tile.centerx > self.bounding_box.centerx - self.max_speed and self.move_tile.centerx < self.bounding_box.centerx + self.max_speed :
-            self.speedx = 0
-        elif self.move_tile.centerx < self.bounding_box.centerx:
-            self.speedx -= self.max_speed
-        elif self.move_tile.centerx > self.bounding_box.centerx:
-            self.speedx += self.max_speed
-        if self.move_tile.centery < self.bounding_box.centery + self.max_speed and self.move_tile.centery > self.bounding_box.centery - self.max_speed:
-            self.speedy = 0
-        elif self.move_tile.centery < self.bounding_box.centery:
-            self.speedy -= self.max_speed
-        elif self.move_tile.centery > self.bounding_box.centery:
-            self.speedy += self.max_speed
 
 class BadBat(Enemy):
     SIZE = (100,50)
@@ -423,6 +416,11 @@ class Archer(Enemy):
             self.shooting_cooldown -= 1
 
     def _use_brain(self):
+        if not self.move_tile:
+            self.destination_coord = self.bounding_box.center
+        else:
+            self.destination_coord = self.move_tile.center
+        super()._use_brain()
         if constants.game_rules.vision_line:
             self.vision_line = self.tiles.line_of_sight(self.bounding_box.center, self.player.bounding_box.center)[1]
         # eucledian distance lower then 600 stand still and shoot and also check if there is a direct line of sight
@@ -438,25 +436,8 @@ class Archer(Enemy):
             self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box, solid_sprite_coords = solid_sprite_coords)
             self.passed_frames = 0
             self.move_tile = self.path.pop(-1)
-        #if path is empty or there is no solution
-        if not self.move_tile:
-            return
-        if self.move_tile.coord == [round(self.bounding_box.x / 100), round(self.bounding_box.y / 100)]:
+        if self.move_tile and self.move_tile.coord == [int(self.bounding_box.x / 100), int(self.bounding_box.y / 100)]:
             self.move_tile = self.path.pop(-1)
-        if self.move_tile.centerx > self.bounding_box.centerx - self.max_speed * 2\
-                and self.move_tile.centerx < self.bounding_box.centerx + self.max_speed * 2:
-            self.speedx = 0
-        elif self.move_tile.centerx < self.bounding_box.centerx:
-            self.speedx -= self.max_speed
-        elif self.move_tile.centerx > self.bounding_box.centerx:
-            self.speedx += self.max_speed
-        if self.move_tile.centery < self.bounding_box.centery + self.max_speed * 2\
-                and self.move_tile.centery > self.bounding_box.centery - self.max_speed * 2:
-            self.speedy = 0
-        elif self.move_tile.centery < self.bounding_box.centery:
-            self.speedy -=  self.max_speed
-        elif self.move_tile.centery > self.bounding_box.centery:
-            self.speedy += self.max_speed
 
     def _get_bounding_box(self):
         """
@@ -481,8 +462,10 @@ class BushMan(Enemy):
         Enemy.__init__(self, pos, player, *groups, image = image, tiles=tiles, speed = 14)
         self.sleeping = True
         idle_imgs = sheets["enemies"].images_at_rectangle((16,80,96,16), scale = self.SIZE, size = (16,16), color_key = (255,255,255))
-        self.idle_animation = utilities.Animation(*idle_imgs, image, speed = [50,50,30,30,50,50,50], repetition=1)
+        self.idle_animation = utilities.Animation(*idle_imgs[:4], idle_imgs[2], *idle_imgs[4:], image, speed = [50,50,30,30,30,50,50,50], repetition=1)
         self.idle_animation.finished = True
+        self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
+        self.move_tile = self.path.pop(-1)
 
     def update(self):
         super().update()
@@ -509,6 +492,11 @@ class BushMan(Enemy):
     def _use_brain(self):
         if self.sleeping:
             return
+        if not self.move_tile:
+            self.destination_coord = self.bounding_box.center
+        else:
+            self.destination_coord = self.move_tile.center
+        super()._use_brain()
         if self.passed_frames <  self.PATHING_RECALCULATING_SPEED and self.path:
             self.passed_frames += 1
         else:
@@ -516,25 +504,8 @@ class BushMan(Enemy):
             self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box, solid_sprite_coords = solid_sprite_coords)
             self.passed_frames = 0
             self.move_tile = self.path.pop(-1)
-        #if path is empty or there is no solution
-        if not self.move_tile:
-            return
-        if self.move_tile.coord == [round(self.bounding_box.x / 100), round(self.bounding_box.y / 100)]:
+        if self.move_tile and self.move_tile.coord == [round(self.bounding_box.x / 100), round(self.bounding_box.y / 100)]:
             self.move_tile = self.path.pop(-1)
-        if self.move_tile.centerx > self.bounding_box.centerx - self.max_speed * 2\
-                and self.move_tile.centerx < self.bounding_box.centerx + self.max_speed * 2:
-            self.speedx = 0
-        elif self.move_tile.centerx < self.bounding_box.centerx:
-            self.speedx -= 0.1 * self.max_speed
-        elif self.move_tile.centerx > self.bounding_box.centerx:
-            self.speedx += 0.1 * self.max_speed
-        if self.move_tile.centery < self.bounding_box.centery + self.max_speed * 2\
-                and self.move_tile.centery > self.bounding_box.centery - self.max_speed * 2:
-            self.speedy = 0
-        elif self.move_tile.centery < self.bounding_box.centery:
-            self.speedy -= 0.1 * self.max_speed
-        elif self.move_tile.centery > self.bounding_box.centery:
-            self.speedy += 0.1 * self.max_speed
 
     def _get_bounding_box(self):
         return self.rect.inflate(0.75, 0.75)
