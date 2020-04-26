@@ -7,15 +7,16 @@ from constants import *
 from entities import LivingEntity
 
 class Player(LivingEntity):
+    SIZE = (60,120)
     def __init__(self, pos, *groups):
-        idle_image = sheets["player"].image_at((0,0), color_key = (255,255,255), scale = (60,120))
+        idle_image = sheets["player"].image_at((0,0), color_key = (255,255,255), scale = self.SIZE)
         LivingEntity.__init__(self, pos,damage=5, image = idle_image)
         walking_images = sheets["player"].images_at((0,0),(224,0),(240,0),(0,32),(16,32),
-                                                     color_key = (255,255,255), scale = (60,120))
+                                                     color_key = (255,255,255), scale = self.SIZE)
         idle_images = sheets["player"].images_at((0,0),(176,0),(192,0),(208,0),
-                                                  color_key = (255,255,255), scale = (60,120))
+                                                  color_key = (255,255,255), scale = self.SIZE)
         dead_images = sheets["player"].images_at((16,0),(176,0),(32,0),(48,0),(64,0),(80,0),(96,0),(112,0),(128,0),
-                                                  (144,0),(160,0),(48,32),(64,32),color_key = (255,255,255), scale = (60,120))
+                                                  (144,0),(160,0),(48,32),(64,32),color_key = (255,255,255), scale = self.SIZE)
         self.walking_animation = utilities.Animation(walking_images[0],walking_images[1],walking_images[2],
                                                      walking_images[1],walking_images[0],walking_images[3],
                                                      walking_images[4],walking_images[3])

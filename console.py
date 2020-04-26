@@ -29,12 +29,18 @@ class Console:
     def run(self):
         # Main Loop
         while utilities.going:
+            n1 = self.screen.scene.name
             self.screen.scene = self.screen.scenes[utilities.scene_name]
+            n2 = self.screen.scene.name
             self.main_sprite = self.screen.scene.event_sprite
             #if a new line is commited in the command window and it is not processed, process it.
-            if utilities.scene_name == "Console" and not self.main_sprite.processed:
-                self.__process_commands(str(self.main_sprite.process_line))
-                self.screen.scene.event_sprite.processed = True
+            if n2 == "Console":
+                # every time the console opens update certain tree lists.
+                if n2 == "Console" and n1 != n2:
+                    self.__update_tree()
+                if not self.main_sprite.processed:
+                    self.__process_commands(str(self.main_sprite.process_line))
+                    self.screen.scene.event_sprite.processed = True
             GAME_TIME.tick(60)
             self.screen.scene.handle_events(pygame.event.get())
             self.screen.scene.update()
@@ -43,10 +49,15 @@ class Console:
             pygame.display.update()
         pygame.quit()
 
+    def __update_tree(self):
+        #function for things in the tree that need updating. Mostly enemies that change per room.
+        self.command_tree["set"]["enemies"] = {str(enemie).lower(): self.__create_attribute_tree(enemie, enemie.attributes()) for enemie in self.stage.enemy_sprite_group.sprites()}
+
     def __create_set_tree(self):
         tree = {}
         tree["game_rule"] = self.__create_attribute_tree(game_rules, game_rules.attributes())
         tree["player"] = self.__create_attribute_tree(self.screen.player, self.screen.player.attributes())
+        tree["enemies"] = {str(enemie).lower(): self.__create_attribute_tree(enemie, enemie.attributes()) for enemie in self.stage.enemy_sprite_group.sprites()}
         return tree
 
     def __create_attribute_tree(self,target, attributes):
@@ -54,7 +65,7 @@ class Console:
         for atr in attributes:
             try:
                 new_target = getattr(target, atr)
-                tree[atr] = self.__create_attribute_tree(new_target, new_target.attributes())
+                tree[atr.lower()] = self.__create_attribute_tree(new_target, new_target.attributes())
             except AttributeError:
                 tree[atr] = False
         return tree
@@ -84,8 +95,11 @@ class Console:
             self.__execute(game_rules, commands[1:])
         elif commands[0] == "player":
             self.__execute(self.screen.player, commands[1:])
-        elif commands[0] == "enemys":
-            self.stage.enemy_sprite_group.sprites()
+        elif commands[0] == "enemies":
+            for e in self.stage.enemy_sprite_group.sprites():
+                if str(e) == commands[1]:
+                    break
+            self.__execute(e, commands[2:])
         elif commands[0] == "entities":
             pass
         elif commands[0] == "stage":

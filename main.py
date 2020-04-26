@@ -126,6 +126,7 @@ class MainScene(Scene):
         self.inventory_frame = self.get_inventory_frame()
         self.font20 = pygame.font.Font(DATA_DIR + "//Menu//font//manaspc.ttf", 20)
         self.dynamic_images = [menu_methods.WeaponDisplay(pygame.Rect(self.rect.width - 140, self.rect.height - 145,135,135), event_sprite)]
+        self.name = "Main"
 
     def handle_events(self, events):
         player_events = []
@@ -329,6 +330,7 @@ class MainScene(Scene):
 class PauseScene(Scene):
     def __init__(self, sprites, event_sprite, rect):
         Scene.__init__(self, sprites, event_sprite, rect)
+        self.name = "Pause"
 
     def handle_events(self, events):
         menu_events = []
@@ -344,6 +346,7 @@ class PauseScene(Scene):
 class InventoryScene(Scene):
     def __init__(self, sprites, event_sprite, rect):
         Scene.__init__(self, sprites, event_sprite, rect)
+        self.name = "Inventory"
 
     def handle_events(self, events):
         inventory_events = []
@@ -359,6 +362,7 @@ class InventoryScene(Scene):
 class ConsoleScene(Scene):
     def __init__(self, sprites, event_sprite, rect):
         Scene.__init__(self, sprites, event_sprite, rect)
+        self.name = "Console"
 
     def update(self):
         self.event_sprite.update()
