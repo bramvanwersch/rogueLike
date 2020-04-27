@@ -386,7 +386,11 @@ class ConsoleWindow(DynamicSurface):
                 elif event.key == K_TAB:
                     self.__create_tab_information()
                 else:
-                    self.current_line.append(event.unicode)
+                    sk = pygame.key.name(event.key)
+                    if len(sk) == 1:
+                        self.current_line.append(sk)
+                    elif sk == "space":
+                        self.current_line.append(" ")
 
     def __create_tab_information(self):
         commands = str(self.current_line).split(" ")

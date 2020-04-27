@@ -15,7 +15,6 @@ class BasicStage:
         #values are set here to indicat that these are class varaibles. They are defined using the set room function
         self.background = None
         self.room_props = None
-        self.room_changed = False
         #find the start room and set the stage to that room
         for x in self.stage_rooms_map:
             for room in x:
@@ -28,9 +27,6 @@ class BasicStage:
                     break
 
     def update(self):
-        #function for checking updates relating to stages.
-        if self.room_changed:
-            self.room_changed = False
         if len(self.enemy_sprite_group.sprites()) <= 0:
             for sprite in self.transition_group.sprites():
                 sprite.interactable = True
@@ -58,8 +54,6 @@ class BasicStage:
         #reset room parameters
         self.current_room.finished = True
 
-        #will be true for one frame used to update the command_tree with enemie instances.
-        self.room_changed = True
         self.background.change_image((room.room_layout.background_image, room.room_layout.background_image))
         self.room_props.change_image((room.room_layout.room_image,room.room_layout.room_image))
         #remove all the interacting entities

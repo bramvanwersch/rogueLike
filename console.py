@@ -21,7 +21,7 @@ class Console:
         self.screen.player.inventory.add(start_weapon)
 
         self.main_sprite = self.screen.scene.event_sprite
-        self.command_tree = {"set":self.__create_set_tree(),"create":{}, "delete":{}}
+        self.command_tree = {"set":self.__create_set_tree(),"create":{}, "delete":{},"print":self.__create_print_tree()}
         self.screen.scenes["Console"].event_sprite.command_tree = self.command_tree
         #last thing to execute no response after this
         self.run()
@@ -33,11 +33,11 @@ class Console:
             self.screen.scene = self.screen.scenes[utilities.scene_name]
             n2 = self.screen.scene.name
             self.main_sprite = self.screen.scene.event_sprite
-            #if a new line is commited in the command window and it is not processed, process it.
             if n2 == "Console":
                 # every time the console opens update certain tree lists.
                 if n2 == "Console" and n1 != n2:
                     self.__update_tree()
+                # if a new line is commited in the command window and it is not processed, process it.
                 if not self.main_sprite.processed:
                     self.__process_commands(str(self.main_sprite.process_line))
                     self.screen.scene.event_sprite.processed = True
@@ -51,102 +51,110 @@ class Console:
 
     def __update_tree(self):
         #function for things in the tree that need updating. Mostly enemies that change per room.
-        self.command_tree["set"]["enemies"] = {str(enemie): self.__create_attribute_tree(enemie, enemie.attributes()) for enemie in self.stage.enemy_sprite_group.sprites()}
+        self.command_tree["set"]["enemies"] = {str(enemie): self.__create_attribute_tree(enemie, enemie.attributes(), func = "attributes") for enemie in self.stage.enemy_sprite_group.sprites()}
+        self.command_tree["print"]["enemies"] = {str(enemie): self.__create_attribute_tree(enemie, vars(enemie)) for enemie in self.stage.enemy_sprite_group.sprites()}
 
     def __create_set_tree(self):
         tree = {}
-        tree["game_rule"] = self.__create_attribute_tree(game_rules, game_rules.attributes())
-        tree["player"] = self.__create_attribute_tree(self.screen.player, self.screen.player.attributes())
-        tree["enemies"] = {str(enemie): self.__create_attribute_tree(enemie, enemie.attributes()) for enemie in self.stage.enemy_sprite_group.sprites()}
+        tree["game_rule"] = self.__create_attribute_tree(game_rules, game_rules.attributes(), func = "attributes")
+        tree["player"] = self.__create_attribute_tree(self.screen.player, self.screen.player.attributes(), func = "attributes")
+        tree["enemies"] = {str(enemie): self.__create_attribute_tree(enemie, enemie.attributes(), func = "attributes") for enemie in self.stage.enemy_sprite_group.sprites()}
         #assumes all class variables are upper case and no methods are.
+        tree["entities"] = self.__get_class_variables(entities)
+        return tree
+
+    def __create_print_tree(self):
+        tree = {}
+        tree["game_rule"] = self.__create_attribute_tree(game_rules, vars(game_rules))
+        tree["player"] = self.__create_attribute_tree(self.screen.player, vars(self.screen.player).keys())
+        tree["enemies"] = {str(enemie): self.__create_attribute_tree(enemie, vars(enemie)) for enemie in self.stage.enemy_sprite_group.sprites()}
+        tree["entities"] = self.__get_class_variables(entities)
+        tree["stage"] = self.__create_attribute_tree(self.stage, vars(self.stage))
+        return tree
+
+    def __get_class_variables(self, module):
         ent_dict = {}
-        for name in inspect.getmembers(entities, inspect.isclass):
+        for name in inspect.getmembers(module, inspect.isclass):
             class_varaibles = {}
             for val in dir(name[1]):
                 if val.isupper():
                     class_varaibles[val] = False
             if len(class_varaibles) > 0:
                 ent_dict[name[0]] = class_varaibles
-        tree["entities"] = ent_dict
-        return tree
+        return ent_dict
 
-    def __create_attribute_tree(self,target, attributes):
+    def __create_attribute_tree(self, target, attributes, func = None):
         tree = {}
         for atr in attributes:
             try:
                 new_target = getattr(target, atr)
-                tree[atr.lower()] = self.__create_attribute_tree(new_target, new_target.attributes())
-            except AttributeError:
+                if func:
+                    atr_func = getattr(new_target, func)
+                    new_attributes = atr_func()
+                else:
+                    new_attributes = vars(new_target)
+                tree[atr.lower()] = self.__create_attribute_tree(new_target, new_attributes, func = func)
+            except(AttributeError, TypeError):
                 tree[atr] = False
         return tree
 
     def __process_commands(self, text):
-        commands = text.split(" ")
-        #SET
+        commands = text.strip().split(" ")
         if commands[0] == "set":
-            self.__process_set(commands[1:])
+            self.__process(commands)
         elif commands[0] == "create":
             self.__process_create(commands[1:])
         elif commands[0] == "delete":
             self.__process_delete(commands[1:])
         elif commands[0] == "print":
-            self.__process_print(commands[1:])
+            #make sure that the last part of the command is executed.
+            self.__process(commands + [" "])
         else:
-            self.main_sprite.add_error_message("No valid command choose one of the following: SET, CREATE, DELETE.")
+            self.main_sprite.add_error_message("No valid command choose one of the following: set, delete, create, print.")
         #MOVE
-        #PRINT
 
-    def __process_set(self, commands):
+    def __process(self, commands):
         if len(commands) < 3:
             self.main_sprite.add_error_message("Expected al least 3 arguments to SET command [FROM, NAME, VALUE].")
             return
-        if commands[0] == "game_rule":
-            self.__execute(game_rules, commands[1:])
-        elif commands[0] == "player":
-            self.__execute(self.screen.player, commands[1:])
-        elif commands[0] == "enemies":
+        if commands[1] == "game_rule":
+            self.__execute(game_rules, commands)
+        elif commands[1] == "player":
+            self.__execute(self.screen.player, commands)
+        elif commands[1] == "enemies":
             for e in self.stage.enemy_sprite_group.sprites():
-                if str(e) == commands[1]:
+                if str(e) == commands[2]:
                     enemie = e
                     break
-            self.__execute(enemie, commands[2:])
-        elif commands[0] == "entities":
+            self.__execute(enemie, commands, 2)
+        elif commands[1] == "entities":
             for c in inspect.getmembers(entities, inspect.isclass):
-                if c[0] == commands[1]:
+                if c[0] == commands[2]:
                     correct_class = c[1]
                     break
-            self.__execute(correct_class, commands[2:])
-        elif commands[0] == "stage":
-            pass
+            self.__execute(correct_class, commands, 2)
+        elif commands[1] == "stage":
+            self.__execute(self.stage, commands)
         else:
-            self.main_sprite.add_error_message("Unknown FROM location. Choose one of the following: game_rule, player, enemys, entities, stage")
+            self.main_sprite.add_error_message("Unknown FROM location. Choose one of the following: game_rule, player, enemys, entities")
 
-    def __process_create(self, commands):
-        pass
-
-    def __process_delete(self, commands):
-        pass
-
-    def __process_print(self, commands):
-        if len(commands) < 3:
-            self.main_sprite.add_error_message("Expected al least 3 arguments to SET command [FROM, NAME, VALUE].")
-            return
-
-    def __execute(self, target, commands):
-        for i, name in enumerate(commands[:-1]):
+    def __execute(self, target, commands, from_l = 1):
+        for i, name in enumerate(commands[1 + from_l:-1]):
             if hasattr(target, name):
-                if i < len(commands[:-1]) - 1:
+                if i < len(commands[1 + from_l:-1]) - 1:
                     target = getattr(target, name)
                 else:
-                    try:
-                        value = self.__convert_to_type(type(getattr(target, name)), commands[-1], getattr(target, name))
-                    except ValueError as e:
-                        self.main_sprite.add_error_message(str(e))
-                        return
-                    setattr(target, name, value)
-                    self.main_sprite.add_conformation_message("{}.{} is/are set to {}".format(target, commands[-2], commands[-1]))
-                    #not neccesairy but should not continue after EVER
-                    break
+                    if commands[0] == "set":
+                        try:
+                            value = self.__convert_to_type(type(getattr(target, name)), commands[-1],
+                                                           getattr(target, name))
+                        except ValueError as e:
+                            self.main_sprite.add_error_message(str(e))
+                            return
+                        setattr(target, name, value)
+                        self.main_sprite.add_conformation_message("{} is set to {}".format(".".join(commands[1:-1]), value))
+                    elif commands[0] == "print":
+                        self.main_sprite.add_conformation_message("The value of {} is: {}".format(".".join(commands[1:-1]), getattr(target, name)))
             else:
                 self.main_sprite.add_error_message("{} has no attribute {}.".format(target, name))
                 break
@@ -176,7 +184,8 @@ class Console:
         elif value == "false" or value == "f":
             return False
         else:
-            raise ValueError("expected a boolean to be either: true, t, false or f (case insensitive)".format(value))
+            raise ValueError(
+                "expected a boolean to be either: true, t, false or f (case insensitive)".format(value))
 
     def __string_to_list(self, value, orig_list):
         """
@@ -184,7 +193,7 @@ class Console:
         """
         if not "[" in value or "(" in value:
             raise ValueError("expected a list to be of form [val1,val2,..] or (val1,val2,..).")
-        value = value.replace("[","").replace("]","").replace("(","").replace(")","")
+        value = value.replace("[", "").replace("]", "").replace("(", "").replace(")", "")
         the_list = [val.strip() for val in value.split(",")]
         if len(orig_list) != len(the_list):
             raise ValueError("list is of wrong length. Expected a list of lenght {}.".format(len(orig_list)))
@@ -193,8 +202,14 @@ class Console:
                 correct_typed_value = self.__convert_to_type(type(val), the_list[i], val)
                 the_list[i] = correct_typed_value
             except ValueError:
-                raise ValueError("expected value of type {} at index {}. Cannot convert {} to {}.".format(type(val), i, the_list[i], type(val)))
+                raise ValueError("expected value of type {} at index {}. Cannot convert {} to {}.".format(type(val), i,the_list[i],type(val)))
         return the_list
+
+    def __process_create(self, commands):
+        pass
+
+    def __process_delete(self, commands):
+        pass
 
     def __load_parts(self):
         """
