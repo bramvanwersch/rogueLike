@@ -141,6 +141,8 @@ class LivingEntity(Entity):
         self.flipped_image = pygame.transform.flip(self.image, True, False)
         self.tiles = tiles
         self.debug_color = random.choice(constants.DISTINCT_COLORS)
+        self.damage_color = self.DAMAGE_COLOR
+        self.healing_color = self.HEALING_COLOR
 
     def update(self, *args):
         super().update(*args)
@@ -191,7 +193,7 @@ class LivingEntity(Entity):
         """
         self.health[0] += amnt
         if amnt < 0:
-            self.create_text(str(amnt), color = self.DAMAGE_COLOR)
+            self.create_text(str(amnt), color = self.damage_color)
         if self.health[0] > self.health[1]:
             self.health[0] = self.health[1]
         if self.health[0] <= 0:
@@ -248,20 +250,19 @@ class LivingEntity(Entity):
             break;
         return [xcol, ycol]
 
-    def create_text(self, text, **kwargs):
+    def create_text(self, text, color):
         """
         Create current_line above the enitiy often signifying damage or similar effects
         :param text: the current_line to be displayed
-        :param **kwargs: can contain a color to color the current_line
         """
-        self.text_values.append(TextSprite(text, self.rect.midtop, super().groups()[0], **kwargs))
+        self.text_values.append(TextSprite(text, self.rect.midtop, super().groups()[0], color = color))
 
     def _die(self):
         self._dead_sequence()
 
     def attributes(self):
         ats = super().attributes()
-        return ats + ['max_speed', 'health','health_regen','immune']
+        return ats + ['max_speed', 'health','health_regen','immune','damage','xp']
 
 class Enemy(LivingEntity):
     DAMAGE_COLOR = "blue"
@@ -317,7 +318,6 @@ class RedSquare(Enemy):
         #no movement stay in the same spot
         if not self.move_tile:
             self.destination_coord = self.player.bounding_box.center
-
         else:
             self.destination_coord = self.move_tile.center
         super()._use_brain()
@@ -395,6 +395,7 @@ class Archer(Enemy):
     SIZE = (60,120)
     PROJECTILE_SIZE = (50,25)
     SHOOT_PLAYER_DISTANCE = 600
+    SHOOTING_COOLDOWN = 50
     SPEED = 4
     def __init__(self, pos, player,tiles, *groups):
         image = sheets["enemies"].image_at((0,16), scale = self.SIZE, size = (16,32), color_key = (255,255,255))
@@ -405,7 +406,9 @@ class Archer(Enemy):
         self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
         self.move_tile = self.path.pop(-1)
         self.shooting = False
-        self.shooting_cooldown = 50
+        #current max
+        self.shooting_cooldown = [self.SHOOTING_COOLDOWN, self.SHOOTING_COOLDOWN]
+        self.shoot_player_distance = self.SHOOT_PLAYER_DISTANCE
         self.collision = True
         self.vision_line = []
         self.projectiles = []
@@ -415,7 +418,7 @@ class Archer(Enemy):
         for p in self.projectiles:
             if p.dead:
                 self.projectiles.remove(p)
-        if self.shooting and self.shooting_cooldown <= 0:
+        if self.shooting and self.shooting_cooldown[0] <= 0:
             #update animation
             # self.shooting_animation.update()
             # if self.shooting_animation.cycles > 0:
@@ -427,9 +430,9 @@ class Archer(Enemy):
             except IndexError:
                 #happens when the projectile is spawned same frame as the enemy dies just skip IK bad practice
                 pass
-            self.shooting_cooldown = 50
-        elif self.shooting_cooldown > 0:
-            self.shooting_cooldown -= 1
+            self.shooting_cooldown[0] = self.shooting_cooldown[1]
+        elif self.shooting_cooldown[0] > 0:
+            self.shooting_cooldown[0] -= 1
 
     def _use_brain(self):
         if not self.move_tile:
@@ -440,7 +443,7 @@ class Archer(Enemy):
         if constants.game_rules.vision_line:
             self.vision_line = self.tiles.line_of_sight(self.bounding_box.center, self.player.bounding_box.center)[1]
         # eucledian distance lower then 600 stand still and shoot and also check if there is a direct line of sight
-        if math.sqrt((self.rect.x - self.player.rect.x)**2 + (self.rect.y - self.player.rect.y)**2) < self.SHOOT_PLAYER_DISTANCE and\
+        if math.sqrt((self.rect.x - self.player.rect.x)**2 + (self.rect.y - self.player.rect.y)**2) < self.shoot_player_distance and\
             self.tiles.line_of_sight(self.bounding_box.center, self.player.bounding_box.center)[0]:
             self.speedy, self.speedx = 0,0
             self.shooting = True
@@ -469,6 +472,10 @@ class Archer(Enemy):
         for p in self.projectiles:
             p.dead = True
 
+    def attributes(self):
+        ats = super().attributes()
+        return ats + ['shooting_cooldown', 'shoot_player_distance']
+
 class BushMan(Enemy):
     SIZE = (100,100)
     AWAKE_DISTANCE = 400
@@ -488,12 +495,14 @@ class BushMan(Enemy):
         self.passed_frames = random.randint(0, self.PATHING_RECALCULATING_SPEED)
         self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
         self.move_tile = self.path.pop(-1)
+        #make it an instance aswell as a class variable so you can change for an instance but also all classes
+        self.awake_distance = self.AWAKE_DISTANCE
 
     def update(self):
         super().update()
         #awake when the player moves within a certain distance
         if self.sleeping and (math.sqrt((self.rect.x - self.player.rect.x)**2 + (self.rect.y - self.player.rect.y)**2))\
-                < self.AWAKE_DISTANCE:
+                < self.awake_distance:
             self.sleeping = False
             self.passed_frames = random.randint(0, self.PATHING_RECALCULATING_SPEED)
             self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
@@ -542,6 +551,10 @@ class BushMan(Enemy):
 
     def _get_bounding_box(self):
         return self.rect.inflate(0.75, 0.75)
+
+    def attributes(self):
+        ats = super().attributes()
+        return ats +['sleeping','awake_distance']
 
 class Projectile(LivingEntity):
     ACCURACY = 80
@@ -628,8 +641,9 @@ class EnemyProjectile(Projectile):
             self.dead = True
 
 class TextSprite(Entity):
-    def __init__(self,text, pos, *groups, **kwargs):
-        image = pygame.font.Font(constants.DATA_DIR + "//Menu//font//manaspc.ttf", 20).render(str(text), True, pygame.Color(kwargs["color"]))
+    COLOR = "black"
+    def __init__(self, text, pos, *groups, color = COLOR, **kwargs):
+        image = pygame.font.Font(constants.DATA_DIR + "//Menu//font//manaspc.ttf", 20).render(str(text), True, pygame.Color(color))
         #give a bit of random offset
         pos = (random.randint(pos[0] -5, pos[0] + 5), random.randint(pos[1] -5, pos[1] + 5))
         Entity.__init__(self, pos, *groups, image = image)

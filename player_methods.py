@@ -192,7 +192,7 @@ class Player(LivingEntity):
 
     def attributes(self):
         ats = super().attributes()
-        return ats + ['inventory', 'right_arm', 'left_arm','level', 'xp']
+        return ats + ['inventory', 'right_arm', 'left_arm','level']
 
 class GenericArm(entities.Entity):
     def __init__(self, pos, **kwargs):

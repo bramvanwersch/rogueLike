@@ -139,9 +139,9 @@ class Console:
                     target = getattr(target, name)
                 else:
                     try:
-                        value = self.__convert_to_type(type(getattr(target, name)), commands[-1])
-                    except ValueError:
-                        self.main_sprite.add_error_message("wrong type for {}.{} expected type: {}".format(str(target), commands[0], str(type(getattr(target, name)))))
+                        value = self.__convert_to_type(type(getattr(target, name)), commands[-1], getattr(target, name))
+                    except ValueError as e:
+                        self.main_sprite.add_error_message(str(e))
                         return
                     setattr(target, name, value)
                     self.main_sprite.add_conformation_message("{}.{} is/are set to {}".format(target, commands[-2], commands[-1]))
@@ -151,38 +151,49 @@ class Console:
                 self.main_sprite.add_error_message("{} has no attribute {}.".format(target, name))
                 break
 
-    def __convert_to_type(self, type, s):
+    def __convert_to_type(self, type, s, orig_value):
         try:
-            if type is bool:
+            if type is str:
+                return s
+            elif type is bool:
                 return self.__string_to_bool(s)
             elif type is int:
                 return int(s)
             elif type is float:
                 return float(s)
             elif type is list:
-                return self.__string_to_list(s)
+                return self.__string_to_list(s, orig_value)
             elif game_rules.warnings:
                 print("No case for value of type {}".format(type))
-        except ValueError:
-            raise ValueError
-        raise ValueError
+        except ValueError as e:
+            raise e
+        raise ValueError("cannot convert to type {}. No known method.".format(type))
 
     def __string_to_bool(self, value):
+        value = value.lower()
         if value == "true" or value == "t":
             return True
         elif value == "false" or value == "f":
             return False
         else:
-            raise(ValueError)
+            raise ValueError("expected a boolean to be either: true, t, false or f (case insensitive)".format(value))
 
-    def __string_to_list(self, value):
+    def __string_to_list(self, value, orig_list):
         """
         only a one dimensional list is expected
         """
         if not "[" in value or "(" in value:
-            raise ValueError
-        value = value.replace("[","").replace("]","")
+            raise ValueError("expected a list to be of form [val1,val2,..] or (val1,val2,..).")
+        value = value.replace("[","").replace("]","").replace("(","").replace(")","")
         the_list = [val.strip() for val in value.split(",")]
+        if len(orig_list) != len(the_list):
+            raise ValueError("list is of wrong length. Expected a list of lenght {}.".format(len(orig_list)))
+        for i, val in enumerate(orig_list):
+            try:
+                correct_typed_value = self.__convert_to_type(type(val), the_list[i], val)
+                the_list[i] = correct_typed_value
+            except ValueError:
+                raise ValueError("expected value of type {} at index {}. Cannot convert {} to {}.".format(type(val), i, the_list[i], type(val)))
         return the_list
 
     def __load_parts(self):

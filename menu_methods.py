@@ -425,7 +425,6 @@ class ConsoleWindow(DynamicSurface):
                     break
             self.current_line = Line(text=" ".join(commands[:-1] + [letters]), color=self.current_line.color)
 
-
     def _get_image(self):
         image = super()._get_image()
         text = self.current_line.render_str(blinker = self.blinker_visible[0], header = ">:")
