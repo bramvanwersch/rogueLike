@@ -386,11 +386,8 @@ class ConsoleWindow(DynamicSurface):
                 elif event.key == K_TAB:
                     self.__create_tab_information()
                 else:
-                    sk = pygame.key.name(event.key)
-                    if len(sk) == 1:
-                        self.current_line.append(sk)
-                    elif sk == "space":
-                        self.current_line.append(" ")
+                    if len(event.unicode) == 1:
+                        self.current_line.append(event.unicode)
 
     def __create_tab_information(self):
         commands = str(self.current_line).split(" ")
@@ -510,7 +507,7 @@ class Line:
 
     def __get_render_str(self, blinker, header):
         if blinker:
-            t = "{}{}_{}".format(header, self.text[:self.line_location + len(header)],self.text[self.line_location + len(header) + 1:])
+            t = "{}{}_{}".format(header, self.text[:self.line_location],self.text[self.line_location + 1:])
         else:
             t = "{}{}".format(header, self.text)
         #if line is bigger then max of screen seperate the words and put them on separate lines
@@ -562,4 +559,3 @@ class Line:
 
     def copy(self):
         return Line(text=self.text, color=self.color)
-        

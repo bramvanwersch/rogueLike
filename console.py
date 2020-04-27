@@ -51,14 +51,14 @@ class Console:
 
     def __update_tree(self):
         #function for things in the tree that need updating. Mostly enemies that change per room.
-        self.command_tree["set"]["enemies"] = {str(enemie): self.__create_attribute_tree(enemie, enemie.attributes(), func = "attributes") for enemie in self.stage.enemy_sprite_group.sprites()}
-        self.command_tree["print"]["enemies"] = {str(enemie): self.__create_attribute_tree(enemie, vars(enemie)) for enemie in self.stage.enemy_sprite_group.sprites()}
+        self.command_tree["set"]["room_entities"] = {str(enemie): self.__create_attribute_tree(enemie, enemie.attributes(), func = "attributes") for enemie in self.stage.room_group.sprites()}
+        self.command_tree["print"]["room_entities"] = {str(enemie): self.__create_attribute_tree(enemie, vars(enemie)) for enemie in self.stage.room_group.sprites()}
 
     def __create_set_tree(self):
         tree = {}
         tree["game_rule"] = self.__create_attribute_tree(game_rules, game_rules.attributes(), func = "attributes")
         tree["player"] = self.__create_attribute_tree(self.screen.player, self.screen.player.attributes(), func = "attributes")
-        tree["enemies"] = {str(enemie): self.__create_attribute_tree(enemie, enemie.attributes(), func = "attributes") for enemie in self.stage.enemy_sprite_group.sprites()}
+        tree["room_entities"] = {str(enemie): self.__create_attribute_tree(enemie, enemie.attributes(), func = "attributes") for enemie in self.stage.room_group.sprites()}
         #assumes all class variables are upper case and no methods are.
         tree["entities"] = self.__get_class_variables(entities)
         return tree
@@ -67,7 +67,7 @@ class Console:
         tree = {}
         tree["game_rule"] = self.__create_attribute_tree(game_rules, vars(game_rules))
         tree["player"] = self.__create_attribute_tree(self.screen.player, vars(self.screen.player).keys())
-        tree["enemies"] = {str(enemie): self.__create_attribute_tree(enemie, vars(enemie)) for enemie in self.stage.enemy_sprite_group.sprites()}
+        tree["room_entities"] = {str(enemie): self.__create_attribute_tree(enemie, vars(enemie)) for enemie in self.stage.room_group.sprites()}
         tree["entities"] = self.__get_class_variables(entities)
         tree["stage"] = self.__create_attribute_tree(self.stage, vars(self.stage))
         return tree
@@ -121,8 +121,8 @@ class Console:
             self.__execute(game_rules, commands)
         elif commands[1] == "player":
             self.__execute(self.screen.player, commands)
-        elif commands[1] == "enemies":
-            for e in self.stage.enemy_sprite_group.sprites():
+        elif commands[1] == "room_entities":
+            for e in self.stage.room_group.sprites():
                 if str(e) == commands[2]:
                     enemie = e
                     break
@@ -136,7 +136,7 @@ class Console:
         elif commands[1] == "stage":
             self.__execute(self.stage, commands)
         else:
-            self.main_sprite.add_error_message("Unknown FROM location. Choose one of the following: game_rule, player, enemys, entities")
+            self.main_sprite.add_error_message("Unknown FROM location. Choose one of the following: game_rule, player, room_entities, entities")
 
     def __execute(self, target, commands, from_l = 1):
         for i, name in enumerate(commands[1 + from_l:-1]):

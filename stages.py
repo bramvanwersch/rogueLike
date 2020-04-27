@@ -9,6 +9,7 @@ class BasicStage:
         self.interacting_group = pygame.sprite.Group()
         self.transition_group = pygame.sprite.Group()
         self.enemy_sprite_group = pygame.sprite.Group()
+        self.room_group = pygame.sprite.Group()
         # self.weapons = weapons
         self.updater = updater
         self.player = player
@@ -79,7 +80,7 @@ class BasicStage:
                     elif tile.coord[1] == self.current_room.tiles.size[1] - 1:
                         topleft[0] -= (tis.width - constants.TILE_SIZE[0])* 0.5
                         topleft[1] -= tis.height - constants.TILE_SIZE[1]
-                    entities.InteractingEntity(topleft, self.player, self.updater, self.transition_group, self.interacting_group,
+                    entities.InteractingEntity(topleft, self.player, self.updater, self.transition_group, self.interacting_group, self.room_group,
                                action=self.action, visible = [True, True], image = self.animation_images[0][0],
                                interactable=False, trigger_cooldown=[30,30],
                                animation=utilities.Animation(*self.animation_images, repetition=1, speed = 7))
@@ -90,15 +91,9 @@ class BasicStage:
                 self.add_enemy(*enemie)
 
     def __remove_sprites(self):
-        for sprite in self.interacting_group.sprites():
+        for sprite in self.room_group.sprites():
             sprite.dead = True
-        self.interacting_group.empty()
-        for sprite in self.transition_group.sprites():
-            sprite.dead = True
-        self.transition_group.empty()
-        #remove all enemie sprites to be sure.
-        for sprite in self.enemy_sprite_group.sprites():
-            sprite.dead = True
+        self.room_group.empty()
 
     def get_random_weapons(self, amnt = 1):
         weapons = []
@@ -107,16 +102,16 @@ class BasicStage:
         return weapons
 
     def add_enemy(self, name, pos):
-        if name == "red square":
-            entities.RedSquare(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group)
-        elif name == "bad bat":
-            entities.BadBat(pos, self.player, self.current_room.tiles, self.updater,self.enemy_sprite_group)
+        if name == "red_square":
+            entities.RedSquare(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
+        elif name == "bad_bat":
+            entities.BadBat(pos, self.player, self.current_room.tiles, self.updater,self.enemy_sprite_group, self.room_group)
         elif name == "dummy":
-            entities.TestDummy(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group)
+            entities.TestDummy(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
         elif name == "archer":
-            entities.Archer(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group)
-        elif name == "bush man":
-            entities.BushMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group)
+            entities.Archer(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
+        elif name == "bush_man":
+            entities.BushMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
         elif game_rules.warnings:
             print("Warning unknown enemy: "+ name)
 
@@ -136,8 +131,8 @@ class ForestStage(BasicStage):
         self.animation_images = list(zip(imgs, fimgs))
         self.stage_rooms_map = game_map.build_map((5, 5), solid_tile_weights = [8, 2], background_images = background_images,
                                         tile_images = tile_images, props = props, solid_tile_names = ["forest", "lake"],
-                                        enemies = [["red square", entities.RedSquare.SIZE], ["bad bat",entities.BadBat.SIZE],
-                                                   ["archer",entities.Archer.SIZE],["bush man", entities.BushMan.SIZE]],
+                                        enemies = [["red_square", entities.RedSquare.SIZE], ["bad_bat",entities.BadBat.SIZE],
+                                                   ["archer",entities.Archer.SIZE],["bush_man", entities.BushMan.SIZE]],
                                         spawn_weights = [1,2,1,4],spawn_amnt_range = [1,5])
         BasicStage.__init__(self, updater, player, **kwargs)
 
