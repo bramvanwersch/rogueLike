@@ -348,8 +348,8 @@ class WeaponDisplay(DynamicSurface):
         return image
 
 class ConsoleWindow(DynamicSurface):
-    INNITIAL_KEY_REPEAT_SPEED = 200
-    KEY_REPEAT_SPEED = 20
+    INNITIAL_KEY_REPEAT_SPEED = 180
+    KEY_REPEAT_SPEED = 15
     def __init__(self, rect, **kwargs):
         DynamicSurface.__init__(self, rect, background_color = (75, 75, 75), **kwargs)
         self.text_log = TextLog()
@@ -361,7 +361,7 @@ class ConsoleWindow(DynamicSurface):
         self.process_line = self.current_line
         self.command_tree = None
         self.pressed_keys = {key : False for key in constants.KEYBOARD_KEYS}
-        self.active_keys = []
+        self.active_key = None
         #innitial, actual
         self.key_repeat_speed = [0,0]
 
@@ -374,11 +374,12 @@ class ConsoleWindow(DynamicSurface):
             if event.type == KEYDOWN:
                 self.pressed_keys[event.key] = True
                 if len(event.unicode) == 1:
-                    self.active_keys.append(event.unicode)
+                    self.active_key = event.unicode
                 self.key_repeat_speed = [self.INNITIAL_KEY_REPEAT_SPEED, 0]
             if event.type == KEYUP:
+                unpressed_char = self.pressed_keys[event.key]
+                self.active_key = None
                 self.pressed_keys[event.key] = False
-                self.active_keys = []
         if self.key_repeat_speed[1] <= 0:
             self.key_repeat_speed[1] = self.KEY_REPEAT_SPEED
             if self.pressed_keys[K_BACKSPACE]:
@@ -401,14 +402,13 @@ class ConsoleWindow(DynamicSurface):
             elif self.pressed_keys[K_TAB]:
                 self.__create_tab_information()
             else:
-                if self.active_keys:
-                    self.current_line.append("".join(self.active_keys))
+                if self.active_key:
+                    self.current_line.append(self.active_key)
         else:
             if self.key_repeat_speed[0] > 0:
                 self.key_repeat_speed[0] -= constants.GAME_TIME.get_time()
             elif self.key_repeat_speed[1] > 0:
                 self.key_repeat_speed[1] -= constants.GAME_TIME.get_time()
-
 
     def __create_tab_information(self):
         commands = str(self.current_line).split(" ")
