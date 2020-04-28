@@ -348,6 +348,8 @@ class WeaponDisplay(DynamicSurface):
         return image
 
 class ConsoleWindow(DynamicSurface):
+    INNITIAL_KEY_REPEAT_SPEED = 200
+    KEY_REPEAT_SPEED = 20
     def __init__(self, rect, **kwargs):
         DynamicSurface.__init__(self, rect, background_color = (75, 75, 75), **kwargs)
         self.text_log = TextLog()
@@ -358,6 +360,10 @@ class ConsoleWindow(DynamicSurface):
         self.processed = True
         self.process_line = self.current_line
         self.command_tree = None
+        self.pressed_keys = {key : False for key in constants.KEYBOARD_KEYS}
+        self.active_keys = []
+        #innitial, actual
+        self.key_repeat_speed = [0,0]
 
     def update(self):
         super().update()
@@ -366,28 +372,43 @@ class ConsoleWindow(DynamicSurface):
             self.blinker_visible = [not self.blinker_visible[0], self.blinker_speed]
         for event in self.events:
             if event.type == KEYDOWN:
-                if event.key == K_BACKSPACE:
-                    if len(self.current_line) > 0:
-                        self.current_line.delete()
-                elif event.key == K_RETURN:
-                    self.text_log.append(self.current_line)
-                    self.process_line = self.current_line
-                    self.processed = False
-                    self.current_line = Line()
-                    self.text_log.location = 0
-                elif event.key == K_UP:
-                    self.current_line = self.text_log.line_up()
-                elif event.key == K_DOWN:
-                    self.current_line = self.text_log.line_down()
-                elif event.key == K_LEFT:
-                    self.current_line - 1
-                elif event.key == K_RIGHT:
-                    self.current_line + 1
-                elif event.key == K_TAB:
-                    self.__create_tab_information()
-                else:
-                    if len(event.unicode) == 1:
-                        self.current_line.append(event.unicode)
+                self.pressed_keys[event.key] = True
+                if len(event.unicode) == 1:
+                    self.active_keys.append(event.unicode)
+                self.key_repeat_speed = [self.INNITIAL_KEY_REPEAT_SPEED, 0]
+            if event.type == KEYUP:
+                self.pressed_keys[event.key] = False
+                self.active_keys = []
+        if self.key_repeat_speed[1] <= 0:
+            self.key_repeat_speed[1] = self.KEY_REPEAT_SPEED
+            if self.pressed_keys[K_BACKSPACE]:
+                if len(self.current_line) > 0:
+                    self.current_line.delete()
+            elif self.pressed_keys[K_RETURN]:
+                self.text_log.append(self.current_line)
+                self.process_line = self.current_line
+                self.processed = False
+                self.current_line = Line()
+                self.text_log.location = 0
+            elif self.pressed_keys[K_UP]:
+                self.current_line = self.text_log.line_up()
+            elif self.pressed_keys[K_DOWN]:
+                self.current_line = self.text_log.line_down()
+            elif self.pressed_keys[K_LEFT]:
+                self.current_line - 1
+            elif self.pressed_keys[K_RIGHT]:
+                self.current_line + 1
+            elif self.pressed_keys[K_TAB]:
+                self.__create_tab_information()
+            else:
+                if self.active_keys:
+                    self.current_line.append("".join(self.active_keys))
+        else:
+            if self.key_repeat_speed[0] > 0:
+                self.key_repeat_speed[0] -= constants.GAME_TIME.get_time()
+            elif self.key_repeat_speed[1] > 0:
+                self.key_repeat_speed[1] -= constants.GAME_TIME.get_time()
+
 
     def __create_tab_information(self):
         commands = str(self.current_line).split(" ")
@@ -551,7 +572,7 @@ class Line:
 
     def append(self, value):
         self.text = self.text[:self.line_location] + value + self.text[self.line_location:]
-        self.line_location += 1
+        self.line_location += len(value)
 
     def delete(self):
         self.line_location -= 1
