@@ -411,7 +411,7 @@ class ConsoleWindow(DynamicSurface):
                 self.key_repeat_speed[1] -= constants.GAME_TIME.get_time()
 
     def __create_tab_information(self):
-        commands = str(self.current_line).split(" ")
+        commands = self.__get_commands_from_line()
         possible_commands_dict = self.command_tree
         for command in commands[:-1]:
             try:
@@ -431,7 +431,8 @@ class ConsoleWindow(DynamicSurface):
         else:
             possible_commands = [key for key in possible_commands_dict.keys() if key.startswith(commands[-1])]
         if len(possible_commands) == 1:
-            self.current_line = Line(text = " ".join(commands[:-1] + possible_commands), color = self.current_line.color)
+            if not len(commands[-1]) == 0:
+                self.current_line = Line(text = str(self.current_line)[:-len(commands[-1])] + possible_commands[0], color = self.current_line.color)
         elif len(possible_commands) > 0:
             mcl = max(len(command) for command in possible_commands)
             m1 = "{:<" + str(mcl + 2) + "}"
@@ -445,7 +446,38 @@ class ConsoleWindow(DynamicSurface):
                 if not all(c.startswith(letters) for c in possible_commands):
                     letters = letters[:-1]
                     break
-            self.current_line = Line(text=" ".join(commands[:-1] + [letters]), color=self.current_line.color)
+            if not len(commands[-1]) == 0:
+                self.current_line = Line(text= str(self.current_line)[:-len(commands[-1])] + letters, color=self.current_line.color)
+
+    def __get_commands_from_line(self):
+        #disect the list structure to a list of commands to feed into the dict chain to get the list of commands for auto complete
+        word = ""
+        commands = []
+        list_multiplier = None
+        for letter in str(self.current_line):
+            if letter == " ":
+                if word != "":
+                    commands.append(word)
+                word = ""
+            elif letter == "[":
+                if word != "":
+                    commands.append(word)
+                    list_multiplier = word
+                else:
+                    list_multiplier = commands[-1]
+                word = ""
+            elif letter == "]":
+                word = ""
+                list_multiplier = commands[commands.index(list_multiplier) - 1]
+                commands = commands[:commands.index(list_multiplier) + 1]
+            elif letter == ",":
+                word = ""
+                if list_multiplier:
+                    commands = commands[:commands.index(list_multiplier) + 1]
+            else:
+                word += letter
+        commands.append(word)
+        return commands
 
     def _get_image(self):
         image = super()._get_image()
