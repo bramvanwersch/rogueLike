@@ -496,6 +496,8 @@ class TextLog:
         value.rendered_str = value.rendered_str
 
     def line_up(self):
+        if not self.user_log:
+            return Line()
         if self.location < len(self.user_log):
             self.location += 1
         return list(self.user_log.values())[-self.location].copy()
