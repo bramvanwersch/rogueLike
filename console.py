@@ -1,8 +1,8 @@
 #!/usr/bin/env python
-import os, pygame, random, inspect
+import os, pygame, random, inspect, re
 
 from constants import game_rules, GAME_TIME, DATA_DIR, SCREEN_SIZE
-import main, utilities, stages, weapon, game_images, entities
+import main, utilities, stages, weapon, game_images, entities, prop_entities
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -21,7 +21,7 @@ class Console:
         self.screen.player.inventory.add(start_weapon)
 
         self.main_sprite = self.screen.scene.event_sprite
-        self.command_tree = {"set":self.__create_set_tree(),"create":{}, "delete":{},"print":self.__create_print_tree()}
+        self.command_tree = {"set":self.__create_set_tree(),"create":self.__create_create_tree(), "delete":{},"print":self.__create_print_tree()}
         self.screen.scenes["Console"].event_sprite.command_tree = self.command_tree
         #last thing to execute no response after this
         self.run()
@@ -70,6 +70,12 @@ class Console:
         tree["room_entities"] = {str(enemie): self.__create_attribute_tree(enemie, vars(enemie)) for enemie in self.stage.room_group.sprites()}
         tree["entities"] = self.__get_class_variables(entities)
         tree["stage"] = self.__create_attribute_tree(self.stage, vars(self.stage))
+        tree["weapon"] = {key: {name: self.__create_attribute_tree(val, vars(val)) for name, val in self.weapon_parts[key].items()} for key in self.weapon_parts.keys()}
+        return tree
+
+    def __create_create_tree(self):
+        tree = {}
+        tree["weapon"] = {key: {part : False for part in self.weapon_parts[key]} for key in self.weapon_parts.keys()}
         return tree
 
     def __get_class_variables(self, module):
@@ -99,19 +105,59 @@ class Console:
         return tree
 
     def __process_commands(self, text):
-        commands = text.strip().split(" ")
-        if commands[0] == "set":
-            self.__process(commands)
-        elif commands[0] == "create":
-            self.__process_create(commands[1:])
-        elif commands[0] == "delete":
-            self.__process_delete(commands[1:])
-        elif commands[0] == "print":
-            #make sure that the last part of the command is executed.
-            self.__process(commands + [" "])
-        else:
-            self.main_sprite.add_error_message("No valid command choose one of the following: set, delete, create, print.")
-        #MOVE
+        try:
+            commands_list = self.__text_to_commands(text)
+        except ValueError as e:
+            self.main_sprite.add_error_message(str(e))
+            return
+        for commands in commands_list:
+            commands = commands.strip().split(" ")
+            if commands[0] == "set":
+                self.__process(commands)
+            elif commands[0] == "create":
+                self.__process_create(commands[1:])
+            elif commands[0] == "delete":
+                self.__process_delete(commands[1:])
+            elif commands[0] == "print":
+                #make sure that the last part of the command is executed.
+                self.__process(commands + [" "])
+            else:
+                self.main_sprite.add_error_message("No valid command choose one of the following: set, delete, create, print.")
+
+    def __text_to_commands(self, text):
+        text = text.strip()
+        lists = {}
+        if text.count("]") != text.count("["):
+            raise ValueError("Uneven amount of open and closing brackets.")
+        #first get all lists within lists
+        count = 0
+        while True:
+            matches = re.findall("\[[^\[]+?\]", text)
+            if matches:
+                for match in matches:
+                    text = text.replace(match, ",list" + str(count))
+                    lists["list" + str(count)] = match
+                    count += 1
+            else:
+                break
+        #then get all commands conveyed by those lists
+        return self.__get_command_list(text, lists)
+
+    def __get_command_list(self, text, lists):
+        text = text.split(",")
+        fl = []
+        for i in range(len(text)):
+            if text[i] in lists:
+                text[i] = self.__get_command_list(lists[text[i]][1:-1], lists)
+                for val in text[i]:
+                    combined = text[i - 1].strip() + " " + val.strip()
+                    fl.append(combined)
+                    #remove the shorter version from the final_list
+                    if text[i-1] in fl:
+                        fl.remove(text[i-1])
+            else:
+                fl.append(text[i])
+        return fl
 
     def __process(self, commands):
         if len(commands) < 3:
@@ -135,8 +181,10 @@ class Console:
             self.__execute(correct_class, commands, 2)
         elif commands[1] == "stage":
             self.__execute(self.stage, commands)
+        elif commands[1] == "weapon":
+            self.__execute(self.weapon_parts[commands[2]][commands[3]], commands, 3)
         else:
-            self.main_sprite.add_error_message("Unknown FROM location. Choose one of the following: game_rule, player, room_entities, entities")
+            self.main_sprite.add_error_message("Unknown FROM location: {}. Choose one of the following: game_rule, player, room_entities, entities".format(commands[1]))
 
     def __execute(self, target, commands, from_l = 1):
         for i, name in enumerate(commands[1 + from_l:-1]):
@@ -159,23 +207,23 @@ class Console:
                 self.main_sprite.add_error_message("{} has no attribute {}.".format(target, name))
                 break
 
-    def __convert_to_type(self, type, s, orig_value):
+    def __convert_to_type(self, type_s, s, orig_value):
         try:
-            if type is str:
+            if type_s is str:
                 return s
-            elif type is bool:
+            elif type_s is bool:
                 return self.__string_to_bool(s)
-            elif type is int:
+            elif type_s is int:
                 return int(s)
-            elif type is float:
+            elif type_s is float:
                 return float(s)
-            elif type is list:
-                return self.__string_to_list(s, orig_value)
+            elif type_s is list:
+                return self.__string_to_list(s, [type(val) for val in orig_value])
             elif game_rules.warnings:
-                print("No case for value of type {}".format(type))
+                print("No case for value of type_s {}".format(type_s))
         except ValueError as e:
             raise e
-        raise ValueError("cannot convert to type {}. No known method.".format(type))
+        raise ValueError("cannot convert to type_s {}. No known method.".format(type_s))
 
     def __string_to_bool(self, value):
         value = value.lower()
@@ -187,7 +235,7 @@ class Console:
             raise ValueError(
                 "expected a boolean to be either: true, t, false or f (case insensitive)".format(value))
 
-    def __string_to_list(self, value, orig_list):
+    def __string_to_list(self, value, types):
         """
         only a one dimensional list is expected
         """
@@ -195,9 +243,9 @@ class Console:
             raise ValueError("expected a list to be of form [val1,val2,..] or (val1,val2,..).")
         value = value.replace("[", "").replace("]", "").replace("(", "").replace(")", "")
         the_list = [val.strip() for val in value.split(",")]
-        if len(orig_list) != len(the_list):
-            raise ValueError("list is of wrong length. Expected a list of lenght {}.".format(len(orig_list)))
-        for i, val in enumerate(orig_list):
+        if len(types) != len(the_list):
+            raise ValueError("list is of wrong length. Expected a list of lenght {}.".format(len(types)))
+        for i, val in enumerate(types):
             try:
                 correct_typed_value = self.__convert_to_type(type(val), the_list[i], val)
                 the_list[i] = correct_typed_value
@@ -206,7 +254,23 @@ class Console:
         return the_list
 
     def __process_create(self, commands):
-        pass
+        if commands[1] == "weapon":
+            self.__create_weapon(commands)
+        elif commands[1] == "entity":
+            pass
+
+    def __create_weapon(self, commands):
+        if len(commands) < 3:
+            self.main_sprite.add_error_message("Expected al least 3 arguments to CREATE command [WHAT, AT, ADDITONAL].")
+            return
+        #put 2 integers in orig_list commands to ensure the list contains 2 integers.
+        try:
+            location = self.__string_to_list(commands[2], [int, int])
+        except ValueError as e:
+            self.main_sprite.add_error_message("Incorect location format: " + str(e))
+            return
+        if commands[3] == "random":
+            prop_entities.LootableWeapon(location, self.screen.player, self.get_random_weapon(), self.screen.game_sprites)
 
     def __process_delete(self, commands):
         pass
@@ -220,37 +284,39 @@ class Console:
         f = open(partsfile, "r")
         lines = f.readlines()
         f.close()
-        projectileweaponparts = {"body": [], "barrel": [], "stock": [], "magazine": [], "accesory": []}
+        body, barrel, stock, magazine, accesory = {}, {}, {}, {}, {}
+        projectileweaponparts = {"body": body, "barrel": barrel, "stock": stock, "magazine": magazine, "accesory": accesory}
         # first line is descriptors
         dictnames = list(x.strip() for x in lines[0].replace("\n", "").split(","))
         for line in lines[1:]:
             information = line.replace("\n", "").split(",")
             data = {dictnames[x]: i.strip() for x, i in enumerate(information) if i.strip()}
-            projectileweaponparts[data["part type"]].append(weapon.WeaponPart(data))
+            if data["type"] == "body":
+                body[data["name"]] = weapon.WeaponPart(data)
+            elif data["type"] == "barrel":
+                barrel[data["name"]] = weapon.WeaponPart(data)
+            elif data["type"] == "stock":
+                stock[data["name"]] = weapon.WeaponPart(data)
+            elif data["type"] == "magazine":
+                magazine[data["name"]] = weapon.WeaponPart(data)
+            elif data["type"] == "accesory":
+                accesory[data["name"]] = weapon.WeaponPart(data)
         return projectileweaponparts
 
     def get_random_weapon(self):
-        """
-        Gives a random weapon randoming from a pool of random self.weapon_parts. This is different for melee and projectile weapons
-        NOTE: projectile implementation is incomplete
-        :param parts: a dictionary of melee or projectile parts containing all available parts for a certain weaponthat can
-        be assembled into a weapon.
-        :param melee: a boolean telling if the weapon is a melee or a projectile weapon
-        :return: an instance of a weapon class.
-        """
         weapon_parts = {"body": None, "barrel": None, "stock": None, "magazine": None, "accesory": None}
         for part_group in self.weapon_parts.keys():
-            part_list = parts[part_group]
+            part_list = self.weapon_parts[part_group].values()
             weapon_parts[part_group] = random.choice(part_list)
         return weapon.Weapon(weapon_parts)
 
     def get_weapon_by_parts(self, part_names):
         weapon_parts = {"body": None, "barrel": None, "stock": None, "magazine": None, "accesory": None}
         for part_group in self.weapon_parts.keys():
-            part_list = self.weapon_parts[part_group]
-            for part in part_list:
-                if part.name.strip() == part_names[part_group]:
-                    weapon_parts[part_group] = part
+            part_list = self.weapon_parts[part_group].keys()
+            for part_name in part_list:
+                if part_name == part_names[part_group]:
+                    weapon_parts[part_group] = self.weapon_parts[part_group][part_name]
         return weapon.Weapon(weapon_parts)
 
 if __name__ == "__main__":

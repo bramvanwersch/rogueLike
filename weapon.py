@@ -133,7 +133,7 @@ class WeaponPart:
     def __init__(self, data):
         self.damage,self.reload_speed,self.fire_rate,self.weight, self.accuracy, self.magazine_size = 0,0,0,0,0,0
         self.element, self.bullet_pattern, self.bullets_per_shot = None, None, 1
-        self.type = data["part type"]
+        self.type = data["type"]
         self.name = data["name"]
         self.manufacturer = data["manufacturer"]
         loc = list(int(x) for x in data["rect"].split("-"))
