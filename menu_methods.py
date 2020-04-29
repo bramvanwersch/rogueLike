@@ -413,26 +413,38 @@ class ConsoleWindow(DynamicSurface):
     def __create_tab_information(self):
         commands = self.__get_commands_from_line()
         possible_commands_dict = self.command_tree
-        for command in commands[:-1]:
+        last_command = commands.pop(-1)
+        count = 0
+        while count < len(commands):
+            command = commands[count]
             try:
-                if possible_commands_dict[command]:
+                if type(possible_commands_dict[command]) == dict:
                     possible_commands_dict = possible_commands_dict[command]
+                    print(possible_commands_dict)
                 #hit the end of the tree so simply return nothing
+                elif type(possible_commands_dict[command]) == str:
+                    loop_loc = possible_commands_dict[command].split(" ")
+                    possible_commands_dict = self.command_tree
+                    for loc in loop_loc:
+                        possible_commands_dict = possible_commands_dict[loc ]
                 else:
                     return
             except KeyError:
                 return
-        if commands[-1] == "":
+            count += 1
+        if last_command == "":
             possible_commands = list(possible_commands_dict.keys())
         #if it ends on a perfect command simply add a space to the line
-        elif commands[-1] in possible_commands_dict.keys():
+        elif last_command in possible_commands_dict.keys():
             self.current_line.append(" ")
             return
         else:
-            possible_commands = [key for key in possible_commands_dict.keys() if key.startswith(commands[-1])]
+            possible_commands = [key for key in possible_commands_dict.keys() if key.startswith(last_command)]
         if len(possible_commands) == 1:
-            if not len(commands[-1]) == 0:
-                self.current_line = Line(text = str(self.current_line)[:-len(commands[-1])] + possible_commands[0], color = self.current_line.color)
+            if len(last_command) == 0:
+                self.current_line = Line(text = str(self.current_line) + possible_commands[0], color = self.current_line.color)
+            else:
+                self.current_line = Line(text=str(self.current_line)[:-len(last_command)] + possible_commands[0], color=self.current_line.color)
         elif len(possible_commands) > 0:
             mcl = max(len(command) for command in possible_commands)
             m1 = "{:<" + str(mcl + 2) + "}"
@@ -446,8 +458,8 @@ class ConsoleWindow(DynamicSurface):
                 if not all(c.startswith(letters) for c in possible_commands):
                     letters = letters[:-1]
                     break
-            if not len(commands[-1]) == 0:
-                self.current_line = Line(text= str(self.current_line)[:-len(commands[-1])] + letters, color=self.current_line.color)
+            if not len(last_command) == 0:
+                self.current_line = Line(text= str(self.current_line)[:-len(last_command)] + letters, color=self.current_line.color)
 
     def __get_commands_from_line(self):
         #disect the list structure to a list of commands to feed into the dict chain to get the list of commands for auto complete

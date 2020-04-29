@@ -75,7 +75,7 @@ class Console:
 
     def __create_create_tree(self):
         tree = {}
-        tree["weapon"] = {key: {part : False for part in self.weapon_parts[key]} for key in self.weapon_parts.keys()}
+        tree["weapon"] = {key: {part : "create weapon" for part in self.weapon_parts[key]} for key in self.weapon_parts.keys()}
         return tree
 
     def __get_class_variables(self, module):
@@ -263,7 +263,6 @@ class Console:
         if len(commands) < 3:
             self.main_sprite.add_error_message("Expected al least 3 arguments to CREATE command [WHAT, AT, ADDITONAL].")
             return
-        #put 2 integers in orig_list commands to ensure the list contains 2 integers.
         try:
             location = self.__string_to_list(commands[2], [int, int])
         except ValueError as e:
@@ -271,6 +270,7 @@ class Console:
             return
         if commands[3] == "random":
             prop_entities.LootableWeapon(location, self.screen.player, self.get_random_weapon(), self.screen.game_sprites)
+            print("created")
 
     def __process_delete(self, commands):
         pass
