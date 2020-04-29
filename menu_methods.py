@@ -463,13 +463,14 @@ class ConsoleWindow(DynamicSurface):
                 if word != "":
                     commands.append(word)
                     list_multiplier = word
-                else:
+                elif len(commands) >= 1:
                     list_multiplier = commands[-1]
                 word = ""
             elif letter == "]":
                 word = ""
-                list_multiplier = commands[commands.index(list_multiplier) - 1]
-                commands = commands[:commands.index(list_multiplier) + 1]
+                if list_multiplier:
+                    list_multiplier = commands[commands.index(list_multiplier) - 1]
+                    commands = commands[:commands.index(list_multiplier) + 1]
             elif letter == ",":
                 word = ""
                 if list_multiplier:
