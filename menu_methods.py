@@ -420,8 +420,6 @@ class ConsoleWindow(DynamicSurface):
             try:
                 if type(possible_commands_dict[command]) == dict:
                     possible_commands_dict = possible_commands_dict[command]
-                    print(possible_commands_dict)
-                #hit the end of the tree so simply return nothing
                 elif type(possible_commands_dict[command]) == str:
                     loop_loc = possible_commands_dict[command].split(" ")
                     possible_commands_dict = self.command_tree

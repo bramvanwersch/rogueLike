@@ -115,9 +115,9 @@ class Console:
             if commands[0] == "set":
                 self.__process(commands)
             elif commands[0] == "create":
-                self.__process_create(commands[1:])
+                self.__process_create(commands)
             elif commands[0] == "delete":
-                self.__process_delete(commands[1:])
+                self.__process_delete(commands)
             elif commands[0] == "print":
                 #make sure that the last part of the command is executed.
                 self.__process(commands + [" "])
@@ -254,23 +254,28 @@ class Console:
         return the_list
 
     def __process_create(self, commands):
-        if commands[1] == "weapon":
-            self.__create_weapon(commands)
-        elif commands[1] == "entity":
-            pass
+        try:
+            if commands[1] == "weapon":
+                self.__create_weapon(commands)
+            elif commands[1] == "entity":
+                pass
+        except ValueError as e:
+            self.main_sprite.add_error_message(str(e))
 
     def __create_weapon(self, commands):
-        if len(commands) < 3:
-            self.main_sprite.add_error_message("Expected al least 3 arguments to CREATE command [WHAT, AT, ADDITONAL].")
+        weapon_parts = {"body": None, "barrel": None, "stock": None, "magazine": None, "accesory": None}
+        #no weapon parts specified
+        if len(commands) == 2:
+            prop_entities.LootableWeapon(self.screen.player.rect.topleft, self.screen.player, self.get_random_weapon(), self.screen.game_sprites)
             return
-        try:
-            location = self.__string_to_list(commands[2], [int, int])
-        except ValueError as e:
-            self.main_sprite.add_error_message("Incorect location format: " + str(e))
-            return
-        if commands[3] == "random":
-            prop_entities.LootableWeapon(location, self.screen.player, self.get_random_weapon(), self.screen.game_sprites)
-            print("created")
+        weapon_parts = {"body": "Random", "barrel": "Random", "stock": "Random", "magazine": "Random", "accesory": "Random"}
+        if commands % 2 != 0:
+            raise ValueError("When specifying a weapon part also specify the name.")
+        for i in range(2, len(commands), 2):
+            part = commands[i]
+            part_name = commands[i+1]
+            weapon_parts[part] = part_name
+        prop_entities.LootableWeapon(self.screen.player.rect.topleft, self.screen.player, self.get_weapon_by_parts(weapon_parts), self.screen.game_sprites)
 
     def __process_delete(self, commands):
         pass
@@ -306,17 +311,19 @@ class Console:
     def get_random_weapon(self):
         weapon_parts = {"body": None, "barrel": None, "stock": None, "magazine": None, "accesory": None}
         for part_group in self.weapon_parts.keys():
-            part_list = self.weapon_parts[part_group].values()
+            part_list = list(self.weapon_parts[part_group].values())
             weapon_parts[part_group] = random.choice(part_list)
         return weapon.Weapon(weapon_parts)
 
     def get_weapon_by_parts(self, part_names):
         weapon_parts = {"body": None, "barrel": None, "stock": None, "magazine": None, "accesory": None}
-        for part_group in self.weapon_parts.keys():
-            part_list = self.weapon_parts[part_group].keys()
-            for part_name in part_list:
-                if part_name == part_names[part_group]:
-                    weapon_parts[part_group] = self.weapon_parts[part_group][part_name]
+        print(part_names, self.weapon_parts)
+        for part, item_name in part_names.items():
+            if item_name == "Random":
+                part_list = list(self.weapon_parts[part].values())
+                weapon_parts[part] = random.choice(part_list)
+            else:
+                weapon_parts[part] = self.weapon_parts[part][item_name]
         return weapon.Weapon(weapon_parts)
 
 if __name__ == "__main__":
