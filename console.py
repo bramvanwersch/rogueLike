@@ -60,7 +60,7 @@ class Console:
         tree["player"] = self.__create_attribute_tree(self.screen.player, self.screen.player.attributes(), func = "attributes")
         tree["room_entities"] = {str(enemie): self.__create_attribute_tree(enemie, enemie.attributes(), func = "attributes") for enemie in self.stage.room_group.sprites()}
         #assumes all class variables are upper case and no methods are.
-        tree["entities"] = self.__get_class_variables(entities)
+        tree["entities"] = self.__get_class_variables(entities, prop_entities)
         return tree
 
     def __create_print_tree(self):
@@ -68,7 +68,7 @@ class Console:
         tree["game_rule"] = self.__create_attribute_tree(game_rules, vars(game_rules))
         tree["player"] = self.__create_attribute_tree(self.screen.player, vars(self.screen.player).keys())
         tree["room_entities"] = {str(enemie): self.__create_attribute_tree(enemie, vars(enemie)) for enemie in self.stage.room_group.sprites()}
-        tree["entities"] = self.__get_class_variables(entities)
+        tree["entities"] = self.__get_class_variables(entities, prop_entities)
         tree["stage"] = self.__create_attribute_tree(self.stage, vars(self.stage))
         tree["weapon"] = {key: {name: self.__create_attribute_tree(val, vars(val)) for name, val in self.weapon_parts[key].items()} for key in self.weapon_parts.keys()}
         return tree
@@ -76,17 +76,19 @@ class Console:
     def __create_create_tree(self):
         tree = {}
         tree["weapon"] = {key: {part : "create weapon" for part in self.weapon_parts[key]} for key in self.weapon_parts.keys()}
+        tree["entity"] = self.__get_class_variables(entities, prop_entities)
         return tree
 
-    def __get_class_variables(self, module):
+    def __get_class_variables(self, *modules):
         ent_dict = {}
-        for name in inspect.getmembers(module, inspect.isclass):
-            class_varaibles = {}
-            for val in dir(name[1]):
-                if val.isupper():
-                    class_varaibles[val] = False
-            if len(class_varaibles) > 0:
-                ent_dict[name[0]] = class_varaibles
+        for module in modules:
+            for name in inspect.getmembers(module, inspect.isclass):
+                class_varaibles = {}
+                for val in dir(name[1]):
+                    if val.isupper():
+                        class_varaibles[val] = False
+                if len(class_varaibles) > 0:
+                    ent_dict[name[0]] = class_varaibles
         return ent_dict
 
     def __create_attribute_tree(self, target, attributes, func = None):
@@ -256,26 +258,24 @@ class Console:
     def __process_create(self, commands):
         try:
             if commands[1] == "weapon":
-                self.__create_weapon(commands)
+                name = self.__create_weapon(commands)
+                self.main_sprite.add_conformation_message("The following weapon was created: {}".format(name))
             elif commands[1] == "entity":
                 pass
         except ValueError as e:
             self.main_sprite.add_error_message(str(e))
 
     def __create_weapon(self, commands):
-        weapon_parts = {"body": None, "barrel": None, "stock": None, "magazine": None, "accesory": None}
-        #no weapon parts specified
-        if len(commands) == 2:
-            prop_entities.LootableWeapon(self.screen.player.rect.topleft, self.screen.player, self.get_random_weapon(), self.screen.game_sprites)
-            return
         weapon_parts = {"body": "Random", "barrel": "Random", "stock": "Random", "magazine": "Random", "accesory": "Random"}
-        if commands % 2 != 0:
+        if len(commands) % 2 != 0:
             raise ValueError("When specifying a weapon part also specify the name.")
         for i in range(2, len(commands), 2):
             part = commands[i]
             part_name = commands[i+1]
             weapon_parts[part] = part_name
-        prop_entities.LootableWeapon(self.screen.player.rect.topleft, self.screen.player, self.get_weapon_by_parts(weapon_parts), self.screen.game_sprites)
+        weapon = self.get_weapon_by_parts(weapon_parts)
+        prop_entities.LootableWeapon(self.screen.player.rect.center, self.screen.player, weapon, self.screen.game_sprites)
+        return str(weapon)
 
     def __process_delete(self, commands):
         pass
@@ -317,9 +317,8 @@ class Console:
 
     def get_weapon_by_parts(self, part_names):
         weapon_parts = {"body": None, "barrel": None, "stock": None, "magazine": None, "accesory": None}
-        print(part_names, self.weapon_parts)
         for part, item_name in part_names.items():
-            if item_name == "Random":
+            if item_name in ["Random", None, ""] :
                 part_list = list(self.weapon_parts[part].values())
                 weapon_parts[part] = random.choice(part_list)
             else:

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # Import Modules
-import pygame
+import pygame, numpy
 
 import constants
 import utilities, entities, manufacturers
@@ -12,6 +12,7 @@ class Weapon:
     def __init__(self, parts):
         #default pos will need to be assigned when relevant
         self.parts = parts
+        self.name = self.__name()
         self.image = self.__create_weapon_image()
         self.font25 = pygame.font.Font(constants.DATA_DIR + "//Menu//font//manaspc.ttf", 25)
         self.damage, self.reload_speed, self.fire_rate, self.weight, self.accuracy, self.magazine_size = self.__calculate_stats()
@@ -20,6 +21,14 @@ class Weapon:
         self.inventory_text = self.__create_inventory_text()
         self.magazine = self.magazine_size
         self.reloading = False
+
+    def __name(self):
+        start = str(self.parts["accesory"])
+        middle = "{}{}".format(str(self.parts["body"]),str(self.parts["barrel"]))
+        #use numpy random to allow to set seed while not resetting the current seed.
+        numpy.random.seed(sum(ord(let) for let in str(self.parts["stock"]) + str(self.parts["magazine"])))
+        last = numpy.random.choice(["shooter","blaster","boomer","boomstick","noodle","gun","cannon","shooting iron","weapon","rifle"])
+        return "{}{}{}".format(start, middle, last)
 
     def __create_weapon_image(self):
         """
@@ -129,6 +138,9 @@ class Weapon:
             self.magazine = self.magazine_size
             self.reloading = False
 
+    def __str__(self):
+        return self.name
+
 class WeaponPart:
     def __init__(self, data):
         self.damage,self.reload_speed,self.fire_rate,self.weight, self.accuracy, self.magazine_size = 0,0,0,0,0,0
@@ -172,3 +184,6 @@ class WeaponPart:
             if "contact" + key in data:
                 #save the average since this is what is going to be used anyway.
                 self.contact_points[i] = round(sum(int(x) for x in data["contact" + key].split("-")) / 2)
+
+    def __str__(self):
+        return str(self.name.replace("_"," ").replace(self.type, ""))
