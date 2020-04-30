@@ -76,7 +76,7 @@ class Console:
     def __create_create_tree(self):
         tree = {}
         tree["weapon"] = {key: {part : "create weapon" for part in self.weapon_parts[key]} for key in self.weapon_parts.keys()}
-        tree["entity"] = self.__get_class_variables(entities, prop_entities)
+        tree["entity"] = {class_name[0]: False for module in [entities, prop_entities] for class_name in inspect.getmembers(module, inspect.isclass)   }
         return tree
 
     def __get_class_variables(self, *modules):
@@ -113,7 +113,6 @@ class Console:
             self.main_sprite.add_error_message(str(e))
             return
         for commands in commands_list:
-            print(commands)
             commands = commands.strip().split(" ")
             if commands[0] == "set":
                 self.__process(commands)
@@ -172,17 +171,25 @@ class Console:
         elif commands[1] == "player":
             self.__execute(self.screen.player, commands)
         elif commands[1] == "room_entities":
+            enemie = None
             for e in self.stage.room_group.sprites():
                 if str(e) == commands[2]:
                     enemie = e
                     break
-            self.__execute(enemie, commands, 2)
+            if enemie:
+                self.__execute(enemie, commands, 2)
+            else:
+                self.main_sprite.add_error_message("Unknown enemy {}.".format(commands[2]))
         elif commands[1] == "entities":
+            correct_class = None
             for c in inspect.getmembers(entities, inspect.isclass):
                 if c[0] == commands[2]:
                     correct_class = c[1]
                     break
-            self.__execute(correct_class, commands, 2)
+            if correct_class:
+                self.__execute(correct_class, commands, 2)
+            else:
+                self.main_sprite.add_error_message("Unknown entity class {}.".format(commands[2]))
         elif commands[1] == "stage":
             self.__execute(self.stage, commands)
         elif commands[1] == "weapon":
@@ -283,7 +290,6 @@ class Console:
         self.main_sprite.add_conformation_message("The following weapon was created: {}".format(str(weapon)))
 
     def __create_entity(self, commands):
-        print(commands)
         if len(commands) < 4:
             raise ValueError("Expected at least 4 commands CREATE WHAT NAME LOCATION.")
         try:
@@ -291,6 +297,7 @@ class Console:
         except ValueError as e:
             raise ValueError("Incorrect location format. {}".format(str(e)))
         self.stage.add_enemy(commands[2], location)
+        self.main_sprite.add_conformation_message("Added entity {} at x:{} y:{}".format(commands[2], *location))
 
     def __process_delete(self, commands):
         pass
