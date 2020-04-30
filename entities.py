@@ -393,8 +393,8 @@ class TestDummy(Enemy):
         image = image_sheets["enemies"].image_at((0, 48), scale = self.SIZE, size = (16, 32), color_key = (255, 255, 255))
         Enemy.__init__(self, pos, player, *groups, health = self.HEALTH, health_regen = self.HEALTH_REGEN, speed = self.SPEED, tiles = tiles, image = image)
 
-class Archer(Enemy):
-    SIZE = (60,120)
+class BlowMan(Enemy):
+    SIZE = (70,140)
     PROJECTILE_SIZE = (50,25)
     SHOOT_PLAYER_DISTANCE = 600
     SHOOTING_COOLDOWN = 50
@@ -404,12 +404,13 @@ class Archer(Enemy):
         self.arrow = image_sheets["enemies"].image_at((0, 0), scale = self.PROJECTILE_SIZE, color_key = (255, 255, 255))
         Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = self.SPEED, image = image)
         #make sure path is calculated at start of creation
+        self.shooting_animation = animations["attack_BlowMan"].copy()
+        self.shooting_animation.set_speed(int(self.SHOOTING_COOLDOWN / len(self.shooting_animation.animation_images)))
         self.passed_frames = random.randint(0,60)
         self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
         self.move_tile = self.path.pop(-1)
         self.shooting = False
         #current max
-        self.shooting_cooldown = [self.SHOOTING_COOLDOWN, self.SHOOTING_COOLDOWN]
         self.shoot_player_distance = self.SHOOT_PLAYER_DISTANCE
         self.collision = True
         self.vision_line = []
@@ -420,21 +421,25 @@ class Archer(Enemy):
         for p in self.projectiles:
             if p.dead:
                 self.projectiles.remove(p)
-        if self.shooting and self.shooting_cooldown[0] <= 0:
-            #update animation
-            # self.shooting_animation.update()
-            # if self.shooting_animation.cycles > 0:
-            self.shooting = False
-            try:
-                self.projectiles.append(EnemyProjectile(self.rect.center, self.player.rect.center, self.player,
-                                                    super().groups()[0], size = [50, 10],tiles = self.tiles, speed = 20,
-                                                    image = self.arrow, bounding_size=[10,10], damage = 10))
-            except IndexError:
-                #happens when the projectile is spawned same frame as the enemy dies just skip IK bad practice
-                pass
-            self.shooting_cooldown[0] = self.shooting_cooldown[1]
-        elif self.shooting_cooldown[0] > 0:
-            self.shooting_cooldown[0] -= 1
+        if self.shooting:
+            if self.shooting_animation.finished:
+                try:
+                    self.projectiles.append(EnemyProjectile(self.rect.center, self.player.rect.center, self.player,
+                                                        super().groups()[0], size = [50, 10],tiles = self.tiles, speed = 20,
+                                                        image = self.arrow, bounding_size=[10,10], damage = 10))
+                except IndexError:
+                    #happens when the projectile is spawned same frame as the enemy dies just skip IK bad practice
+                    pass
+                self.shooting = False
+                self.shooting_animation.reset()
+        self.__run_animations()
+
+    def __run_animations(self):
+        if self.shooting:
+            self.shooting_animation.update()
+            self.change_image(self.shooting_animation.image)
+        else:
+            self.change_image([self.orig_image, self.flipped_image])
 
     def _use_brain(self):
         if not self.move_tile:

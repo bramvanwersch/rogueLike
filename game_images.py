@@ -46,6 +46,10 @@ def load():
     animations["idle_Player"] = MarkedAnimation(idle_images_player[0], idle_images_player[1], idle_images_player[2], idle_images_player[3],idle_images_player[3], idle_images_player[2], idle_images_player[1], idle_images_player[0],speed=40, marked_frames=[2, 3, 4, 5], repetition=1)
     animations["dead_Player"] = MarkedAnimation(*dead_images_player, marked_frames=[3, 4, 5, 6, 7, 8, 9, 10])
 
+    #blowMan
+    attack_imgs_archer = image_sheets["enemies"].images_at_rectangle((0,16,48,32), size=(16,32), color_key=(255,255,255), scale=entities.BlowMan.SIZE)
+    animations["attack_BlowMan"] = Animation(attack_imgs_archer[0],attack_imgs_archer[1],attack_imgs_archer[0],attack_imgs_archer[2], speed = 20, repetition = 1)
+
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)
     try:
@@ -129,11 +133,7 @@ class Animation:
         else:
             flipped_images = [pygame.transform.flip(img, True, False) for img in images]
             self.animation_images = list(zip(images, flipped_images))
-        if isinstance(speed, list):
-            assert len(speed) == len(self.animation_images)
-            self.speed = speed
-        else:
-            self.speed = [speed]* len(self.animation_images)
+        self.set_speed(speed)
         self.frame_count = 0
         self.start_frame = start_frame
         self.__set_current_frame()
@@ -176,6 +176,13 @@ class Animation:
         self.image = self.animation_images[0]
         self.cycles = 0
         self.finished = False
+
+    def set_speed(self, speed):
+        if isinstance(speed, list):
+            assert len(speed) == len(self.animation_images)
+            self.speed = speed
+        else:
+            self.speed = [speed]* len(self.animation_images)
 
     def copy(self):
         return Animation(*self.animation_images, speed = self.speed, repetition=self.repetition, start_frame=self.start_frame)

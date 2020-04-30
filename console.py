@@ -230,6 +230,8 @@ class Console:
                 return float(s)
             elif type_s is list:
                 return self.__string_to_list(s, [type(val) for val in orig_value])
+            elif type_s is tuple:
+                return self.__string_to_list(s, [type(val) for val in orig_value])
             elif game_rules.warnings:
                 print("No case for value of type_s {}".format(type_s))
         except ValueError as e:
