@@ -97,3 +97,4 @@ PATH_NAMES = ["only_left","only_bottom","only_top","only_right",
               "bottom_top_open", "left_right_open","middle",
               "left_straight","right_straight","top_straight", "bottom_straight"]
 GAME_TIME = pygame.time.Clock()
+PLAYER_SIZE = (60,120)

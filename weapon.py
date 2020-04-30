@@ -4,7 +4,7 @@ import pygame, numpy
 
 import constants
 import utilities, entities, manufacturers
-from game_images import sheets
+from game_images import image_sheets
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -149,7 +149,7 @@ class WeaponPart:
         self.name = data["name"]
         self.manufacturer = data["manufacturer"]
         loc = list(int(x) for x in data["rect"].split("-"))
-        self.image = sheets["weapons"].image_at((loc[0],loc[1]), color_key= (255,255,255), size = (loc[2], loc[3]))
+        self.image = image_sheets["weapons"].image_at((loc[0], loc[1]), color_key= (255, 255, 255), size = (loc[2], loc[3]))
         self.rect = self.image.get_rect()
         self.__set_data_values(data)
         if "bullets per shot" in data:

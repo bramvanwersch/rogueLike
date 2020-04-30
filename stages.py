@@ -1,8 +1,10 @@
 import pygame, random
 from pygame.locals import *
+
+import game_images
 import utilities, entities, game_map, prop_entities, constants
 from constants import game_rules
-from game_images import sheets
+from game_images import image_sheets
 
 class BasicStage:
     def __init__(self, updater, player, weapons = []):
@@ -81,9 +83,9 @@ class BasicStage:
                         topleft[0] -= (tis.width - constants.TILE_SIZE[0])* 0.5
                         topleft[1] -= tis.height - constants.TILE_SIZE[1]
                     entities.InteractingEntity(topleft, self.player, self.updater, self.transition_group, self.interacting_group, self.room_group,
-                               action=self.action, visible = [True, True], image = self.animation_images[0][0],
-                               interactable=False, trigger_cooldown=[30,30],
-                               animation=utilities.Animation(*self.animation_images, repetition=1, speed = 7))
+                                               action=self.action, visible = [True, True], image = self.animation_images[0][0],
+                                               interactable=False, trigger_cooldown=[30,30],
+                                               animation=game_images.Animation(*self.animation_images, repetition=1, speed = 7))
             elif game_rules.warnings:
                 print("Interacting tile with no interaction specified!!!")
         if not game_rules.peacefull and not self.current_room.finished:
@@ -117,16 +119,16 @@ class BasicStage:
 
 class ForestStage(BasicStage):
     def __init__(self, updater, player, **kwargs):
-        background_images = sheets["forest"].images_at((208,16),(224,16),(240,16), (0,32), scale = (100,100))
-        forest_images = sheets["forest"].images_at_rectangle((0,0,256,16), (0,16,208,16), (32,80,112,16), scale = (100,100))
-        lake_images = sheets["forest"].images_at_rectangle((0,48,256,16), (0,64,208,16), (144,80,112,16), scale = (100,100))
-        path_images = sheets["forest"].images_at_rectangle((0,96,240,16), scale = (100,100))
+        background_images = image_sheets["forest"].images_at((208, 16), (224, 16), (240, 16), (0, 32), scale = (100, 100))
+        forest_images = image_sheets["forest"].images_at_rectangle((0, 0, 256, 16), (0, 16, 208, 16), (32, 80, 112, 16), scale = (100, 100))
+        lake_images = image_sheets["forest"].images_at_rectangle((0, 48, 256, 16), (0, 64, 208, 16), (144, 80, 112, 16), scale = (100, 100))
+        path_images = image_sheets["forest"].images_at_rectangle((0, 96, 240, 16), scale = (100, 100))
         fd = {name + "_forest": forest_images[i] for i, name in enumerate(constants.TILE_NAMES)}
         ld = {name + "_lake": lake_images[i] for i, name in enumerate(constants.TILE_NAMES)}
         pd = {name + "_path": path_images[i] for i, name in enumerate(constants.PATH_NAMES)}
         tile_images = {**fd, **ld, **pd}
-        props = sheets["forest"].images_at_rectangle((16,32,160,16), scale = (100,100))
-        imgs = sheets["forest"].images_at_rectangle((0,112,256,32), size = (32,32), scale = (130,130), color_key= (255,255,255))
+        props = image_sheets["forest"].images_at_rectangle((16, 32, 160, 16), scale = (100, 100))
+        imgs = image_sheets["forest"].images_at_rectangle((0, 112, 256, 32), size = (32, 32), scale = (130, 130), color_key= (255, 255, 255))
         fimgs = [pygame.transform.flip(img, True, False) for img in imgs]
         self.animation_images = list(zip(imgs, fimgs))
         self.stage_rooms_map = game_map.build_map((5, 5), solid_tile_weights = [8, 2], background_images = background_images,

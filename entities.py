@@ -1,6 +1,8 @@
 import pygame, random, math
+
+import game_images
 import utilities, constants, trajectories
-from game_images import sheets
+from game_images import image_sheets, animations
 
 class Entity(pygame.sprite.Sprite):
     def __init__(self, pos, *groups, visible = [True,True], **kwargs):
@@ -310,7 +312,7 @@ class RedSquare(Enemy):
     SIZE = (50,50)
     SPEED = 5
     def __init__(self, pos, player, tiles, *groups):
-        image = sheets["enemies"].image_at((240,0), scale = self.SIZE)
+        image = image_sheets["enemies"].image_at((240, 0), scale = self.SIZE)
         Enemy.__init__(self, pos, player, *groups, speed = self.SPEED, tiles = tiles, image = image)
         #make sure path is calculated at start of creation
         self.passed_frames = random.randint(0,60)
@@ -338,10 +340,7 @@ class BadBat(Enemy):
     SIZE = (100,50)
     SPEED = 4
     def __init__(self, pos, player,tiles, *groups):
-        animation_images = sheets["enemies"].images_at_rectangle((16,0,224,16), scale = self.SIZE, size = (32,16),
-                                                                 color_key = (255,255,255))
-        animation_sequence = animation_images + animation_images[::-1]
-        self.animation = utilities.Animation(*animation_sequence, start_frame="random")
+        self.animation = animations["move_BadBat"].copy()
         Enemy.__init__(self, pos, player, *groups, speed = self.SPEED, tiles = tiles, image = self.animation.image[0])
 
     def update(self, *args):
@@ -391,7 +390,7 @@ class TestDummy(Enemy):
     HEALTH_REGEN = 1000
     SPEED = 0
     def __init__(self, pos, player, tiles, *groups):
-        image = sheets["enemies"].image_at((0,48), scale = self.SIZE, size = (16,32), color_key = (255,255,255))
+        image = image_sheets["enemies"].image_at((0, 48), scale = self.SIZE, size = (16, 32), color_key = (255, 255, 255))
         Enemy.__init__(self, pos, player, *groups, health = self.HEALTH, health_regen = self.HEALTH_REGEN, speed = self.SPEED, tiles = tiles, image = image)
 
 class Archer(Enemy):
@@ -401,8 +400,8 @@ class Archer(Enemy):
     SHOOTING_COOLDOWN = 50
     SPEED = 4
     def __init__(self, pos, player,tiles, *groups):
-        image = sheets["enemies"].image_at((0,16), scale = self.SIZE, size = (16,32), color_key = (255,255,255))
-        self.arrow = sheets["enemies"].image_at((0,0), scale = self.PROJECTILE_SIZE, color_key = (255,255,255))
+        image = image_sheets["enemies"].image_at((0, 16), scale = self.SIZE, size = (16, 32), color_key = (255, 255, 255))
+        self.arrow = image_sheets["enemies"].image_at((0, 0), scale = self.PROJECTILE_SIZE, color_key = (255, 255, 255))
         Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = self.SPEED, image = image)
         #make sure path is calculated at start of creation
         self.passed_frames = random.randint(0,60)
@@ -485,15 +484,12 @@ class BushMan(Enemy):
     PATHING_RECALCULATING_SPEED = 30
     SPEED = 14
     def __init__(self, pos, player,tiles, *groups):
-        image = sheets["enemies"].image_at((0,80), scale = self.SIZE, size = (16,16), color_key = (255,255,255))
+        image = image_sheets["enemies"].image_at((0, 80), scale = self.SIZE, size = (16, 16), color_key = (255, 255, 255))
         Enemy.__init__(self, pos, player, *groups, image = image, tiles=tiles, speed = self.SPEED)
         self.sleeping = True
-        idle_imgs = sheets["enemies"].images_at_rectangle((16,80,96,16), scale = self.SIZE, size = (16,16), color_key = (255,255,255))
-        wake_imgs = sheets["enemies"].images_at_rectangle((112,80,48,16), scale = self.SIZE, size = (16,16),color_key = (255,255,255))
-        walk_imgs = sheets["enemies"].images_at_rectangle((160,80,48,16), scale = self.SIZE, size = (16,16),color_key = (255,255,255))
-        self.idle_animation = utilities.Animation(*idle_imgs[:4], idle_imgs[2], *idle_imgs[4:], image, speed = [50,50,30,30,30,50,50,50], repetition=1)
-        self.wake_up_animation = utilities.Animation(*idle_imgs[:3],*wake_imgs, speed = 10, repetition=1)
-        self.walking_animation = utilities.Animation(walk_imgs[0], walk_imgs[1], walk_imgs[0], walk_imgs[2], speed = 10)
+        self.idle_animation = animations["idle_BushMan"].copy()
+        self.wake_up_animation = animations["wake_BushMan"].copy()
+        self.walking_animation = animations["walk_BushMan"].copy()
         self.idle_animation.finished = True
         self.passed_frames = random.randint(0, self.PATHING_RECALCULATING_SPEED)
         self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)

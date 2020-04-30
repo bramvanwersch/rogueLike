@@ -1,7 +1,7 @@
 import pygame, random
 from pygame.locals import *
 import utilities, entities, game_map, prop_entities, constants
-from game_images import sheets
+from game_images import image_sheets
 import numpy as np
 
 MIN_LEAF_SIZE = 4

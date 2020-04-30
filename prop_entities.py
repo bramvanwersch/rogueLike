@@ -1,19 +1,19 @@
 import pygame, random
 
 import constants
-from game_images import sheets
+from game_images import image_sheets
 import entities, utilities
 
 
 class Chest(entities.InteractingEntity):
     def __init__(self, pos, player, loot, *groups):
-        image = sheets["forest"].image_at((0,80), scale = (80,80), color_key = (255,255,255))
+        image = image_sheets["forest"].image_at((0, 80), scale = (80, 80), color_key = (255, 255, 255))
         def action():
             if not self.open:
                 self.image = self.open_image
                 self.open = True
         entities.InteractingEntity.__init__(self, pos, player, *groups, image = image, action = action)
-        self.open_image = sheets["forest"].image_at((16,80), scale = (80,80), color_key = (255,255,255))
+        self.open_image = image_sheets["forest"].image_at((16, 80), scale = (80, 80), color_key = (255, 255, 255))
         self._layer = constants.MIDDLE_LAYER
         #list of loot in a chest
         self.loot = loot

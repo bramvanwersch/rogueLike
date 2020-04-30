@@ -2,32 +2,22 @@ import pygame, random, math
 import numpy as np
 from pygame.locals import *
 import entities, utilities, weapon, constants
-from game_images import sheets
+from game_images import image_sheets, animations
 from constants import *
 from entities import LivingEntity
 
 class Player(LivingEntity):
-    SIZE = (60,120)
+    SIZE = PLAYER_SIZE
     def __init__(self, pos, *groups):
-        idle_image = sheets["player"].image_at((0,0), color_key = (255,255,255), scale = self.SIZE)
+        idle_image = image_sheets["player"].image_at((0, 0), color_key = (255, 255, 255), scale = self.SIZE)
         LivingEntity.__init__(self, pos,damage=5, image = idle_image)
-        walking_images = sheets["player"].images_at((0,0),(224,0),(240,0),(0,32),(16,32),
-                                                     color_key = (255,255,255), scale = self.SIZE)
-        idle_images = sheets["player"].images_at((0,0),(176,0),(192,0),(208,0),
-                                                  color_key = (255,255,255), scale = self.SIZE)
-        dead_images = sheets["player"].images_at((16,0),(176,0),(32,0),(48,0),(64,0),(80,0),(96,0),(112,0),(128,0),
-                                                  (144,0),(160,0),(48,32),(64,32),color_key = (255,255,255), scale = self.SIZE)
-        self.walking_animation = utilities.Animation(walking_images[0],walking_images[1],walking_images[2],
-                                                     walking_images[1],walking_images[0],walking_images[3],
-                                                     walking_images[4],walking_images[3])
-        self.idle_animation = utilities.MarkedAnimation(idle_images[0],idle_images[1],idle_images[2],idle_images[3],
-                                                        idle_images[3],idle_images[2],idle_images[1],idle_images[0],
-                                                        speed = 40, marked_frames=[2,3,4,5], repetition = 1)
-        self.dead_animation = utilities.MarkedAnimation(*dead_images, marked_frames=[3,4,5,6,7,8,9,10])
+        self.walking_animation = animations["walk_Player"]
+        self.idle_animation = animations["idle_Player"]
+        self.dead_animation = animations["dead_Player"]
         self.events = []
         self.inventory = Inventory()
         self._layer = constants.PLAYER_LAYER2
-        arm = sheets["player"].image_at((32,32) ,scale = (15,35))
+        arm = image_sheets["player"].image_at((32, 32), scale = (15, 35))
         self.right_arm = RightArm((self.rect.centerx - 8, self.rect.centery - 8), image = arm)
         self.left_arm = LeftArm((self.rect.centerx - 8, self.rect.centery - 8), image = arm)
         self.pressed_keys = {key : False for key in constants.KEYBOARD_KEYS}
@@ -233,7 +223,7 @@ class RightArm(GenericArm):
         self.attack_cooldown = 0
         self.projectiles = []
         self.offset = pygame.Vector2(20,-5)
-        self.orig_bullet = sheets["weapons"].image_at((160,0), size = (32,16), color_key = (255,255,255))
+        self.orig_bullet = image_sheets["weapons"].image_at((160, 0), size = (32, 16), color_key = (255, 255, 255))
         self.bullet_image = self.orig_bullet
         self.weapon = None
 
