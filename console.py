@@ -113,6 +113,7 @@ class Console:
             self.main_sprite.add_error_message(str(e))
             return
         for commands in commands_list:
+            print(commands)
             commands = commands.strip().split(" ")
             if commands[0] == "set":
                 self.__process(commands)
@@ -124,11 +125,12 @@ class Console:
                 #make sure that the last part of the command is executed.
                 self.__process(commands + [" "])
             else:
-                self.main_sprite.add_error_message("No valid command choose one of the following: set, delete, create, print.")
+                self.main_sprite.add_error_message("{} is not a valid command. Choose one of the following: set, delete, create, print.".format(commands[0]))
 
     def __text_to_commands(self, text):
         text = text.strip()
         lists = {}
+        tuples = {}
         if text.count("]") != text.count("["):
             raise ValueError("Uneven amount of open and closing brackets.")
         #first get all lists within lists
@@ -186,7 +188,7 @@ class Console:
         elif commands[1] == "weapon":
             self.__execute(self.weapon_parts[commands[2]][commands[3]], commands, 3)
         else:
-            self.main_sprite.add_error_message("Unknown FROM location: {}. Choose one of the following: game_rule, player, room_entities, entities".format(commands[1]))
+            self.main_sprite.add_error_message("{} is not a valid FROM location. Choose one of the following: game_rule, player, room_entities, entities".format(commands[1]))
 
     def __execute(self, target, commands, from_l = 1):
         for i, name in enumerate(commands[1 + from_l:-1]):
@@ -209,7 +211,7 @@ class Console:
                 self.main_sprite.add_error_message("{} has no attribute {}.".format(target, name))
                 break
 
-    def __convert_to_type(self, type_s, s, orig_value):
+    def __convert_to_type(self, type_s, s, orig_value = None):
         try:
             if type_s is str:
                 return s
@@ -234,22 +236,24 @@ class Console:
         elif value == "false" or value == "f":
             return False
         else:
-            raise ValueError(
-                "expected a boolean to be either: true, t, false or f (case insensitive)".format(value))
+            raise ValueError("expected a boolean to be either: true, t, false or f (case insensitive)".format(value))
 
     def __string_to_list(self, value, types):
         """
         only a one dimensional list is expected
         """
-        if not "[" in value or "(" in value:
-            raise ValueError("expected a list to be of form [val1,val2,..] or (val1,val2,..).")
-        value = value.replace("[", "").replace("]", "").replace("(", "").replace(")", "")
-        the_list = [val.strip() for val in value.split(",")]
+        if not "(" in value:
+            raise ValueError("expected a list to be of form (val1;val2;..)")
+        value = value.replace("(", "").replace(")", "")
+        the_list = [val.strip() for val in value.split(";")]
         if len(types) != len(the_list):
             raise ValueError("list is of wrong length. Expected a list of lenght {}.".format(len(types)))
-        for i, val in enumerate(types):
+        for i, val_type in enumerate(types):
             try:
-                correct_typed_value = self.__convert_to_type(type(val), the_list[i], val)
+                user_value = the_list[i]
+                if val_type != str:
+                    user_value = user_value.strip()
+                correct_typed_value = self.__convert_to_type(val_type, user_value)
                 the_list[i] = correct_typed_value
             except ValueError:
                 raise ValueError("expected value of type {} at index {}. Cannot convert {} to {}.".format(type(val), i,the_list[i],type(val)))
@@ -258,10 +262,11 @@ class Console:
     def __process_create(self, commands):
         try:
             if commands[1] == "weapon":
-                name = self.__create_weapon(commands)
-                self.main_sprite.add_conformation_message("The following weapon was created: {}".format(name))
+                self.__create_weapon(commands)
             elif commands[1] == "entity":
-                pass
+                self.__create_entity(commands)
+            else:
+                self.main_sprite.add_error_message("{} is not a valid WHAT location. Choose one of the following: weapon, entity".format(commands[1]))
         except ValueError as e:
             self.main_sprite.add_error_message(str(e))
 
@@ -275,7 +280,17 @@ class Console:
             weapon_parts[part] = part_name
         weapon = self.get_weapon_by_parts(weapon_parts)
         prop_entities.LootableWeapon(self.screen.player.rect.center, self.screen.player, weapon, self.screen.game_sprites)
-        return str(weapon)
+        self.main_sprite.add_conformation_message("The following weapon was created: {}".format(str(weapon)))
+
+    def __create_entity(self, commands):
+        print(commands)
+        if len(commands) < 4:
+            raise ValueError("Expected at least 4 commands CREATE WHAT NAME LOCATION.")
+        try:
+            location = self.__string_to_list(commands[3], [int,int])
+        except ValueError as e:
+            raise ValueError("Incorrect location format. {}".format(str(e)))
+        self.stage.add_enemy(commands[2], location)
 
     def __process_delete(self, commands):
         pass

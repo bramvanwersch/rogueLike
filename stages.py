@@ -102,15 +102,15 @@ class BasicStage:
         return weapons
 
     def add_enemy(self, name, pos):
-        if name == "red_square":
+        if name == "RedSquare":
             entities.RedSquare(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
-        elif name == "bad_bat":
+        elif name == "BadBat":
             entities.BadBat(pos, self.player, self.current_room.tiles, self.updater,self.enemy_sprite_group, self.room_group)
-        elif name == "dummy":
+        elif name == "Dummy":
             entities.TestDummy(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
-        elif name == "archer":
+        elif name == "Archer":
             entities.Archer(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
-        elif name == "bush_man":
+        elif name == "BushMan":
             entities.BushMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
         elif game_rules.warnings:
             print("Warning unknown enemy: "+ name)
@@ -131,8 +131,8 @@ class ForestStage(BasicStage):
         self.animation_images = list(zip(imgs, fimgs))
         self.stage_rooms_map = game_map.build_map((5, 5), solid_tile_weights = [8, 2], background_images = background_images,
                                         tile_images = tile_images, props = props, solid_tile_names = ["forest", "lake"],
-                                        enemies = [["red_square", entities.RedSquare.SIZE], ["bad_bat",entities.BadBat.SIZE],
-                                                   ["archer",entities.Archer.SIZE],["bush_man", entities.BushMan.SIZE]],
+                                        enemies = [["RedSquare", entities.RedSquare.SIZE], ["BadBat",entities.BadBat.SIZE],
+                                                   ["Archer",entities.Archer.SIZE],["BushMan", entities.BushMan.SIZE]],
                                         spawn_weights = [1,2,1,4],spawn_amnt_range = [1,5])
         BasicStage.__init__(self, updater, player, **kwargs)
 
