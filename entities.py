@@ -143,6 +143,7 @@ class LivingEntity(Entity):
         self.debug_color = random.choice(constants.DISTINCT_COLORS)
         self.damage_color = self.DAMAGE_COLOR
         self.healing_color = self.HEALING_COLOR
+        self.damaged = False
 
     def update(self, *args):
         super().update(*args)
@@ -192,6 +193,8 @@ class LivingEntity(Entity):
         :param amnt: of health to change to.
         """
         self.health[0] += amnt
+        if amnt < 0:
+            self.damaged = True
         if amnt < 0:
             self.create_text(str(amnt), color = self.damage_color)
         if self.health[0] > self.health[1]:
@@ -500,15 +503,16 @@ class BushMan(Enemy):
 
     def update(self):
         super().update()
-        #awake when the player moves within a certain distance
-        if self.sleeping and (math.sqrt((self.rect.x - self.player.rect.x)**2 + (self.rect.y - self.player.rect.y)**2))\
-                < self.awake_distance:
+        #awake when the player moves within a certain distance or the player damages the bushman
+        if (self.sleeping and (math.sqrt((self.rect.x - self.player.rect.x)**2 + (self.rect.y - self.player.rect.y)**2))\
+                < self.awake_distance) or (self.sleeping and self.damaged):
             self.sleeping = False
             self.passed_frames = random.randint(0, self.PATHING_RECALCULATING_SPEED)
             self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
             self.move_tile = self.path.pop(-1)
         elif not self.sleeping and not self.visible[0]:
             self.sleeping = True
+            self.damaged = False
             self.speedy, self.speedx = 0,0
             self.wake_up_animation.reset()
             self.change_image([self.orig_image, self.flipped_image])
