@@ -47,8 +47,14 @@ def load():
     animations["dead_Player"] = MarkedAnimation(*dead_images_player, marked_frames=[3, 4, 5, 6, 7, 8, 9, 10])
 
     #blowMan
-    attack_imgs_archer = image_sheets["enemies"].images_at_rectangle((0,16,48,32), size=(16,32), color_key=(255,255,255), scale=entities.BlowMan.SIZE)
-    animations["attack_BlowMan"] = Animation(attack_imgs_archer[0],attack_imgs_archer[1],attack_imgs_archer[0],attack_imgs_archer[2], speed = 20, repetition = 1)
+    attack_imgs_blow = image_sheets["enemies"].images_at_rectangle((0,16,48,32), size=(16,32), color_key=(255,255,255), scale=entities.BlowMan.SIZE)
+    walking_imgs_blow = image_sheets["enemies"].images_at_rectangle((96,16,80,32), size=(16,32), color_key=(255,255,255), scale=entities.BlowMan.SIZE)
+    take_weapon_imgs_blow = image_sheets["enemies"].images_at_rectangle((48,16,48,32), size=(16,32), color_key=(255,255,255),scale=entities.BlowMan.SIZE)
+    animations["attack_BlowMan"] = Animation(attack_imgs_blow[0],attack_imgs_blow[1],attack_imgs_blow[0],attack_imgs_blow[2], speed = 20, repetition = 1)
+    animations["walk_BlowMan"] = Animation(walking_imgs_blow[0],walking_imgs_blow[1],walking_imgs_blow[2],walking_imgs_blow[1],walking_imgs_blow[0],
+                                              walking_imgs_blow[3],walking_imgs_blow[4],walking_imgs_blow[3])
+    animations["take_weapon_BlowMan"] = Animation(*take_weapon_imgs_blow[::-1], repetition = 1)
+    animations["remove_weapon_BlowMan"] = Animation(*take_weapon_imgs_blow, repetition = 1)
 
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)

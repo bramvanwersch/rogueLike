@@ -400,12 +400,15 @@ class BlowMan(Enemy):
     SHOOTING_COOLDOWN = 50
     SPEED = 4
     def __init__(self, pos, player,tiles, *groups):
-        image = image_sheets["enemies"].image_at((0, 16), scale = self.SIZE, size = (16, 32), color_key = (255, 255, 255))
+        image = image_sheets["enemies"].image_at((96, 16), scale = self.SIZE, size = (16, 32), color_key = (255, 255, 255))
         self.arrow = image_sheets["enemies"].image_at((0, 0), scale = self.PROJECTILE_SIZE, color_key = (255, 255, 255))
         Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = self.SPEED, image = image)
         #make sure path is calculated at start of creation
         self.shooting_animation = animations["attack_BlowMan"].copy()
         self.shooting_animation.set_speed(int(self.SHOOTING_COOLDOWN / len(self.shooting_animation.animation_images)))
+        self.walking_animation = animations["walk_BlowMan"].copy()
+        self.take_weapon_animation = animations["take_weapon_BlowMan"].copy()
+        self.remove_weapon_animation = animations["remove_weapon_BlowMan"].copy()
         self.passed_frames = random.randint(0,60)
         self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
         self.move_tile = self.path.pop(-1)
@@ -434,10 +437,25 @@ class BlowMan(Enemy):
                 self.shooting_animation.reset()
         self.__run_animations()
 
+    def move(self):
+        if self.remove_weapon_animation.finished:
+            super().move()
+
     def __run_animations(self):
-        if self.shooting:
+        if self.shooting and not self.take_weapon_animation.finished:
+            self.take_weapon_animation.update()
+            self.change_image(self.take_weapon_animation.image)
+            self.remove_weapon_animation.reset()
+        elif self.shooting :
             self.shooting_animation.update()
             self.change_image(self.shooting_animation.image)
+        elif not self.shooting and not self.remove_weapon_animation.finished:
+            self.remove_weapon_animation.update()
+            self.change_image(self.remove_weapon_animation.image)
+        elif self.speedx != 0 and self.speedy != 0:
+            self.walking_animation.update()
+            self.change_image(self.walking_animation.image)
+            self.take_weapon_animation.reset()
         else:
             self.change_image([self.orig_image, self.flipped_image])
 
