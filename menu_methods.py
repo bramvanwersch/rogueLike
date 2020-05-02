@@ -485,6 +485,8 @@ class ConsoleWindow(DynamicSurface):
                 word = ""
                 if list_multiplier:
                     commands = commands[:commands.index(list_multiplier) + 1]
+                else:
+                    commands = []
             else:
                 word += letter
         commands.append(word)

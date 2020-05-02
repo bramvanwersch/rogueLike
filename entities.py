@@ -75,7 +75,7 @@ class Entity(pygame.sprite.Sprite):
         return ['visible', 'bounding_box','dead']
 
     def __str__(self):
-        return "{}_at_{},{}".format(type(self).__name__, self.rect.centerx, self.rect.centery)
+        return "{}_at_{}-{}".format(type(self).__name__, self.rect.centerx, self.rect.centery)
 
 class InteractingEntity(Entity):
     def __init__(self, pos, player, *groups, action = None, interactable = True, trigger_cooldown = [0,0], animation = None, **kwargs):
