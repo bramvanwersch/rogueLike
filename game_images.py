@@ -21,6 +21,7 @@ def load():
     image_sheets["forest"] = Spritesheet("sprite_sheets\\forest_stage_sprite_sheet.bmp", (16, 16))
     image_sheets["enemies"] = Spritesheet("sprite_sheets\\enemy_sprite_sheet.bmp", (16, 16))
     image_sheets["weapons"] = Spritesheet("sprite_sheets\\weapons_sprite_sheet.bmp", (16, 16))
+    image_sheets["stoner_boss"] = Spritesheet("sprite_sheets\\stoner_boss.bmp", (16,16))
 
     global animations
     #animations

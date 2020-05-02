@@ -265,7 +265,7 @@ class Console:
                 correct_typed_value = self.__convert_to_type(val_type, user_value)
                 the_list[i] = correct_typed_value
             except ValueError:
-                raise ValueError("expected value of type {} at index {}. Cannot convert {} to {}.".format(type(val), i,the_list[i],type(val)))
+                raise ValueError("expected value of type {} at index {}. Cannot convert {} to {}.".format(val_type, i,the_list[i],val_type))
         return the_list
 
     def __process_create(self, commands):
