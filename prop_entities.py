@@ -4,7 +4,6 @@ import constants
 from game_images import image_sheets
 import entities, utilities
 
-
 class Chest(entities.InteractingEntity):
     def __init__(self, pos, player, loot, *groups):
         image = image_sheets["forest"].image_at((0, 80), scale = (80, 80), color_key = (255, 255, 255))

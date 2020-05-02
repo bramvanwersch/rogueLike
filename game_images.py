@@ -24,7 +24,7 @@ def load():
 
     global animations
     #animations
-    #bat
+    #badbat
     bat_move_animation = image_sheets["enemies"].images_at_rectangle((16, 0, 224, 16), scale=entities.BadBat.SIZE, size=(32, 16), color_key=(255, 255, 255))
     bat_move_animation = bat_move_animation + bat_move_animation[::-1]
     animations["move_BadBat"] = Animation(*bat_move_animation, start_frame="random")

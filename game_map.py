@@ -168,6 +168,7 @@ class BossRoom(Room):
         kwargs["room_layout"] = self.__get_room_layout(rect)
         kwargs["spawn_amnt_range"] = [kwargs["spawn_amnt_range"][0] + 10, kwargs["spawn_amnt_range"][1] + 10]
         Room.__init__(self, rect, room_type, connections, **kwargs)
+        self.enemies = random.choice(kwargs["bosses"])
 
     def __get_room_layout(self, rect):
         layout = [[0] * rect.width for _ in range(rect.height)]

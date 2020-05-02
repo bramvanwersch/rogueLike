@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 import game_images
-import utilities, entities, game_map, prop_entities, constants
+import utilities, entities, game_map, prop_entities, constants, bosses
 from constants import game_rules
 from game_images import image_sheets
 
@@ -114,6 +114,8 @@ class BasicStage:
             entities.BlowMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
         elif name == "BushMan":
             entities.BushMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
+        elif name == "Stoner":
+            bosses.Stoner(pos, self.player, self.updater, self.enemy_sprite_group, self.room_group, tiles = self.current_room.tiles)
         elif game_rules.warnings:
             print("Warning unknown enemy: "+ name)
 
@@ -135,7 +137,7 @@ class ForestStage(BasicStage):
                                                   tile_images = tile_images, props = props, solid_tile_names = ["forest", "lake"],
                                                   enemies = [["RedSquare", entities.RedSquare.SIZE], ["BadBat",entities.BadBat.SIZE],
                                                              ["BlowMan", entities.BlowMan.SIZE], ["BushMan", entities.BushMan.SIZE]],
-                                                  spawn_weights = [1,2,1,4], spawn_amnt_range = [1,5])
+                                                  spawn_weights = [1,2,1,4], spawn_amnt_range = [1,5], bosses = ["Stoner"])
         BasicStage.__init__(self, updater, player, **kwargs)
 
 
