@@ -223,19 +223,25 @@ class Console:
                     if commands[0] == "set":
                         try:
                             value = self.__convert_to_type(type(getattr(target, name)), commands[-1],
-                                                           getattr(target, name))
+                                                           getattr(target, name), target)
                         except ValueError as e:
                             self.main_sprite.add_error_message(str(e))
                             return
-                        setattr(target, name, value)
+                        if type(getattr(target, name)) is property:
+                            getattr(target, name).fset(target, value)
+                        else:
+                            setattr(target, name, value)
                         self.main_sprite.add_conformation_message("{} is set to {}".format(".".join(commands[1:-1]), value))
                     elif commands[0] == "print":
-                        self.main_sprite.add_conformation_message("The value of {} is: {}".format(".".join(commands[1:-1]), getattr(target, name)))
+                        val = getattr(target, name)
+                        if type(val) is property:
+                            val = getattr(target, name).fget(target)
+                        self.main_sprite.add_conformation_message("The value of {} is: {}".format(".".join(commands[1:-1]), val))
             else:
                 self.main_sprite.add_error_message("{} has no attribute {}.".format(target, name))
                 break
 
-    def __convert_to_type(self, type_s, s, orig_value = None):
+    def __convert_to_type(self, type_s, s, orig_value = None, target = None):
         try:
             if type_s is str:
                 return s
@@ -249,6 +255,8 @@ class Console:
                 return self.__string_to_list(s, [type(val) for val in orig_value])
             elif type_s is tuple:
                 return self.__string_to_list(s, [type(val) for val in orig_value])
+            elif type_s is property:
+                return self.__convert_to_type(type(orig_value.fget(target)), s)
             elif game_rules.warnings:
                 print("No case for value of type_s {}".format(type_s))
         except ValueError as e:

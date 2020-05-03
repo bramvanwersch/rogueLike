@@ -20,6 +20,12 @@ class GameRules:
 
 game_rules = GameRules()
 
+class classproperty(object):
+    def __init__(self, f):
+        self.f = f
+    def __get__(self, obj, owner):
+        return self.f(owner)
+
 DISTINCT_COLORS = [(0,0,0), (255,255,255), (255,0,0), (0,255,0), (0,0,255), (255,255,0), (0,255,255), (255,0,255),
                    (192,192,192), (128,128,128), (128,0,0), (128,128,0), (0,128,0), (128,0,128), (0,128,128), (0,0,128),
                    (128,0,0), (139,0,0), (165,42,42), (178,34,34), (220,20,60), (255,0,0), (255,99,71), (255,127,80),
@@ -97,4 +103,11 @@ PATH_NAMES = ["only_left","only_bottom","only_top","only_right",
               "bottom_top_open", "left_right_open","middle",
               "left_straight","right_straight","top_straight", "bottom_straight"]
 GAME_TIME = pygame.time.Clock()
-PLAYER_SIZE = (60,120)
+
+#pixel per size --> meaning how many pixels in the image are equivalent to the pixels ingame --> should always be bigger then 1
+#this is simply pixels in size / size in real.
+PPS_PLAYER = 60 / 16
+PPS_STONER = 500 / 80
+PPS_BLOWMAN = 70 /16
+PPS_BUSHMAN = 100 / 16
+PPS_BASE = 50 / 16

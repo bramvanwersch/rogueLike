@@ -7,9 +7,10 @@ from constants import *
 from entities import LivingEntity
 
 class Player(LivingEntity):
-    SIZE = PLAYER_SIZE
+    _PPS = PPS_PLAYER
+    image_size = (16,32)
     def __init__(self, pos, *groups):
-        idle_image = image_sheets["player"].image_at((0, 0), color_key = (255, 255, 255), scale = self.SIZE)
+        idle_image = image_sheets["player"].image_at((0, 0), color_key = (255, 255, 255), pps=self.PPS)
         LivingEntity.__init__(self, pos,damage=5, image = idle_image)
         self.walking_animation = animations["walk_Player"]
         self.idle_animation = animations["idle_Player"]

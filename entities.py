@@ -5,6 +5,9 @@ import utilities, constants, trajectories
 from game_images import image_sheets, animations
 
 class Entity(pygame.sprite.Sprite):
+    _PPS = constants.PPS_BASE
+    #size of the image in the sprite sheet
+    image_size = (100,100)
     def __init__(self, pos, *groups, visible = [True,True], **kwargs):
         """
         Class for all entities, these are all images that need to move or change
@@ -18,7 +21,7 @@ class Entity(pygame.sprite.Sprite):
             self.image = pygame.Surface(kwargs["size"]).convert()
             self.image.fill((255, 0, 179))
         else:
-            self.image = pygame.Surface((100,100)).convert()
+            self.image = pygame.Surface(self.image_size).convert()
             self.image.fill((255, 0, 179))
         # if the sprite should be visible at the current moment. and if it should be able to be unloaded
         self.visible = visible
@@ -76,6 +79,21 @@ class Entity(pygame.sprite.Sprite):
 
     def __str__(self):
         return "{}_at_{}-{}".format(type(self).__name__, self.rect.centerx, self.rect.centery)
+
+    @constants.classproperty
+    def SIZE(self):
+        return (self._PPS * self.image_size[0], self._PPS * self.image_size[1])
+
+    @property
+    def PPS(self):
+        return self._PPS
+
+    @PPS.setter
+    def PPS(self, pps):
+        self._PPS = pps
+        for animation in animations:
+            if self.__name__ in animation:
+                animations[animation].scale((round(pps * self.image_size[0]), round(pps * self.image_size[1])))
 
 class InteractingEntity(Entity):
     def __init__(self, pos, player, *groups, action = None, interactable = True, trigger_cooldown = [0,0], animation = None, **kwargs):
@@ -309,10 +327,10 @@ class Enemy(LivingEntity):
             self.player.change_health(- self.damage)
 
 class RedSquare(Enemy):
-    SIZE = (50,50)
     SPEED = 5
+    image_size = (16,16)
     def __init__(self, pos, player, tiles, *groups):
-        image = image_sheets["enemies"].image_at((240, 0), scale = self.SIZE)
+        image = image_sheets["enemies"].image_at((240, 0), pps = self.PPS)
         Enemy.__init__(self, pos, player, *groups, speed = self.SPEED, tiles = tiles, image = image)
         #make sure path is calculated at start of creation
         self.passed_frames = random.randint(0,60)
@@ -337,8 +355,8 @@ class RedSquare(Enemy):
             self.move_tile = self.path.pop(-1)
 
 class BadBat(Enemy):
-    SIZE = (100,50)
     SPEED = 4
+    image_size = (32, 16)
     def __init__(self, pos, player,tiles, *groups):
         self.animation = animations["move_BadBat"].copy()
         Enemy.__init__(self, pos, player, *groups, speed = self.SPEED, tiles = tiles, image = self.animation.image[0])
@@ -385,22 +403,23 @@ class BadBat(Enemy):
         return [xcol, ycol]
 
 class TestDummy(Enemy):
-    SIZE = (50,100)
     HEALTH = 2000
     HEALTH_REGEN = 1000
     SPEED = 0
+    image_size = (16,32)
     def __init__(self, pos, player, tiles, *groups):
-        image = image_sheets["enemies"].image_at((0, 48), scale = self.SIZE, size = (16, 32), color_key = (255, 255, 255))
+        image = image_sheets["enemies"].image_at((0, 48), scale = self.SIZE, size = self.image_size, color_key = (255, 255, 255))
         Enemy.__init__(self, pos, player, *groups, health = self.HEALTH, health_regen = self.HEALTH_REGEN, speed = self.SPEED, tiles = tiles, image = image)
 
 class BlowMan(Enemy):
-    SIZE = (70,140)
+    _PPS = constants.PPS_BLOWMAN
     PROJECTILE_SIZE = (50,25)
     SHOOT_PLAYER_DISTANCE = 600
     SHOOTING_COOLDOWN = 50
     SPEED = 4
+    image_size = (16, 32)
     def __init__(self, pos, player,tiles, *groups):
-        image = image_sheets["enemies"].image_at((96, 16), scale = self.SIZE, size = (16, 32), color_key = (255, 255, 255))
+        image = image_sheets["enemies"].image_at((96, 16), pps = self.PPS, size = self.image_size, color_key = (255, 255, 255))
         self.arrow = image_sheets["enemies"].image_at((0, 0), scale = self.PROJECTILE_SIZE, color_key = (255, 255, 255))
         Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = self.SPEED, image = image)
         #make sure path is calculated at start of creation
@@ -502,12 +521,13 @@ class BlowMan(Enemy):
         return ats + ['shooting_cooldown', 'shoot_player_distance']
 
 class BushMan(Enemy):
-    SIZE = (100,100)
+    _PPS = constants.PPS_BUSHMAN
     AWAKE_DISTANCE = 400
     PATHING_RECALCULATING_SPEED = 30
     SPEED = 14
+    image_size = (16, 16)
     def __init__(self, pos, player,tiles, *groups):
-        image = image_sheets["enemies"].image_at((0, 80), scale = self.SIZE, size = (16, 16), color_key = (255, 255, 255))
+        image = image_sheets["enemies"].image_at((0, 80), pps = self.PPS, size = self.image_size, color_key = (255, 255, 255))
         Enemy.__init__(self, pos, player, *groups, image = image, tiles=tiles, speed = self.SPEED)
         self.sleeping = True
         self.idle_animation = animations["idle_BushMan"].copy()

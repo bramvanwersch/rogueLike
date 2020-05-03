@@ -26,36 +26,40 @@ def load():
     global animations
     #animations
     #badbat
-    bat_move_animation = image_sheets["enemies"].images_at_rectangle((16, 0, 224, 16), scale=entities.BadBat.SIZE, size=(32, 16), color_key=(255, 255, 255))
+    bat_move_animation = image_sheets["enemies"].images_at_rectangle((16, 0, 224, 16), pps = PPS_BASE, size=(32, 16), color_key=(255, 255, 255))
     bat_move_animation = bat_move_animation + bat_move_animation[::-1]
     animations["move_BadBat"] = Animation(*bat_move_animation, start_frame="random")
 
     #bushman
-    bush_normal_img = image_sheets["enemies"].image_at((0, 80), scale=entities.BushMan.SIZE, size=(16, 16), color_key=(255, 255, 255))
-    idle_imgs_bush = image_sheets["enemies"].images_at_rectangle((16, 80, 96, 16), scale=entities.BushMan.SIZE, size=(16, 16), color_key=(255, 255, 255))
-    wake_imgs_bush = image_sheets["enemies"].images_at_rectangle((112, 80, 48, 16), scale=entities.BushMan.SIZE, size=(16, 16), color_key=(255, 255, 255))
-    walk_imgs_bush = image_sheets["enemies"].images_at_rectangle((160, 80, 48, 16), scale=entities.BushMan.SIZE, size=(16, 16), color_key=(255, 255, 255))
+    bush_normal_img = image_sheets["enemies"].image_at((0, 80), pps=PPS_BUSHMAN, size=(16, 16), color_key=(255, 255, 255))
+    idle_imgs_bush = image_sheets["enemies"].images_at_rectangle((16, 80, 96, 16), pps=PPS_BUSHMAN, size=(16, 16), color_key=(255, 255, 255))
+    wake_imgs_bush = image_sheets["enemies"].images_at_rectangle((112, 80, 48, 16), pps=PPS_BUSHMAN, size=(16, 16), color_key=(255, 255, 255))
+    walk_imgs_bush = image_sheets["enemies"].images_at_rectangle((160, 80, 48, 16), pps=PPS_BUSHMAN, size=(16, 16), color_key=(255, 255, 255))
     animations["idle_BushMan"] = Animation(*idle_imgs_bush[:4], idle_imgs_bush[2], *idle_imgs_bush[4:], bush_normal_img, speed=[50, 50, 30, 30, 30, 50, 50, 50], repetition=1)
     animations["wake_BushMan"] = Animation(*idle_imgs_bush[:3], *wake_imgs_bush, speed=10, repetition=1)
     animations["walk_BushMan"] = Animation(walk_imgs_bush[0], walk_imgs_bush[1], walk_imgs_bush[0], walk_imgs_bush[2], speed=10)
 
     #player
-    walking_images_player = image_sheets["player"].images_at((0, 0), (224, 0), (240, 0), (0, 32), (16, 32), color_key=(255, 255, 255), scale=PLAYER_SIZE)
-    idle_images_player = image_sheets["player"].images_at((0, 0), (176, 0), (192, 0), (208, 0), color_key=(255, 255, 255), scale=PLAYER_SIZE)
-    dead_images_player = image_sheets["player"].images_at((16, 0), (176, 0), (32, 0), (48, 0), (64, 0), (80, 0), (96, 0), (112, 0), (128, 0), (144, 0), (160, 0), (48, 32), (64, 32), color_key=(255, 255, 255),scale=PLAYER_SIZE)
+    walking_images_player = image_sheets["player"].images_at((0, 0), (224, 0), (240, 0), (0, 32), (16, 32), color_key=(255, 255, 255), pps=PPS_PLAYER)
+    idle_images_player = image_sheets["player"].images_at((0, 0), (176, 0), (192, 0), (208, 0), color_key=(255, 255, 255), pps=PPS_PLAYER)
+    dead_images_player = image_sheets["player"].images_at((16, 0), (176, 0), (32, 0), (48, 0), (64, 0), (80, 0), (96, 0), (112, 0), (128, 0), (144, 0), (160, 0), (48, 32), (64, 32), color_key=(255, 255, 255),pps=PPS_PLAYER)
     animations["walk_Player"] = Animation(walking_images_player[0], walking_images_player[1], walking_images_player[2],walking_images_player[1], walking_images_player[0], walking_images_player[3],walking_images_player[4], walking_images_player[3])
     animations["idle_Player"] = MarkedAnimation(idle_images_player[0], idle_images_player[1], idle_images_player[2], idle_images_player[3],idle_images_player[3], idle_images_player[2], idle_images_player[1], idle_images_player[0],speed=40, marked_frames=[2, 3, 4, 5], repetition=1)
     animations["dead_Player"] = MarkedAnimation(*dead_images_player, marked_frames=[3, 4, 5, 6, 7, 8, 9, 10])
 
     #blowMan
-    attack_imgs_blow = image_sheets["enemies"].images_at_rectangle((0,16,48,32), size=(16,32), color_key=(255,255,255), scale=entities.BlowMan.SIZE)
-    walking_imgs_blow = image_sheets["enemies"].images_at_rectangle((96,16,80,32), size=(16,32), color_key=(255,255,255), scale=entities.BlowMan.SIZE)
-    take_weapon_imgs_blow = image_sheets["enemies"].images_at_rectangle((48,16,48,32), size=(16,32), color_key=(255,255,255),scale=entities.BlowMan.SIZE)
+    attack_imgs_blow = image_sheets["enemies"].images_at_rectangle((0,16,48,32), size=(16,32), color_key=(255,255,255), pps=PPS_BLOWMAN)
+    walking_imgs_blow = image_sheets["enemies"].images_at_rectangle((96,16,80,32), size=(16,32), color_key=(255,255,255), pps=PPS_BLOWMAN)
+    take_weapon_imgs_blow = image_sheets["enemies"].images_at_rectangle((48,16,48,32), size=(16,32), color_key=(255,255,255),pps=PPS_BLOWMAN)
     animations["attack_BlowMan"] = Animation(attack_imgs_blow[0],attack_imgs_blow[1],attack_imgs_blow[0],attack_imgs_blow[2], speed = 20, repetition = 1)
     animations["walk_BlowMan"] = Animation(walking_imgs_blow[0],walking_imgs_blow[1],walking_imgs_blow[2],walking_imgs_blow[1],walking_imgs_blow[0],
                                               walking_imgs_blow[3],walking_imgs_blow[4],walking_imgs_blow[3])
     animations["take_weapon_BlowMan"] = Animation(*take_weapon_imgs_blow[::-1], repetition = 1)
     animations["remove_weapon_BlowMan"] = Animation(*take_weapon_imgs_blow, repetition = 1)
+
+    #Stoner (Boss)
+    smile_imgs = image_sheets["stoner_boss"].images_at_rectangle((80,0,160,16), size=(32,16), color_key=(255,255,255), pps = PPS_STONER)
+    animations["smile_Stoner"] = 3
 
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)
@@ -77,7 +81,7 @@ class Spritesheet:
         self.sheet = load_image(filename)
         self.image_size = size
 
-    def image_at(self, coord, color_key = None, scale = None, size = None):
+    def image_at(self, coord, color_key = None, scale = None, size = None, pps = None):
         """
         Return an a rectangle from the sprite sheet at a given location
         :param coord: the topleft coordinate of the rectangle
@@ -98,6 +102,10 @@ class Spritesheet:
             image.set_colorkey(color_key, pygame.RLEACCEL)
             image = image.convert_alpha()
         if scale is not None:
+            image = pygame.transform.scale(image, scale)
+        #pixels per scale unit
+        elif pps is not None:
+            scale = (round(pps * rect.width), round(pps * rect.height))
             image = pygame.transform.scale(image, scale)
         return image
 
@@ -126,7 +134,7 @@ class Spritesheet:
         return images
 
 class Animation:
-    def __init__(self, *images, speed = 10, repetition ="continuous", start_frame = 0):
+    def __init__(self, *images, speed = 10, repetition ="continuous", start_frame = 0, scale = None):
         """
         Stores an animation to be progressed when calling the update of the animation
         :param images: list of all the images to be played in sequence
@@ -190,6 +198,16 @@ class Animation:
             self.speed = speed
         else:
             self.speed = [speed]* len(self.animation_images)
+
+    def scale(self, scale):
+        """
+        Function for rescaling animations when the size of an entity is changed
+        :param scale: a tuple of lenght 2 that defines to waht dimensions the image has to be scaled. Repeaded scaling will morph the images
+        :return:
+        """
+        for i, images in enumerate(self.animation_images):
+            self.animation_images[i] = (pygame.transform.scale(images[0], scale),pygame.transform.scale(images[1], scale))
+
 
     def copy(self):
         return Animation(*self.animation_images, speed = self.speed, repetition=self.repetition, start_frame=self.start_frame)
