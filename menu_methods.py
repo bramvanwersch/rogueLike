@@ -622,8 +622,9 @@ class Line:
         self.line_location += len(value)
 
     def delete(self):
-        self.line_location -= 1
-        self.text = self.text[:self.line_location] + self.text[self.line_location + 1:]
+        if self.line_location > 0:
+            self.line_location -= 1
+            self.text = self.text[:self.line_location] + self.text[self.line_location + 1:]
 
     def copy(self):
         return Line(text=self.text, color=self.color)
