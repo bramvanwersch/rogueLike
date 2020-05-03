@@ -97,7 +97,7 @@ class Console:
             for name in inspect.getmembers(module, inspect.isclass):
                 class_varaibles = {}
                 for val in dir(name[1]):
-                    if val.isupper():
+                    if val.isupper() and not val.startswith("_"):
                         class_varaibles[val] = False
                 if len(class_varaibles) > 0:
                     ent_dict[name[0]] = class_varaibles
