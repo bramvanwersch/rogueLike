@@ -59,7 +59,7 @@ def load():
 
     #Stoner (Boss)
     smile_imgs = image_sheets["stoner_boss"].images_at_rectangle((80,0,160,16), size=(32,16), color_key=(255,255,255), pps = PPS_STONER)
-    animations["smile_Stoner"] = 3
+    animations["smile_Stoner"] = Animation(*smile_imgs[::-1], *smile_imgs, speed=20, repetition= 1)
 
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)
@@ -156,11 +156,14 @@ class Animation:
         self.cycles = 0
         self.repetition = repetition
         self.finished = False
+        #allow to track when the next frame is presented
+        self.changed_image = False
 
     def update(self):
         """
         Function to be called every update to progress the animation. This methods loops endlesly when called
         """
+        self.changed_image = False
         #allows for configuring an animation for a certain amount of cycles.
         if not self.repetition == "continuous" and self.cycles >= self.repetition:
             self.finished = True
@@ -168,6 +171,7 @@ class Animation:
             return
         self.frame_count += 1
         if self.frame_count % self.speed[self.current_frame] == 0:
+            self.changed_image = True
             self.current_frame += 1
             self.frame_count = 0
         if self.current_frame >= len(self.animation_images):
