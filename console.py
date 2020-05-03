@@ -21,7 +21,8 @@ class Console:
         self.screen.player.inventory.add(start_weapon)
 
         self.main_sprite = self.screen.scene.event_sprite
-        self.command_tree = {"set":self.__create_set_tree(),"create":self.__create_create_tree(), "delete":{},"print":self.__create_print_tree()}
+        self.command_tree = {"set":self.__create_set_tree(),"create":self.__create_create_tree(), "delete":{},
+                             "print":self.__create_print_tree(),"scripts": self.__create_script_tree()}
         self.screen.scenes["Console"].event_sprite.command_tree = self.command_tree
         #last thing to execute no response after this
         self.run()
@@ -79,6 +80,17 @@ class Console:
         tree["entity"] = {class_name[0]: False for module in [entities, prop_entities, bosses] for class_name in inspect.getmembers(module, inspect.isclass)   }
         return tree
 
+    def __create_script_tree(self):
+        partsfile = os.path.join(DATA_DIR, "scripts.sf")
+        f = open(partsfile, "r")
+        lines = f.readlines()
+        f.close()
+        tree = {}
+        for line in lines:
+            name, command_line = line.split(":")
+            tree[name] = command_line
+        return tree
+
     def __get_class_variables(self, *modules):
         ent_dict = {}
         for module in modules:
@@ -123,6 +135,11 @@ class Console:
             elif commands[0] == "print":
                 #make sure that the last part of the command is executed.
                 self.__process(commands + [" "])
+            elif commands[0] == "scripts":
+                if commands[1] in self.command_tree["scripts"]:
+                    self.__process_commands(self.command_tree["scripts"][commands[1]])
+                else:
+                    self.main_sprite.add_error_message("No script known by name {}".format(commands[1]))
             else:
                 self.main_sprite.add_error_message("{} is not a valid command. Choose one of the following: set, delete, create, print.".format(commands[0]))
 
@@ -309,7 +326,7 @@ class Console:
         Pre loads the immages defined for the weapon parts
         :return: return a dictionary of parts containing a list of dictionaries with an entry for each part.
         """
-        partsfile = os.path.join(DATA_DIR, "info//parts.csv")
+        partsfile = os.path.join(DATA_DIR, "parts.csv")
         f = open(partsfile, "r")
         lines = f.readlines()
         f.close()
