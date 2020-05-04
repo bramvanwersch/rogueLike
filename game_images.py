@@ -1,6 +1,5 @@
 import os, pygame, random
 
-import entities
 from constants import *
 from pygame.locals import *
 from pygame.compat import geterror

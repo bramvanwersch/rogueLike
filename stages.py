@@ -1,6 +1,7 @@
 import pygame, random
 from pygame.locals import *
 
+import enemy_methods
 import game_images
 import utilities, entities, game_map, prop_entities, constants, bosses
 from constants import game_rules
@@ -105,15 +106,15 @@ class BasicStage:
 
     def add_enemy(self, name, pos):
         if name == "RedSquare":
-            entities.RedSquare(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
+            enemy_methods.RedSquare(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
         elif name == "BadBat":
-            entities.BadBat(pos, self.player, self.current_room.tiles, self.updater,self.enemy_sprite_group, self.room_group, center = True)
+            enemy_methods.BadBat(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
         elif name == "Dummy":
-            entities.TestDummy(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
+            enemy_methods.TestDummy(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
         elif name == "BlowMan":
-            entities.BlowMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
+            enemy_methods.BlowMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
         elif name == "BushMan":
-            entities.BushMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
+            enemy_methods.BushMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
         elif name == "Stoner":
             bosses.Stoner(pos, self.player, self.updater, self.enemy_sprite_group, self.room_group, tiles = self.current_room.tiles, center = True)
         elif game_rules.warnings:
@@ -135,8 +136,9 @@ class ForestStage(BasicStage):
         self.animation_images = list(zip(imgs, fimgs))
         self.stage_rooms_map = game_map.build_map((5, 5), solid_tile_weights = [8, 2], background_images = background_images,
                                                   tile_images = tile_images, props = props, solid_tile_names = ["forest", "lake"],
-                                                  enemies = [["RedSquare", entities.RedSquare.SIZE], ["BadBat",entities.BadBat.SIZE],
-                                                             ["BlowMan", entities.BlowMan.SIZE], ["BushMan", entities.BushMan.SIZE]],
+                                                  enemies = [["RedSquare", enemy_methods.RedSquare.SIZE], ["BadBat",
+                                                                                                           enemy_methods.BadBat.SIZE],
+                                                             ["BlowMan", enemy_methods.BlowMan.SIZE], ["BushMan", enemy_methods.BushMan.SIZE]],
                                                   spawn_weights = [1,2,1,4], spawn_amnt_range = [1,5], bosses = ["Stoner"])
         BasicStage.__init__(self, updater, player, **kwargs)
 
