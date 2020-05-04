@@ -58,8 +58,10 @@ def load():
     animations["remove_weapon_BlowMan"] = Animation(*take_weapon_imgs_blow, repetition = 1)
 
     #Stoner (Boss)
-    smile_imgs = image_sheets["stoner_boss"].images_at_rectangle((80,0,160,16), size=(32,16), color_key=(255,255,255), pps = PPS_STONER)
-    animations["smile_Stoner"] = Animation(*smile_imgs[::-1], *smile_imgs, speed=20, repetition= 1)
+    smile_imgs = image_sheets["stoner_boss"].images_at_rectangle((80,0,160,16), (80,16,96,16), size=(32,16), color_key=(255,255,255), pps = PPS_STONER)
+    lift_arm_imgs = image_sheets["stoner_boss"].images_at_rectangle((32,80,160,32), size=(32,32), color_key=(255,255,255), pps = PPS_STONER)
+    animations["smile_Stoner"] = Animation(*smile_imgs[::-1], *smile_imgs, repetition= 1, speed = [8,8,8,8,8,8,8,20,20,8,8,8,8,8,8,8])
+    animations["lift_left_arm_Stoner"] = Animation(*lift_arm_imgs, repetition= 1, speed =15)
 
 def load_image(name, colorkey=None):
     fullname = os.path.join(DATA_DIR, name)

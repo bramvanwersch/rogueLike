@@ -8,7 +8,7 @@ class Entity(pygame.sprite.Sprite):
     _PPS = constants.PPS_BASE
     #size of the image in the sprite sheet
     image_size = (100,100)
-    def __init__(self, pos, *groups, visible = [True,True], **kwargs):
+    def __init__(self, pos, *groups, visible = [True,True], center = False, **kwargs):
         """
         Class for all entities, these are all images that need to move or change
         :param pos: the topleft corner of the rectangle of the image
@@ -26,7 +26,10 @@ class Entity(pygame.sprite.Sprite):
         # if the sprite should be visible at the current moment. and if it should be able to be unloaded
         self.visible = visible
         self.orig_image = self.image
-        self.rect = self.image.get_rect(topleft = pos)
+        if center   :
+            self.rect = self.image.get_rect(center=pos)
+        else:
+            self.rect = self.image.get_rect(topleft = pos)
         # if an entity has collision or if the player can just move trough it.
         self.collision = False
         if "collision" in kwargs:
@@ -329,9 +332,9 @@ class Enemy(LivingEntity):
 class RedSquare(Enemy):
     SPEED = 5
     image_size = (16,16)
-    def __init__(self, pos, player, tiles, *groups):
+    def __init__(self, pos, player, tiles, *groups, **kwargs):
         image = image_sheets["enemies"].image_at((240, 0), pps = self.PPS)
-        Enemy.__init__(self, pos, player, *groups, speed = self.SPEED, tiles = tiles, image = image)
+        Enemy.__init__(self, pos, player, *groups, speed = self.SPEED, tiles = tiles, image = image, **kwargs)
         #make sure path is calculated at start of creation
         self.passed_frames = random.randint(0,60)
         self.path = self.tiles.pathfind(self.player.bounding_box, self.bounding_box)
@@ -357,9 +360,9 @@ class RedSquare(Enemy):
 class BadBat(Enemy):
     SPEED = 4
     image_size = (32, 16)
-    def __init__(self, pos, player,tiles, *groups):
+    def __init__(self, pos, player,tiles, *groups, **kwargs):
         self.animation = animations["move_BadBat"].copy()
-        Enemy.__init__(self, pos, player, *groups, speed = self.SPEED, tiles = tiles, image = self.animation.image[0])
+        Enemy.__init__(self, pos, player, *groups, speed = self.SPEED, tiles = tiles, image = self.animation.image[0], **kwargs)
 
     def update(self, *args):
         super().update(*args)
@@ -407,9 +410,9 @@ class TestDummy(Enemy):
     HEALTH_REGEN = 1000
     SPEED = 0
     image_size = (16,32)
-    def __init__(self, pos, player, tiles, *groups):
+    def __init__(self, pos, player, tiles, *groups, **kwargs):
         image = image_sheets["enemies"].image_at((0, 48), scale = self.SIZE, size = self.image_size, color_key = (255, 255, 255))
-        Enemy.__init__(self, pos, player, *groups, health = self.HEALTH, health_regen = self.HEALTH_REGEN, speed = self.SPEED, tiles = tiles, image = image)
+        Enemy.__init__(self, pos, player, *groups, health = self.HEALTH, health_regen = self.HEALTH_REGEN, speed = self.SPEED, tiles = tiles, image = image, **kwargs)
 
 class BlowMan(Enemy):
     _PPS = constants.PPS_BLOWMAN
@@ -418,10 +421,10 @@ class BlowMan(Enemy):
     SHOOTING_COOLDOWN = 50
     SPEED = 4
     image_size = (16, 32)
-    def __init__(self, pos, player,tiles, *groups):
+    def __init__(self, pos, player,tiles, *groups, **kwargs):
         image = image_sheets["enemies"].image_at((96, 16), pps = self.PPS, size = self.image_size, color_key = (255, 255, 255))
         self.arrow = image_sheets["enemies"].image_at((0, 0), scale = self.PROJECTILE_SIZE, color_key = (255, 255, 255))
-        Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = self.SPEED, image = image)
+        Enemy.__init__(self, pos, player, *groups, tiles = tiles, size = [50,80], speed = self.SPEED, image = image, **kwargs)
         #make sure path is calculated at start of creation
         self.shooting_animation = animations["attack_BlowMan"].copy()
         self.shooting_animation.set_speed(int(self.SHOOTING_COOLDOWN / len(self.shooting_animation.animation_images)))
@@ -526,9 +529,9 @@ class BushMan(Enemy):
     PATHING_RECALCULATING_SPEED = 30
     SPEED = 14
     image_size = (16, 16)
-    def __init__(self, pos, player,tiles, *groups):
+    def __init__(self, pos, player,tiles, *groups, **kwargs):
         image = image_sheets["enemies"].image_at((0, 80), pps = self.PPS, size = self.image_size, color_key = (255, 255, 255))
-        Enemy.__init__(self, pos, player, *groups, image = image, tiles=tiles, speed = self.SPEED)
+        Enemy.__init__(self, pos, player, *groups, image = image, tiles=tiles, speed = self.SPEED, **kwargs)
         self.sleeping = True
         self.idle_animation = animations["idle_BushMan"].copy()
         self.wake_up_animation = animations["wake_BushMan"].copy()

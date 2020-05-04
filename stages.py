@@ -105,17 +105,17 @@ class BasicStage:
 
     def add_enemy(self, name, pos):
         if name == "RedSquare":
-            entities.RedSquare(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
+            entities.RedSquare(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
         elif name == "BadBat":
-            entities.BadBat(pos, self.player, self.current_room.tiles, self.updater,self.enemy_sprite_group, self.room_group)
+            entities.BadBat(pos, self.player, self.current_room.tiles, self.updater,self.enemy_sprite_group, self.room_group, center = True)
         elif name == "Dummy":
-            entities.TestDummy(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
+            entities.TestDummy(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
         elif name == "BlowMan":
-            entities.BlowMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
+            entities.BlowMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
         elif name == "BushMan":
-            entities.BushMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group)
+            entities.BushMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
         elif name == "Stoner":
-            bosses.Stoner(pos, self.player, self.updater, self.enemy_sprite_group, self.room_group, tiles = self.current_room.tiles)
+            bosses.Stoner(pos, self.player, self.updater, self.enemy_sprite_group, self.room_group, tiles = self.current_room.tiles, center = True)
         elif game_rules.warnings:
             print("Warning unknown enemy: "+ name)
 
