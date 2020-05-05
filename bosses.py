@@ -18,7 +18,7 @@ class Stoner(enemy_methods.Enemy):
         self.smile_animation = animations["smile_Stoner"]
         self.left_lift_animation = animations["lift_left_arm_Stoner"]
         image = self.__get_image()
-        entities.Enemy.__init__(self, pos, player, *groups, image = image, speed = 0, health = 1000, **kwargs)
+        enemy_methods.Enemy.__init__(self, pos, player, *groups, image = image, speed = 0, health = 1000, **kwargs)
         #track if any of the parts changed to make sure to only blit a new boss image when needed
         self.an_image_changed = False
 

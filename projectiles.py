@@ -37,12 +37,13 @@ class Projectile(LivingEntity):
         self.rect.center = self.pos
 
     def _configure_trajectory(self, start_pos, end_pos):
-        trajectory = LinearTrajectory(start_pos, end_pos, self.rect, self.image, super().groups()[0],
-                                                   max_speed=self.max_speed, accuracy = self.accuracy)
-        self.image = trajectory.image
-        self.rect = trajectory.rect
-        self.pos = list(self.rect.center)
-        return trajectory
+        if not self.dead:
+            trajectory = LinearTrajectory(start_pos, end_pos, self.rect, self.image, super().groups()[0],
+                                                       max_speed=self.max_speed, accuracy = self.accuracy)
+            self.image = trajectory.image
+            self.rect = trajectory.rect
+            self.pos = list(self.rect.center)
+            return trajectory
 
 class PlayerProjectile(Projectile):
     def __init__(self, start_pos, end_pos, *groups, **kwargs):
@@ -55,7 +56,7 @@ class PlayerProjectile(Projectile):
         :param end_pos:
         """
         trajectory = LinearTrajectory(utilities.get_screen_relative_coordinate(start_pos), end_pos, self.rect,
-                                                   self.image, super().groups()[0],max_speed=self.max_speed, accuracy = self.accuracy)
+                                      self.image, super().groups()[0],max_speed=self.max_speed, accuracy = self.accuracy)
         self.image = trajectory.image
         self.rect = trajectory.rect
         self.pos = list(self.rect.center)
@@ -89,8 +90,28 @@ class EnemyProjectile(Projectile):
             self.dead = True
 
 class HomingProjectile(Projectile):
-    def __init__(self, start_pos, end_pos, player, target, *groups, **kwargs):
-        pass
+    RECALCULATING_SPEED = 10
+    ACCURACY = 100
+    SPEED = 5
+    def __init__(self, start_pos, end_pos, target, *groups, **kwargs):
+        Projectile.__init__(self, start_pos, end_pos, *groups, speed = self.SPEED, accuracy = self.ACCURACY, **kwargs)
+        self.passed_frames = 0
+        self.target = target
+
+    def update(self):
+        super().update()
+        if self.passed_frames <= self.RECALCULATING_SPEED:
+            self.passed_frames += 1
+        else:
+            self.passed_frames= 0
+            self.trajectory = self._configure_trajectory(self.rect.center, self.target.rect.center)
+            self.image = self.orig_image
+
+    def _check_hit(self):
+        if self.target.bounding_box.colliderect(self.bounding_box) and not self.target.immune[0]:
+            self.target.change_health(-self.damage)
+            self.target.set_immune()
+            self.dead = True
 
 class Trajectory:
     def __init__(self, start_pos, rect, image, *groups, **kwargs):
