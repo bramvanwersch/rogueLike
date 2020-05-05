@@ -2,7 +2,7 @@ import pygame, random
 from pygame.locals import *
 
 import game_images
-import utilities, entities, game_map, prop_entities, constants, bosses
+import utilities, enemy_methods, game_map, prop_entities, enemy_methods, constants, bosses, entities
 from constants import game_rules
 from game_images import image_sheets
 
@@ -59,14 +59,14 @@ class BasicStage:
 
         self.background.change_image((room.room_layout.background_image, room.room_layout.background_image))
         self.room_props.change_image((room.room_layout.room_image,room.room_layout.room_image))
-        #remove all the interacting entities
+        #remove all the interacting enemy_methods
         self.__remove_sprites()
         #update the tiles for the player. The enemies should be spawned per room.
         self.current_room = room
         self.player.tiles = self.current_room.tiles
         for tile in self.current_room.tiles.interactable_tiles:
             if tile.action:
-                entities.InteractingEntity(tile.topleft, self.player, self.updater, self.interacting_group,
+                enemy_methods.InteractingEntity(tile.topleft, self.player, self.updater, self.interacting_group,
                                            action = tile.action)
             elif tile.action_desc:
                 if tile.action_desc == "room_transition":
@@ -105,15 +105,15 @@ class BasicStage:
 
     def add_enemy(self, name, pos):
         if name == "RedSquare":
-            entities.RedSquare(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
+            enemy_methods.RedSquare(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
         elif name == "BadBat":
-            entities.BadBat(pos, self.player, self.current_room.tiles, self.updater,self.enemy_sprite_group, self.room_group, center = True)
+            enemy_methods.BadBat(pos, self.player, self.current_room.tiles, self.updater,self.enemy_sprite_group, self.room_group, center = True)
         elif name == "Dummy":
-            entities.TestDummy(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
+            enemy_methods.TestDummy(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
         elif name == "BlowMan":
-            entities.BlowMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
+            enemy_methods.BlowMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
         elif name == "BushMan":
-            entities.BushMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
+            enemy_methods.BushMan(pos, self.player, self.current_room.tiles, self.updater, self.enemy_sprite_group, self.room_group, center = True)
         elif name == "Stoner":
             bosses.Stoner(pos, self.player, self.updater, self.enemy_sprite_group, self.room_group, tiles = self.current_room.tiles, center = True)
         elif game_rules.warnings:
@@ -135,8 +135,8 @@ class ForestStage(BasicStage):
         self.animation_images = list(zip(imgs, fimgs))
         self.stage_rooms_map = game_map.build_map((5, 5), solid_tile_weights = [8, 2], background_images = background_images,
                                                   tile_images = tile_images, props = props, solid_tile_names = ["forest", "lake"],
-                                                  enemies = [["RedSquare", entities.RedSquare.SIZE], ["BadBat",entities.BadBat.SIZE],
-                                                             ["BlowMan", entities.BlowMan.SIZE], ["BushMan", entities.BushMan.SIZE]],
+                                                  enemies = [["RedSquare", enemy_methods.RedSquare.SIZE], ["BadBat",enemy_methods.BadBat.SIZE],
+                                                             ["BlowMan", enemy_methods.BlowMan.SIZE], ["BushMan", enemy_methods.BushMan.SIZE]],
                                                   spawn_weights = [1,2,1,4], spawn_amnt_range = [1,5], bosses = ["Stoner"])
         BasicStage.__init__(self, updater, player, **kwargs)
 

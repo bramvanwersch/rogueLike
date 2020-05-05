@@ -2,7 +2,7 @@
 import os, pygame, random, inspect, re
 
 from constants import game_rules, GAME_TIME, DATA_DIR, SCREEN_SIZE
-import main, utilities, stages, weapon, game_images, entities, prop_entities, bosses
+import main, utilities, stages, weapon, game_images, entities, prop_entities, bosses, enemy_methods
 from pygame.locals import *
 from pygame.compat import geterror
 
@@ -61,7 +61,7 @@ class Console:
         tree["player"] = self.__create_attribute_tree(self.screen.player, self.screen.player.attributes(), func = "attributes")
         tree["room_entities"] = {str(enemie): self.__create_attribute_tree(enemie, enemie.attributes(), func = "attributes") for enemie in self.stage.room_group.sprites()}
         #assumes all class variables are upper case and no methods are.
-        tree["entities"] = self.__get_class_variables(entities, prop_entities, bosses)
+        tree["entities"] = self.__get_class_variables(entities, prop_entities, bosses, enemy_methods)
         return tree
 
     def __create_print_tree(self):
@@ -69,7 +69,7 @@ class Console:
         tree["game_rule"] = self.__create_attribute_tree(game_rules, vars(game_rules))
         tree["player"] = self.__create_attribute_tree(self.screen.player, vars(self.screen.player).keys())
         tree["room_entities"] = {str(enemie): self.__create_attribute_tree(enemie, vars(enemie)) for enemie in self.stage.room_group.sprites()}
-        tree["entities"] = self.__get_class_variables(entities, prop_entities, bosses)
+        tree["entities"] = self.__get_class_variables(entities, prop_entities, bosses, enemy_methods)
         tree["stage"] = self.__create_attribute_tree(self.stage, vars(self.stage))
         tree["weapon"] = {key: {name: self.__create_attribute_tree(val, vars(val)) for name, val in self.weapon_parts[key].items()} for key in self.weapon_parts.keys()}
         return tree
@@ -77,7 +77,7 @@ class Console:
     def __create_create_tree(self):
         tree = {}
         tree["weapon"] = {key: {part : "create weapon" for part in self.weapon_parts[key]} for key in self.weapon_parts.keys()}
-        tree["entity"] = {class_name[0]: False for module in [entities, prop_entities, bosses] for class_name in inspect.getmembers(module, inspect.isclass)   }
+        tree["entity"] = {class_name[0]: False for module in [entities, prop_entities, bosses, enemy_methods] for class_name in inspect.getmembers(module, inspect.isclass)   }
         return tree
 
     def __create_script_tree(self):

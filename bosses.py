@@ -2,9 +2,9 @@ import pygame, random
 
 from game_images import image_sheets, animations
 from constants import *
-import entities
+import enemy_methods
 
-class Stoner(entities.Enemy):
+class Stoner(enemy_methods.Enemy):
     _PPS = PPS_STONER
     def __init__(self, pos, player, *groups, **kwargs):
         self.orig_base_image = image_sheets["stoner_boss"].image_at((0,0), size=(80,64), color_key=(255,255,255), pps=self.PPS)

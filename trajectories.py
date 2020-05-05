@@ -1,6 +1,6 @@
 import pygame, random, math
 import utilities
-<<<<<<<< HEAD:trajectories.py
+
 from entities import LivingEntity
 
 class Projectile(LivingEntity):
@@ -91,9 +91,6 @@ class EnemyProjectile(Projectile):
 class HomingProjectile(Projectile):
     def __init__(self, start_pos, end_pos, player, target, *groups, **kwargs):
         pass
-
-========
->>>>>>>> parent of 8c34642... bullets now dont hit each other and the damage checks are done within the respective:projectiles.py
 
 class Trajectory:
     def __init__(self, start_pos, rect, image, *groups, **kwargs):
