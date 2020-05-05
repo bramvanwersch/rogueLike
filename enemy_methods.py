@@ -1,6 +1,6 @@
 import math, random
 
-import constants, trajectories
+import constants, projectiles
 from entities import LivingEntity
 from game_images import image_sheets, animations
 
@@ -10,7 +10,7 @@ class Enemy(LivingEntity):
         LivingEntity.__init__(self, pos, *groups, **kwargs)
         self.player = player
         self.previous_acctack_cycle = 0
-        self.destination_coord = self.player.bounding_box.center
+        self.destination_coord = self.bounding_box.center
 
     def update(self,*args):
         super().update(*args)
@@ -39,9 +39,11 @@ class Enemy(LivingEntity):
             self.speedy += 0.1 * self.max_speed
 
     def _check_player_hit(self):
-        if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
-            self.player.set_immune()
-            self.player.change_health(- self.damage)
+        for box in self.damage_boxes:
+            if self.player.bounding_box.colliderect(box) and not self.player.immune[0]:
+                self.player.set_immune()
+                self.player.change_health(- self.damage)
+                break;
 
 class RedSquare(Enemy):
     SPEED = 5
@@ -120,7 +122,6 @@ class BadBat(Enemy):
             break;
         return [xcol, ycol]
 
-
 class TestDummy(Enemy):
     HEALTH = 2000
     HEALTH_REGEN = 1000
@@ -129,7 +130,6 @@ class TestDummy(Enemy):
     def __init__(self, pos, player, tiles, *groups, **kwargs):
         image = image_sheets["enemies"].image_at((0, 48), scale = self.SIZE, size = self.image_size, color_key = (255, 255, 255))
         Enemy.__init__(self, pos, player, *groups, health = self.HEALTH, health_regen = self.HEALTH_REGEN, speed = self.SPEED, tiles = tiles, image = image, **kwargs)
-
 
 class BlowMan(Enemy):
     _PPS = constants.PPS_BLOWMAN
@@ -162,15 +162,16 @@ class BlowMan(Enemy):
 
     def update(self, *args):
         super().update(*args)
+        self.damage_boxes = [self.bounding_box] + [p.rect for p in self.projectiles]
         for p in self.projectiles:
             if p.dead:
                 self.projectiles.remove(p)
         if self.shooting:
             if self.shooting_animation.finished:
                 try:
-                    self.projectiles.append(trajectories.EnemyProjectile(self.rect.center, self.player.rect.center, self.player,
-                                            super().groups()[0], size = [50, 10],tiles = self.tiles, speed = self.projectile_speed,image = self.arrow,
-                                            bounding_size=[10,10], damage = 10,start_move= int((self.rect.height * 0.5) / self.projectile_speed + 1)))
+                    self.projectiles.append(projectiles.EnemyProjectile(self.rect.center, self.player.rect.center, self.player,
+                                                                        super().groups()[0], size = [50, 10], tiles = self.tiles, speed = self.projectile_speed, image = self.arrow,
+                                                                        bounding_size=[10,10], damage = 10, start_move= int((self.rect.height * 0.5) / self.projectile_speed + 1)))
                 except IndexError:
                     #happens when the projectile is spawned same frame as the enemy dies just skip IK bad practice
                     pass

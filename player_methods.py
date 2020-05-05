@@ -1,7 +1,7 @@
 import pygame, random, math
 import numpy as np
 from pygame.locals import *
-import entities, utilities, weapon, constants, trajectories
+import entities, utilities, weapon, constants, projectiles, enemy_methods
 from game_images import image_sheets, animations
 from constants import *
 
@@ -45,6 +45,10 @@ class Player(entities.LivingEntity):
             return
         if self.xp[0] >= self.xp[1]:
             self.next_level()
+        self._check_hit()
+        for p in self.right_arm.projectiles:
+            if p.dead:
+                self.right_arm.projectiles.remove(p)
         self.handle_user_input()
         #move arms witht the body
         if self.flipped:
@@ -52,10 +56,17 @@ class Player(entities.LivingEntity):
             self.left_arm.update_arm((self.rect.centerx - 5, self.rect.centery +14))
         elif not self.flipped:
             self.right_arm.update_arm((self.rect.centerx + 3, self.rect.centery + 7))
-        for p in self.right_arm.projectiles:
-            if p.dead:
-                self.right_arm.projectiles.remove(p)
+        self.damage_boxes = [p.rect for p in self.right_arm.projectiles]
+
         self.animations()
+
+
+    def _check_hit(self):
+        for box in self.damage_boxes:
+            for sprite in self.groups()[0].sprites():
+                if isinstance(sprite, enemy_methods.Enemy) and sprite.bounding_box.colliderect(box):
+                    sprite.set_immune()
+                    sprite.change_health(- self.right_arm.damage)
 
     def next_level(self):
         self.level += 1
@@ -264,9 +275,9 @@ class RightArm(GenericArm):
                 self.weapon.reload()
         else:
             for _ in range(self.weapon.bullets_per_shot):
-                self.projectiles.append(trajectories.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
-                                    tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
-                                    image = self.bullet_image, start_move= int((self.rect.width * 0.5) / 20 + 1)))
+                self.projectiles.append(projectiles.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
+                                                                     tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
+                                                                     image = self.bullet_image, start_move= int((self.rect.width * 0.5) / 20 + 1)))
             self.weapon.magazine -= self.weapon.bullets_per_shot
             self.attack_cooldown = 1 / self.weapon.fire_rate
             if self.weapon.reloading:

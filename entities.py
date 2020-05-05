@@ -167,6 +167,8 @@ class LivingEntity(Entity):
         self.damage_color = self.DAMAGE_COLOR
         self.healing_color = self.HEALING_COLOR
         self.damaged = False
+        #list of all rectangles owned by the entity that can inflict damage
+        self.damage_boxes = [self.bounding_box]
 
     def update(self, *args):
         super().update(*args)

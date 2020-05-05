@@ -17,30 +17,17 @@ class Projectile(LivingEntity):
         else:
             self.bb_size = (self.rect.width, self.rect.height)
 
-    def update(self, *args):
-        super().update()
-        if not self.dead:
-            self._check_hit()
-
-    def _check_hit(self):
-        for sprite in super().groups()[0].sprites():
-            if hasattr(sprite, "change_health") and not sprite.immune[0] and sprite != self and not self.dead:
-                if sprite.rect.colliderect(self.rect):
-                    sprite.change_health(- self.damage)
-                    self.dead = True
-
     def move(self, max_speed_times = 1):
-        if any(self._check_collision(sprites = False)):
-            self.dead = True
         self.pos[0] += self.trajectory.speedx * max_speed_times
         self.pos[1] += self.trajectory.speedy * max_speed_times
         self.rect.center = self.pos
+        if any(self._check_collision()):
+            self.dead = True
 
     def _configure_trajectory(self, start_pos, end_pos):
         trajectory = LinearTrajectory(start_pos, end_pos, self.rect, self.image, super().groups()[0],
                                                    max_speed=self.max_speed, accuracy = self.accuracy)
         self.image = trajectory.image
-        self.rect = trajectory.rect
         self.pos = list(self.rect.center)
         return trajectory
 
@@ -81,12 +68,6 @@ class EnemyProjectile(Projectile):
         if not hasattr(self, "trajectory"):
             return self.rect
         return pygame.Rect(*(self.rect.center - self.trajectory.projectile_offset), *(self.bb_size))
-
-    def _check_hit(self):
-        if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
-            self.player.change_health(-self.damage)
-            self.player.set_immune()
-            self.dead = True
 
 class HomingProjectile(Projectile):
     def __init__(self, start_pos, end_pos, player, target, *groups, **kwargs):
