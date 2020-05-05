@@ -1,78 +1,5 @@
 import pygame, random, math
-
 import utilities
-from entities import LivingEntity
-
-class Projectile(LivingEntity):
-    ACCURACY = 80
-    def __init__(self, start_pos, end_pos, *groups, accuracy = ACCURACY, start_move  = 0, **kwargs):
-        LivingEntity.__init__(self, start_pos, *groups, **kwargs)
-        self.rect.center = start_pos
-        self.pos = list(self.rect.center)
-        self.accuracy = accuracy
-        self.trajectory = self._configure_trajectory(start_pos, end_pos )
-        self.move(start_move)
-        if "bounding_size" in kwargs:
-            self.bb_size = kwargs["bounding_size"]
-        else:
-            self.bb_size = (self.rect.width, self.rect.height)
-
-    def move(self, max_speed_times = 1):
-        self.pos[0] += self.trajectory.speedx * max_speed_times
-        self.pos[1] += self.trajectory.speedy * max_speed_times
-        self.rect.center = self.pos
-        if any(self._check_collision()):
-            self.dead = True
-
-    def _configure_trajectory(self, start_pos, end_pos):
-        trajectory = LinearTrajectory(start_pos, end_pos, self.rect, self.image, super().groups()[0],
-                                                   max_speed=self.max_speed, accuracy = self.accuracy)
-        self.image = trajectory.image
-        self.pos = list(self.rect.center)
-        return trajectory
-
-class PlayerProjectile(Projectile):
-    def __init__(self, start_pos, end_pos, *groups, **kwargs):
-        Projectile.__init__(self, start_pos, end_pos, *groups, **kwargs)
-
-    def _configure_trajectory(self, start_pos, end_pos):
-        """
-        Original trajectory but now containing a screen relative coordinate
-        :param start_pos:
-        :param end_pos:
-        """
-        trajectory = LinearTrajectory(utilities.get_screen_relative_coordinate(start_pos), end_pos, self.rect,
-                                                   self.image, super().groups()[0],max_speed=self.max_speed, accuracy = self.accuracy)
-        self.image = trajectory.image
-        self.rect = trajectory.rect
-        self.pos = list(self.rect.center)
-        return trajectory
-
-class EnemyProjectile(Projectile):
-    def __init__(self, start_pos, end_pos, player, *groups, **kwargs):
-        Projectile.__init__(self, start_pos, end_pos, *groups, **kwargs)
-        self.player = player
-
-    def do_flip(self):
-        """
-        make sure the image does not flip
-        TODO make a better sytem for this. This is kind of dumb.
-        """
-        pass
-
-    def _get_bounding_box(self):
-        """
-        Return a rectangle at the tip of the arrow to make sure the arrow does not collide with unexpected places
-        :return: a pygame.Rect object
-        """
-        if not hasattr(self, "trajectory"):
-            return self.rect
-        return pygame.Rect(*(self.rect.center - self.trajectory.projectile_offset), *(self.bb_size))
-
-class HomingProjectile(Projectile):
-    def __init__(self, start_pos, end_pos, player, target, *groups, **kwargs):
-        pass
-
 
 class Trajectory:
     def __init__(self, start_pos, rect, image, *groups, **kwargs):
@@ -81,7 +8,7 @@ class Trajectory:
         self.accuracy = kwargs["accuracy"]
 
 class LinearTrajectory(Trajectory):
-    MAX_INACCURACY = 0.1 * math.pi
+    MAX_INACCURACY = 0.1 * math.pi #90 degrees
     def __init__(self, start_pos, dest_pos, rect, image, *groups, max_speed = 10, **kwargs):
         Trajectory.__init__(self, start_pos, rect, image, *groups, **kwargs)
         self.projectile_offset = pygame.Vector2(0,0)

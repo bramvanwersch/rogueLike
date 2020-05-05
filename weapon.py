@@ -3,7 +3,7 @@
 import pygame, numpy
 
 import constants
-import utilities, manufacturers
+import utilities, entities, manufacturers
 from game_images import image_sheets
 from pygame.locals import *
 from pygame.compat import geterror

@@ -2,7 +2,7 @@
 import os, pygame, random
 
 from constants import game_rules, DEFAULT_LEVEL_SIZE, DATA_DIR, SCREEN_SIZE, GAME_TIME
-import weapon, utilities, camera, menu_methods, game_images, player_methods
+import weapon, utilities, entities, camera, player_methods, menu_methods, game_images
 from pygame.locals import *
 from pygame.compat import geterror
 

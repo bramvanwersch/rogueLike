@@ -1,16 +1,17 @@
 import pygame, random, math
 import numpy as np
 from pygame.locals import *
-import entities, utilities, weapon, constants, projectiles, enemy_methods
+import entities, utilities, weapon, constants
 from game_images import image_sheets, animations
 from constants import *
+from entities import LivingEntity
 
-class Player(entities.LivingEntity):
+class Player(LivingEntity):
     _PPS = PPS_PLAYER
     image_size = (16,32)
     def __init__(self, pos, *groups):
         idle_image = image_sheets["player"].image_at((0, 0), color_key = (255, 255, 255), pps=self.PPS)
-        entities.LivingEntity.__init__(self, pos,damage=5, image = idle_image)
+        LivingEntity.__init__(self, pos,damage=5, image = idle_image)
         self.walking_animation = animations["walk_Player"]
         self.idle_animation = animations["idle_Player"]
         self.dead_animation = animations["dead_Player"]
@@ -52,19 +53,10 @@ class Player(entities.LivingEntity):
             self.left_arm.update_arm((self.rect.centerx - 5, self.rect.centery +14))
         elif not self.flipped:
             self.right_arm.update_arm((self.rect.centerx + 3, self.rect.centery + 7))
-        self.damage_boxes = [p.rect for p in self.right_arm.projectiles]
-        self._check_hit()
         for p in self.right_arm.projectiles:
             if p.dead:
                 self.right_arm.projectiles.remove(p)
         self.animations()
-
-    def _check_hit(self):
-        for box in self.damage_boxes:
-            for sprite in self.groups()[0].sprites():
-                if isinstance(sprite, enemy_methods.Enemy) and sprite.bounding_box.colliderect(box):
-                    sprite.set_immune()
-                    sprite.change_health(- self.right_arm.damage)
 
     def next_level(self):
         self.level += 1
@@ -273,9 +265,9 @@ class RightArm(GenericArm):
                 self.weapon.reload()
         else:
             for _ in range(self.weapon.bullets_per_shot):
-                self.projectiles.append(projectiles.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
-                                                                     tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
-                                                                     image = self.bullet_image, start_move= int((self.rect.width * 0.5) / 20 + 1)))
+                self.projectiles.append(entities.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
+                                    tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
+                                    image = self.bullet_image))
             self.weapon.magazine -= self.weapon.bullets_per_shot
             self.attack_cooldown = 1 / self.weapon.fire_rate
             if self.weapon.reloading:
@@ -292,8 +284,6 @@ class RightArm(GenericArm):
             self.image = pygame.transform.rotozoom(self.orig_image, - self.angle, 1)
         offset_rotated = self.offset.rotate(self.angle)
         #weapon offset rotated
-        if self.weapon:
-            pass
         if not self.flipped:
             self.rect = self.image.get_rect(center=self.rect.center + offset_rotated)
         elif self.flipped:

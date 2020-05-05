@@ -1,11 +1,10 @@
 import pygame, random
 
-import enemy_methods
 from game_images import image_sheets, animations
 from constants import *
 import entities
 
-class Stoner(enemy_methods.Enemy):
+class Stoner(entities.Enemy):
     _PPS = PPS_STONER
     def __init__(self, pos, player, *groups, **kwargs):
         self.orig_base_image = image_sheets["stoner_boss"].image_at((0,0), size=(80,64), color_key=(255,255,255), pps=self.PPS)
@@ -19,7 +18,7 @@ class Stoner(enemy_methods.Enemy):
         self.smile_animation = animations["smile_Stoner"]
         self.left_lift_animation = animations["lift_left_arm_Stoner"]
         image = self.__get_image()
-        enemy_methods.Enemy.__init__(self, pos, player, *groups, image = image, speed = 0, health = 1000, **kwargs)
+        entities.Enemy.__init__(self, pos, player, *groups, image = image, speed = 0, health = 1000, **kwargs)
         #track if any of the parts changed to make sure to only blit a new boss image when needed
         self.an_image_changed = False
 
@@ -49,6 +48,7 @@ class Stoner(enemy_methods.Enemy):
                 self.an_image_changed = True
         if self.left_lift_animation.finished:
             self.left_lift_animation.reset()
+
 
     def __get_image(self):
         #make sure no pointers
