@@ -1,7 +1,7 @@
 import pygame, random, math
 import numpy as np
 from pygame.locals import *
-import entities, utilities, weapon, constants, trajectories
+import entities, utilities, weapon, constants, projectiles
 from game_images import image_sheets, animations
 from constants import *
 
@@ -226,6 +226,7 @@ class RightArm(GenericArm):
         self.orig_bullet = image_sheets["weapons"].image_at((160, 0), size = (32, 16), color_key = (255, 255, 255))
         self.bullet_image = self.orig_bullet
         self.weapon = None
+        self.bullet_start_distance = 0
 
     def update_arm(self, *args):
         super().update_arm(*args)
@@ -264,9 +265,9 @@ class RightArm(GenericArm):
                 self.weapon.reload()
         else:
             for _ in range(self.weapon.bullets_per_shot):
-                self.projectiles.append(trajectories.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
-                                    tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
-                                    image = self.bullet_image, start_move= int((self.rect.width * 0.5) / 20 + 1)))
+                self.projectiles.append(projectiles.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
+                                                                     tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
+                                                                     image = self.bullet_image, start_move= self.bullet_start_distance))
             self.weapon.magazine -= self.weapon.bullets_per_shot
             self.attack_cooldown = 1 / self.weapon.fire_rate
             if self.weapon.reloading:
@@ -351,6 +352,10 @@ class RightArm(GenericArm):
         self.damage = weapon.damage
         self.reload_cooldown = self.weapon.reload_speed
         self.offset = pygame.Vector2(self.rect.width * 0.5 - 30, -6)
+        self.bullet_start_distance =  int((self.rect.width * 0.5) / 20 + 1)
+        pd = int((Player.SIZE[1] * 0.5) / 20 + 1)
+        if pd > self.bullet_start_distance:
+            self.bullet_start_distance = pd
 
     def attributes(self):
         ats = super().attributes()

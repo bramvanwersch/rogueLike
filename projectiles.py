@@ -24,7 +24,7 @@ class Projectile(LivingEntity):
 
     def _check_hit(self):
         for sprite in super().groups()[0].sprites():
-            if hasattr(sprite, "change_health") and not sprite.immune[0] and sprite != self and not self.dead:
+            if sprite != self and not self.dead and hasattr(sprite, "change_health") and not isinstance(sprite, Projectile) and not sprite.immune[0]:
                 if sprite.rect.colliderect(self.rect):
                     sprite.change_health(- self.damage)
                     self.dead = True
