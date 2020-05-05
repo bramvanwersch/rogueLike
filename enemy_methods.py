@@ -162,7 +162,7 @@ class BlowMan(Enemy):
 
     def update(self, *args):
         super().update(*args)
-        self.damage_boxes = [self.bounding_box] + [p.rect for p in self.projectiles]
+        self.damage_boxes += [p.rect for p in self.projectiles]
         for p in self.projectiles:
             if p.dead:
                 self.projectiles.remove(p)

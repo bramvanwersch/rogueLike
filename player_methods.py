@@ -45,10 +45,6 @@ class Player(entities.LivingEntity):
             return
         if self.xp[0] >= self.xp[1]:
             self.next_level()
-        self._check_hit()
-        for p in self.right_arm.projectiles:
-            if p.dead:
-                self.right_arm.projectiles.remove(p)
         self.handle_user_input()
         #move arms witht the body
         if self.flipped:
@@ -57,9 +53,11 @@ class Player(entities.LivingEntity):
         elif not self.flipped:
             self.right_arm.update_arm((self.rect.centerx + 3, self.rect.centery + 7))
         self.damage_boxes = [p.rect for p in self.right_arm.projectiles]
-
+        self._check_hit()
+        for p in self.right_arm.projectiles:
+            if p.dead:
+                self.right_arm.projectiles.remove(p)
         self.animations()
-
 
     def _check_hit(self):
         for box in self.damage_boxes:

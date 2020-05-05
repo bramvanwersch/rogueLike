@@ -184,6 +184,7 @@ class LivingEntity(Entity):
             self.immune[0] = False
         if self.immune[0]:
             self.immune[1] -= 1
+        self.damage_boxes = [self.bounding_box]
 
     def _dead_sequence(self):
         if self.dead and hasattr(self,"dead_animation"):
