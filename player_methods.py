@@ -1,17 +1,16 @@
 import pygame, random, math
 import numpy as np
 from pygame.locals import *
-import entities, utilities, weapon, constants
+import entities, utilities, weapon, constants, trajectories
 from game_images import image_sheets, animations
 from constants import *
-from entities import LivingEntity
 
-class Player(LivingEntity):
+class Player(entities.LivingEntity):
     _PPS = PPS_PLAYER
     image_size = (16,32)
     def __init__(self, pos, *groups):
         idle_image = image_sheets["player"].image_at((0, 0), color_key = (255, 255, 255), pps=self.PPS)
-        LivingEntity.__init__(self, pos,damage=5, image = idle_image)
+        entities.LivingEntity.__init__(self, pos,damage=5, image = idle_image)
         self.walking_animation = animations["walk_Player"]
         self.idle_animation = animations["idle_Player"]
         self.dead_animation = animations["dead_Player"]
@@ -265,9 +264,9 @@ class RightArm(GenericArm):
                 self.weapon.reload()
         else:
             for _ in range(self.weapon.bullets_per_shot):
-                self.projectiles.append(entities.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
+                self.projectiles.append(trajectories.PlayerProjectile(self.rect.center, pygame.mouse.get_pos(), super().groups()[0],
                                     tiles = tiles, damage = self.weapon.damage, speed = 20, accuracy = self.weapon.accuracy,
-                                    image = self.bullet_image))
+                                    image = self.bullet_image, start_move= int((self.rect.width * 0.5) / 20 + 1)))
             self.weapon.magazine -= self.weapon.bullets_per_shot
             self.attack_cooldown = 1 / self.weapon.fire_rate
             if self.weapon.reloading:
@@ -284,6 +283,8 @@ class RightArm(GenericArm):
             self.image = pygame.transform.rotozoom(self.orig_image, - self.angle, 1)
         offset_rotated = self.offset.rotate(self.angle)
         #weapon offset rotated
+        if self.weapon:
+            pass
         if not self.flipped:
             self.rect = self.image.get_rect(center=self.rect.center + offset_rotated)
         elif self.flipped:

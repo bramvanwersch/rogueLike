@@ -1,5 +1,99 @@
 import pygame, random, math
 import utilities
+<<<<<<<< HEAD:trajectories.py
+from entities import LivingEntity
+
+class Projectile(LivingEntity):
+    ACCURACY = 80
+    def __init__(self, start_pos, end_pos, *groups, accuracy = ACCURACY, start_move  = 0, **kwargs):
+        LivingEntity.__init__(self, start_pos, *groups, **kwargs)
+        self.rect.center = start_pos
+        self.pos = list(self.rect.center)
+        self.accuracy = accuracy
+        self.trajectory = self._configure_trajectory(start_pos, end_pos )
+        self.move(start_move)
+        if "bounding_size" in kwargs:
+            self.bb_size = kwargs["bounding_size"]
+        else:
+            self.bb_size = (self.rect.width, self.rect.height)
+
+    def update(self, *args):
+        super().update()
+        if not self.dead:
+            self._check_hit()
+
+    def _check_hit(self):
+        for sprite in super().groups()[0].sprites():
+            if hasattr(sprite, "change_health") and not sprite.immune[0] and sprite != self and not self.dead:
+                if sprite.rect.colliderect(self.rect):
+                    sprite.change_health(- self.damage)
+                    self.dead = True
+
+    def move(self, max_speed_times = 1):
+        if any(self._check_collision(sprites = False)):
+            self.dead = True
+        self.pos[0] += self.trajectory.speedx * max_speed_times
+        self.pos[1] += self.trajectory.speedy * max_speed_times
+        self.rect.center = self.pos
+
+    def _configure_trajectory(self, start_pos, end_pos):
+        trajectory = LinearTrajectory(start_pos, end_pos, self.rect, self.image, super().groups()[0],
+                                                   max_speed=self.max_speed, accuracy = self.accuracy)
+        self.image = trajectory.image
+        self.rect = trajectory.rect
+        self.pos = list(self.rect.center)
+        return trajectory
+
+class PlayerProjectile(Projectile):
+    def __init__(self, start_pos, end_pos, *groups, **kwargs):
+        Projectile.__init__(self, start_pos, end_pos, *groups, **kwargs)
+
+    def _configure_trajectory(self, start_pos, end_pos):
+        """
+        Original trajectory but now containing a screen relative coordinate
+        :param start_pos:
+        :param end_pos:
+        """
+        trajectory = LinearTrajectory(utilities.get_screen_relative_coordinate(start_pos), end_pos, self.rect,
+                                                   self.image, super().groups()[0],max_speed=self.max_speed, accuracy = self.accuracy)
+        self.image = trajectory.image
+        self.rect = trajectory.rect
+        self.pos = list(self.rect.center)
+        return trajectory
+
+class EnemyProjectile(Projectile):
+    def __init__(self, start_pos, end_pos, player, *groups, **kwargs):
+        Projectile.__init__(self, start_pos, end_pos, *groups, **kwargs)
+        self.player = player
+
+    def do_flip(self):
+        """
+        make sure the image does not flip
+        TODO make a better sytem for this. This is kind of dumb.
+        """
+        pass
+
+    def _get_bounding_box(self):
+        """
+        Return a rectangle at the tip of the arrow to make sure the arrow does not collide with unexpected places
+        :return: a pygame.Rect object
+        """
+        if not hasattr(self, "trajectory"):
+            return self.rect
+        return pygame.Rect(*(self.rect.center - self.trajectory.projectile_offset), *(self.bb_size))
+
+    def _check_hit(self):
+        if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
+            self.player.change_health(-self.damage)
+            self.player.set_immune()
+            self.dead = True
+
+class HomingProjectile(Projectile):
+    def __init__(self, start_pos, end_pos, player, target, *groups, **kwargs):
+        pass
+
+========
+>>>>>>>> parent of 8c34642... bullets now dont hit each other and the damage checks are done within the respective:projectiles.py
 
 class Trajectory:
     def __init__(self, start_pos, rect, image, *groups, **kwargs):

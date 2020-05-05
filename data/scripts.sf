@@ -1,3 +1,2 @@
 spawn_boss: create entity Stoner (123;123)
 test_mode: set player health_regen 1000, set player max_speed 15
-blow_test: create entity BlowMan (123;123), set game_rule bounding_boxes t
