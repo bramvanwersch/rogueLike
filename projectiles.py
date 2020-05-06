@@ -1,21 +1,21 @@
 import pygame, random, math
-import utilities
+import utilities, constants
 
 from entities import LivingEntity
 
 class Projectile(LivingEntity):
     ACCURACY = 80
     def __init__(self, start_pos, end_pos, *groups, accuracy = ACCURACY, start_move  = 0, **kwargs):
+        if "bounding_size" in kwargs:
+            self.bb_size = kwargs["bounding_size"]
+        else:
+            self.bb_size = (self.rect.width, self.rect.height)
         LivingEntity.__init__(self, start_pos, *groups, **kwargs)
         self.rect.center = start_pos
         self.pos = list(self.rect.center)
         self.accuracy = accuracy
         self.trajectory = self._configure_trajectory(start_pos, end_pos )
         self.move(start_move)
-        if "bounding_size" in kwargs:
-            self.bb_size = kwargs["bounding_size"]
-        else:
-            self.bb_size = (self.rect.width, self.rect.height)
 
     def update(self, *args):
         super().update()
@@ -44,6 +44,9 @@ class Projectile(LivingEntity):
             self.rect = trajectory.rect
             self.pos = list(self.rect.center)
             return trajectory
+
+    def _get_bounding_box(self):
+        return pygame.Rect((*self.rect.center, *self.bb_size))
 
 class PlayerProjectile(Projectile):
     def __init__(self, start_pos, end_pos, *groups, **kwargs):
@@ -74,15 +77,6 @@ class EnemyProjectile(Projectile):
         """
         pass
 
-    def _get_bounding_box(self):
-        """
-        Return a rectangle at the tip of the arrow to make sure the arrow does not collide with unexpected places
-        :return: a pygame.Rect object
-        """
-        if not hasattr(self, "trajectory"):
-            return self.rect
-        return pygame.Rect(*(self.rect.center - self.trajectory.projectile_offset), *(self.bb_size))
-
     def _check_hit(self):
         if self.player.bounding_box.colliderect(self.bounding_box) and not self.player.immune[0]:
             self.player.change_health(-self.damage)
@@ -92,20 +86,28 @@ class EnemyProjectile(Projectile):
 class HomingProjectile(Projectile):
     RECALCULATING_SPEED = 10
     ACCURACY = 100
-    SPEED = 5
+    SPEED = 8
+    LIFE_TIME = 5
     def __init__(self, start_pos, end_pos, target, *groups, **kwargs):
         Projectile.__init__(self, start_pos, end_pos, *groups, speed = self.SPEED, accuracy = self.ACCURACY, **kwargs)
         self.passed_frames = 0
+        self.time_left = self.LIFE_TIME
         self.target = target
+        self.angle = 0
 
     def update(self):
         super().update()
         if self.passed_frames <= self.RECALCULATING_SPEED:
             self.passed_frames += 1
+            self.angle += 1
         else:
             self.passed_frames= 0
             self.trajectory = self._configure_trajectory(self.rect.center, self.target.rect.center)
-            self.image = self.orig_image
+        self.image = pygame.transform.rotate(self.orig_image, self.angle)
+        self.time_left -= constants.GAME_TIME.get_time() / 1000
+        self.bounding_box.center = self.rect.center
+        if self.time_left <= 0:
+            self.dead = True
 
     def _check_hit(self):
         if self.target.bounding_box.colliderect(self.bounding_box) and not self.target.immune[0]:

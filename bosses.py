@@ -2,10 +2,11 @@ import pygame, random
 
 from game_images import image_sheets, animations
 from constants import *
-import enemy_methods
+import enemy_methods, projectiles
 
 class Stoner(enemy_methods.Enemy):
     _PPS = PPS_STONER
+    PROJECTILE_SPEED = 5
     def __init__(self, pos, player, *groups, **kwargs):
         self.orig_base_image = image_sheets["stoner_boss"].image_at((0,0), size=(80,64), color_key=(255,255,255), pps=self.PPS)
         self.orig_mouth = image_sheets["stoner_boss"].image_at((144,16), size=(32,16), color_key=(255,255,255), pps=self.PPS)
@@ -17,16 +18,25 @@ class Stoner(enemy_methods.Enemy):
             self.orig_base_image, self.orig_mouth, self.orig_left_eye, self.orig_right_eye, self.orig_left_arm, self.orig_right_arm
         self.smile_animation = animations["smile_Stoner"]
         self.left_lift_animation = animations["lift_left_arm_Stoner"]
+        self.rock_image = image_sheets["stoner_boss"].image_at((240,0), size=(16,16), color_key=(255,255,255), pps = self.PPS)
         image = self.__get_image()
         enemy_methods.Enemy.__init__(self, pos, player, *groups, image = image, speed = 0, health = 1000, **kwargs)
+        self.projectile_speed = self.PROJECTILE_SPEED
         #track if any of the parts changed to make sure to only blit a new boss image when needed
         self.an_image_changed = False
+        self.projectiles = []
+        self.attacking = False
 
     def _get_bounding_box(self):
         return self.rect.inflate((-0.4 * self.rect.width, -0.1 * self.rect.height))
 
     def update(self,*args):
         super().update()
+        if not self.attacking and random.randint(0, 500):
+            self.attacking = True
+            self.left_lift_animation.reset()
+        if self.attacking and self.left_lift_animation.finished:
+            self.throw_rock()
         self.__run_anmimations()
         if self.an_image_changed:
             img = self.__get_image()
@@ -46,9 +56,6 @@ class Stoner(enemy_methods.Enemy):
             if self.left_lift_animation.changed_image:
                 self.left_arm = self.left_lift_animation.image[0]
                 self.an_image_changed = True
-        if self.left_lift_animation.finished:
-            self.left_lift_animation.reset()
-
 
     def __get_image(self):
         #make sure no pointers
@@ -65,3 +72,9 @@ class Stoner(enemy_methods.Enemy):
         image.set_colorkey((255,255,255), RLEACCEL)
         image = image.convert_alpha()
         return image
+
+    def throw_rock(self):
+        self.projectiles.append(projectiles.HomingProjectile(self.rect.center, self.player.rect.center, self.player, self.groups()[0],
+                                         tiles=self.tiles,start_move=int((self.bounding_box.height * 0.5) / self.projectile_speed + 1),
+                                         image=self.rock_image, bounding_size=[int(self.rock_image.get_rect().width * 0.5), int(self.rock_image.get_rect().height * 0.5)]))
+        self.attacking = False

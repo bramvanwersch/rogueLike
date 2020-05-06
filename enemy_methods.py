@@ -9,7 +9,6 @@ class Enemy(LivingEntity):
     def __init__(self, pos, player, *groups, **kwargs):
         LivingEntity.__init__(self, pos, *groups, **kwargs)
         self.player = player
-        self.previous_acctack_cycle = 0
         self.destination_coord = self.player.bounding_box.center
 
     def update(self,*args):
@@ -168,11 +167,9 @@ class BlowMan(Enemy):
         if self.shooting:
             if self.shooting_animation.finished:
                 try:
-                    self.projectiles.append(projectiles.HomingProjectile(self.rect.center, self.player.rect.center, self.player, super().groups()[0], tiles = self.tiles,
-                                            start_move= int((self.rect.height * 1) / self.projectile_speed + 1), size = [10,10]))
-                    # self.projectiles.append(projectiles.EnemyProjectile(self.rect.center, self.player.rect.center, self.player,
-                    #                                                     super().groups()[0], size = [50, 10], tiles = self.tiles, speed = self.projectile_speed, image = self.arrow,
-                    #                                                     bounding_size=[10,10], damage = 10, start_move= int((self.rect.height * 0.5) / self.projectile_speed + 1)))
+                    self.projectiles.append(projectiles.EnemyProjectile(self.rect.center, self.player.rect.center, self.player,
+                                            super().groups()[0], size = [50, 10], tiles = self.tiles, speed = self.projectile_speed, image = self.arrow,
+                                            bounding_size=[10,10], damage = 10, start_move= int((self.rect.height * 0.5) / self.projectile_speed + 1)))
                 except IndexError:
                     #happens when the projectile is spawned same frame as the enemy dies just skip IK bad practice
                     pass
