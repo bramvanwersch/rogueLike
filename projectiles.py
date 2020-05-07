@@ -5,11 +5,8 @@ from entities import LivingEntity
 
 class Projectile(LivingEntity):
     ACCURACY = 80
-    def __init__(self, start_pos, end_pos, *groups, accuracy = ACCURACY, start_move  = 0, **kwargs):
-        if "bounding_size" in kwargs:
-            self.bb_size = kwargs["bounding_size"]
-        else:
-            self.bb_size = (self.rect.width, self.rect.height)
+    def __init__(self, start_pos, end_pos, *groups, accuracy = ACCURACY, start_move  = 0, bb_size = None, **kwargs):
+        self.bb_size = bb_size
         LivingEntity.__init__(self, start_pos, *groups, **kwargs)
         self.rect.center = start_pos
         self.pos = list(self.rect.center)
@@ -46,7 +43,9 @@ class Projectile(LivingEntity):
             return trajectory
 
     def _get_bounding_box(self):
-        return pygame.Rect((*self.rect.center, *self.bb_size))
+        if self.bb_size:
+            return pygame.Rect((*self.rect.center, *self.bb_size))
+        return self.rect
 
 class PlayerProjectile(Projectile):
     def __init__(self, start_pos, end_pos, *groups, **kwargs):
